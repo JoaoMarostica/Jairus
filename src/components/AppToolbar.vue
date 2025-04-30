@@ -1,33 +1,22 @@
 <template>
-  <n-layout-header 
-    :style="{
-      left: sidebar ? '0' : '250px',
-    }"
-    class="header-fixed" 
-    bordered
+  <n-layout-header
+    class="header-fixed"
   >
     <n-flex align="center">
-      <n-button
+      <!-- <n-button
         @click="$emit('toggle-sidebar')"
       >
         <template #icon>
           <n-icon><MenuOutlined /></n-icon>
         </template>
-      </n-button>
+      </n-button> -->
       Jairus
     </n-flex>
 
     <n-flex justify="end" class="buttons-fixed">
-      <n-button 
-      >
+      <n-button>
         <template #icon>
           <n-icon><FileUploadOutlined /></n-icon>
-        </template>
-      </n-button>
-      <n-button 
-      >
-        <template #icon>
-          <n-icon><HistoryOutlined /></n-icon>
         </template>
       </n-button>
       <n-button 
@@ -39,8 +28,7 @@
           <n-icon><WbSunnyOutlined /></n-icon>
         </template>
       </n-button>
-      <n-button 
-      >
+      <n-button>
         <template #icon>
           <n-icon><SettingsOutlined /></n-icon>
         </template>
@@ -50,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { MenuOutlined, FileUploadOutlined, HistoryOutlined, SettingsOutlined, WbSunnyOutlined, NightlightOutlined } from '@vicons/material';
+import { FileUploadOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined } from '@vicons/material';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
 import {

@@ -17,7 +17,7 @@ export const lightThemeOverrides: GlobalThemeOverrides = {
     fontSize: '16px',
     lineHeight: '24px',
     textColorBase: '#0f0f0f',
-    bodyColor: '#ffffff',
+    bodyColor: '#f5f5f5',
     cardColor: '#ffffff',
     modalColor: '#ffffff',
     popoverColor: '#ffffff',
@@ -28,7 +28,11 @@ export const lightThemeOverrides: GlobalThemeOverrides = {
     inputColor: '#ffffff',
   },
   Layout: {
-    color: '#ffffff',
+    color: '#f5f5f5',
+    siderColor: '#f5f5f5',
+    headerColor: '#f5f5f5',
+    footerColor: '#f5f5f5',
+    contentColor: '#f5f5f5',
   },
   Button: {
     textColor: '#0f0f0f',
@@ -64,7 +68,7 @@ export const darkThemeOverrides: GlobalThemeOverrides = {
     lineHeight: '24px',
     textColorBase: '#f6f6f6',
     bodyColor: '#2f2f2f',
-    cardColor: '#2f2f2f',
+    cardColor: '#1e1e1e',
     modalColor: '#2f2f2f',
     popoverColor: '#2f2f2f',
     tableColor: '#2f2f2f',
@@ -75,6 +79,10 @@ export const darkThemeOverrides: GlobalThemeOverrides = {
   },
   Layout: {
     color: '#2f2f2f',
+    siderColor: '#2f2f2f',
+    headerColor: '#2f2f2f',
+    footerColor: '#2f2f2f',
+    contentColor: '#2f2f2f',
   },
   Button: {
     textColor: '#ffffff',
