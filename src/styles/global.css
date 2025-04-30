@@ -1,0 +1,71 @@
+:root {
+    --color-background: #ffffff;
+    --color-surface: #ffffff;
+    --color-primary: #04853a;
+    --color-secondary: #8a8a8a;
+    --color-error: #d32f2f;
+    --color-info: #1976d2;
+    --color-success: #3a7109;
+    --color-warning: #9f764a;
+
+    /* Font and global layout styles */
+    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+
+    color: #0f0f0f; /* Default text color (dark text on light bg) */
+    background-color: var(--color-background); /* Theme background */
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Layout container for centering content */
+.container {
+    margin: 0;
+    padding-top: 10vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Row layout for horizontal grouping (like buttons or logos) */
+.row {
+    display: flex;
+    justify-content: center;
+}
+
+/* Anchor styles (links) */
+a {
+    font-weight: 500;
+    color: var(--color-primary); /* Primary theme color */
+    text-decoration: inherit;
+}
+
+/* Link hover color: slightly darker than primary */
+a:hover {
+    color: #03582a;
+}
+
+/* Centered headers */
+h1 {
+    text-align: center;
+}
+  
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+    :root {
+        color: #f6f6f6; /* Light text */
+        background-color: #2f2f2f; /* Dark background */
+    }
+
+    a:hover {
+        color: #24c8db; /* Accent color for dark mode */
+    }
+}
