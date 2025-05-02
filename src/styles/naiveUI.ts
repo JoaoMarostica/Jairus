@@ -3,7 +3,7 @@ import { GlobalThemeOverrides } from 'naive-ui';
 export const lightThemeOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#04853a',
-    primaryColorHover: '#03682e',
+    primaryColorHover: '#e0e0e0',
     primaryColorPressed: '#03582a',
     primaryColorSuppl: '#04853a',
     fontFamily: 'Inter, Avenir, Helvetica, Arial, sans-serif',
@@ -34,10 +34,13 @@ export const lightThemeOverrides: GlobalThemeOverrides = {
     footerColor: '#f5f5f5',
     contentColor: '#f5f5f5',
   },
+  Menu: {
+    itemColorHover: '#e0e0e0',
+  },
   Button: {
     textColor: '#0f0f0f',
     rippleColor: 'transparent',
-    colorHover: '#f2f2f2',
+    colorHover: '#e0e0e0',
     border: 'none',
     borderFocus: 'none',
     borderHover: 'none',
@@ -83,6 +86,9 @@ export const darkThemeOverrides: GlobalThemeOverrides = {
     headerColor: '#2f2f2f',
     footerColor: '#2f2f2f',
     contentColor: '#2f2f2f',
+  },
+  Menu: {
+    itemColorHover: '#3a3a3a',
   },
   Button: {
     textColor: '#ffffff',

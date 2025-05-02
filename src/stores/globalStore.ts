@@ -28,7 +28,8 @@ export const useGlobalStore = defineStore('global', {
     },
     detectSystemTheme() {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      this.theme = mediaQuery.matches ? 'dark' : 'light';
+      // this.theme = mediaQuery.matches ? 'dark' : 'light';
+      this.theme = 'light';
 
       // Escuta mudanças no sistema
       mediaQuery.addEventListener('change', (e) => {

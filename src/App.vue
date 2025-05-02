@@ -11,7 +11,7 @@
 import { onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGlobalStore } from '@/stores/globalStore';
-import { lightThemeOverrides, darkThemeOverrides } from '@/config/naiveUI';
+import { lightThemeOverrides, darkThemeOverrides } from '@/styles/naiveUI';
 import { NConfigProvider, darkTheme } from 'naive-ui';
 import MainView from '@/views/MainView.vue';
 

@@ -1,6 +1,7 @@
 <template>
   <n-layout-sider
     :width="250"
+    class="app-drawer"
   >
     <n-menu
       :value="activeKey"
@@ -81,4 +82,10 @@ function handleMenuClick(key: string) {
 </script>
 
 <style scoped>
+.app-drawer {
+  height: 100vh;
+  padding: 16px;
+  position: fixed;
+  z-index: 1000;
+}
 </style>
