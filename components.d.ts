@@ -8,8 +8,10 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppDataTable: typeof import('./src/components/AppDataTable.vue')['default']
     AppDrawer: typeof import('./src/components/AppDrawer.vue')['default']
     AppToolbar: typeof import('./src/components/AppToolbar.vue')['default']
+    copy: typeof import('./src/components/AppToolbar copy.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
     NButtonGroup: typeof import('naive-ui')['NButtonGroup']
     NCard: typeof import('naive-ui')['NCard']

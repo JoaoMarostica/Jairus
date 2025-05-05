@@ -2,24 +2,13 @@ import { defineStore } from 'pinia';
 
 export const useGlobalStore = defineStore('global', {
   state: () => ({
-    user: null as null | { id: string; name: string },
-    isAuthenticated: false,
     theme: (localStorage.getItem('theme') as 'light' | 'dark') ?? 
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') as 'light' | 'dark',
     sidebar: false,
+    columns: Array<{ title: string; key: string }>(),
+    data: Array<{}>()
   }),
-  getters: {
-    isLoggedIn: (state) => state.isAuthenticated,
-  },
   actions: {
-    login(user: { id: string; name: string }) {
-      this.user = user;
-      this.isAuthenticated = true;
-    },
-    logout() {
-      this.user = null;
-      this.isAuthenticated = false;
-    },
     toggleTheme() {
       this.theme = this.theme === 'light' ? 'dark' : 'light';
     },
@@ -38,6 +27,12 @@ export const useGlobalStore = defineStore('global', {
     },
     toggleSidebar() {
       this.sidebar = !this.sidebar;
+    },
+    setColumns(columns: Array<{ title: string; key: string }>) {
+      this.columns = columns;
+    },
+    setData(data: Array<{  }>) {
+      this.data = data;
     },
   }
 });

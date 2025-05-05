@@ -36,43 +36,66 @@
     <!-- Filter + Table section -->
     <n-grid-item>
       <n-card class="mt-6" title="Transações recentes">
-        <n-grid cols="1 m:6" responsive="screen" x-gap="16" y-gap="16">
-          <n-grid-item span="m:3">
-            <n-input placeholder="Buscar..." />
-          </n-grid-item>
-          <n-grid-item span="m:1.5">
-            <n-select :options="['Categoria 1', 'Categoria 2'].map(i => ({ label: i, value: i }))" placeholder="Filtro" />
-          </n-grid-item>
-          <n-grid-item span="m:1.5">
-            <n-select :options="['Mais recentes', 'Mais antigas'].map(i => ({ label: i, value: i }))" placeholder="Ordenar" />
-          </n-grid-item>
-        </n-grid>
-  
-        <div class="table-wrapper">
-          <n-data-table
-            :columns="columns" 
-            :data="data"
-            :pagination="{ pageSize: 5 }"
-            scroll-x="max-content"
-            class="mt-4"
-          />
-        </div>
+        <AppDataTable :page-size="5" />
       </n-card>
     </n-grid-item>
   </n-grid>
 </template>
 
 <script setup lang="ts">
-import { NCard, NGrid, NGridItem, NInput, NSelect, NDataTable } from 'naive-ui'
+import { NCard, NGrid, NGridItem } from 'naive-ui'
 import { ref, onMounted } from 'vue'
+import AppDataTable from '@/components/AppDataTable.vue'
 import * as echarts from 'echarts'
+import { useGlobalStore } from '@/stores/globalStore';
+
+const globalStore = useGlobalStore()
 
 const chartPurezaRef = ref<HTMLElement | null>(null)
 const chartMovimentacaoRef = ref<HTMLElement | null>(null)
 const chartTratamentoRef = ref<HTMLElement | null>(null)
 
+const columns = [
+  { title: 'Data', key: 'data' },
+  { title: 'Descrição', key: 'descricao' },
+  { title: 'Categoria', key: 'categoria' },
+  { title: 'Quantidade (kg)', key: 'quantidade' }
+]
+
+const data = [
+  { data: '01/05/2025', descricao: 'Venda para AgroX', categoria: 'Venda', quantidade: '500' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
+  { data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' }
+]
 
 onMounted(() => {
+  globalStore.setColumns(columns)
+  globalStore.setData(data)
+
   if (chartPurezaRef.value) {
     const chart = echarts.init(chartPurezaRef.value)
     chart.setOption({
@@ -126,43 +149,6 @@ const keyPointIndicators = [
   { titulo: 'PP Vendidos', valor: '9.500', unidade: 'pts' },
   { titulo: 'Estoque atual', valor: '2.800', unidade: 'pts' },
   { titulo: 'Quebra média', valor: '18%', unidade: '' }
-]
-
-const columns = [
-  { title: 'Data', key: 'data' },
-  { title: 'Descrição', key: 'descricao' },
-  { title: 'Categoria', key: 'categoria' },
-  { title: 'Quantidade (kg)', key: 'quantidade' }
-]
-
-const data = [
-{ data: '01/05/2025', descricao: 'Venda para AgroX', categoria: 'Venda', quantidade: '500' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' },
-{ data: '29/04/2025', descricao: 'Recebimento Fazenda A', categoria: 'Entrada', quantidade: '700' }
 ]
 
 const evolucaoPureza = {
