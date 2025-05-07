@@ -10,6 +10,8 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppDataTable: typeof import('./src/components/AppDataTable.vue')['default']
     AppDrawer: typeof import('./src/components/AppDrawer.vue')['default']
+    AppFileUpload: typeof import('./src/components/AppFileUpload.vue')['default']
+    AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     AppToolbar: typeof import('./src/components/AppToolbar.vue')['default']
     copy: typeof import('./src/components/AppToolbar copy.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
@@ -26,8 +28,13 @@ declare module 'vue' {
     NLayoutHeader: typeof import('naive-ui')['NLayoutHeader']
     NLayoutSider: typeof import('naive-ui')['NLayoutSider']
     NLayoutTitle: typeof import('naive-ui')['NLayoutTitle']
+    NModal: typeof import('naive-ui')['NModal']
+    NP: typeof import('naive-ui')['NP']
     NSelect: typeof import('naive-ui')['NSelect']
     NSpace: typeof import('naive-ui')['NSpace']
+    NText: typeof import('naive-ui')['NText']
+    NUpload: typeof import('naive-ui')['NUpload']
+    NUploadDragger: typeof import('naive-ui')['NUploadDragger']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
