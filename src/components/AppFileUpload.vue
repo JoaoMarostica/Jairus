@@ -1,5 +1,5 @@
 <template>
-    <n-modal v-model:show="fileUploadModel" preset="card" title="Upload de Planilha" style="width: 500px">
+    <n-modal v-model:show="fileUploadModal" preset="card" title="Upload de Planilha" style="width: 500px">
         <n-upload
             :default-upload="false"
             :on-change="handleFileChange"
@@ -38,10 +38,8 @@ import {
     NIcon,
 } from 'naive-ui'
 
-defineEmits(['toggle-sidebar']);
-
 const globalStore = useGlobalStore();
-const { fileUploadModel } = storeToRefs(globalStore);
+const { fileUploadModal } = storeToRefs(globalStore);
 
 function handleFileChange({ file }: { file: UploadFileInfo }) {
     const raw = file.file
@@ -62,7 +60,7 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
         } catch (err) {
             console.error('Erro ao enviar o arquivo:', err)
         }
-        fileUploadModel.value = false
+        fileUploadModal.value = false
     }
 
     reader.readAsArrayBuffer(raw)

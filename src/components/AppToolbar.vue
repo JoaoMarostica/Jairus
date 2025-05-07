@@ -4,7 +4,7 @@
       <div>Jairus</div>
 
       <n-flex>
-        <n-button @click="fileUploadModel = true">
+        <n-button @click="fileUploadModal = true">
           <template #icon>
             <n-icon><FileUploadOutlined /></n-icon>
           </template>
@@ -17,7 +17,7 @@
             <n-icon><WbSunnyOutlined /></n-icon>
           </template>
         </n-button>
-        <n-button>
+        <n-button @click="settingsModal = true">
           <template #icon>
             <n-icon><SettingsOutlined /></n-icon>
           </template>
@@ -25,13 +25,16 @@
       </n-flex>
     </n-flex>
     <AppFileUpload />
+    <AppSettings />
   </n-layout-header>
 </template>
 
 <script setup lang="ts">
 import { FileUploadOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined } from '@vicons/material';
 import AppFileUpload from './AppFileUpload.vue';
+import AppSettings from './AppSettings.vue';
 import { useGlobalStore } from '@/stores/globalStore';
+import { useSettingsStore } from '@/stores/settingsStore'
 import { storeToRefs } from 'pinia';
 import {
   NLayoutHeader,
@@ -43,7 +46,10 @@ import {
 defineEmits(['toggle-sidebar']);
 
 const globalStore = useGlobalStore();
-const { theme, fileUploadModel } = storeToRefs(globalStore);
+const { theme, fileUploadModal } = storeToRefs(globalStore);
+
+const settingsStore = useSettingsStore()
+const { settingsModal } = storeToRefs(settingsStore)
 
 </script>
 

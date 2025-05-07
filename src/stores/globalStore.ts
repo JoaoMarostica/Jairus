@@ -5,7 +5,7 @@ export const useGlobalStore = defineStore('global', {
     theme: (localStorage.getItem('theme') as 'light' | 'dark') ?? 
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') as 'light' | 'dark',
     sidebar: false,
-    fileUploadModel: false,
+    fileUploadModal: false,
     columns: Array<{ title: string; key: string }>(),
     data: Array<{}>()
   }),
