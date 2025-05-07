@@ -6,8 +6,6 @@ export const useGlobalStore = defineStore('global', {
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') as 'light' | 'dark',
     sidebar: false,
     fileUploadModal: false,
-    columns: Array<{ title: string; key: string }>(),
-    data: Array<{}>()
   }),
   actions: {
     toggleTheme() {
@@ -28,12 +26,6 @@ export const useGlobalStore = defineStore('global', {
     },
     toggleSidebar() {
       this.sidebar = !this.sidebar;
-    },
-    setColumns(columns: Array<{ title: string; key: string }>) {
-      this.columns = columns;
-    },
-    setData(data: Array<{  }>) {
-      this.data = data;
     },
   }
 });
