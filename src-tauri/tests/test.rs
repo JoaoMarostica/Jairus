@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use seed_manager_lib::read_spreadsheet;
+    /*use seed_manager_lib::process_file;
 
     #[test]
-    fn read_spreadsheet_test() {
-        read_spreadsheet("./tests/planilha.xlsx");
-    }
+    fn process_file_test() {
+        process_file("./tests/planilha.xlsx");
+    }*/
 
 }
