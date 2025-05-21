@@ -1,6 +1,6 @@
 use crate::{ models::batch::Batch, repositories::batch_repository::BatchRepository};
 
-struct BatchService {
+pub struct BatchService {
     repo:BatchRepository
 }
 

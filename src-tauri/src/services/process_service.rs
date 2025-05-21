@@ -1,6 +1,6 @@
 use crate::{ models::process::Process, repositories::process_repository::ProcessRepository};
 
-struct ProcessService {
+pub struct ProcessService {
     repo:ProcessRepository
 }
 

@@ -1,6 +1,6 @@
 use crate::{ models::seed::Seed, repositories::seed_repository::SeedRepository};
 
-struct SeedService {
+pub struct SeedService {
     repo:SeedRepository
 }
 
