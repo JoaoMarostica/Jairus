@@ -14,7 +14,7 @@
 <script setup lang="ts">
 import { ref, computed, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { BarChartOutlined, WarehouseOutlined, ShowChartOutlined, AttachMoneyOutlined, AgricultureOutlined, CalculateOutlined, InfoOutlined, CategoryOutlined, HelpOutlineOutlined } from '@vicons/material'
+import { WarehouseOutlined, InfoOutlined, HelpOutlineOutlined } from '@vicons/material'
 import {
   NMenu,
   NLayoutSider,
@@ -26,39 +26,9 @@ const activeKey = ref(route.path)
 
 const menuOptions = computed(() => [
   {
-    label: 'Visão Geral',
+    label: 'Lotes',
     key: '/',
-    icon: () => h(BarChartOutlined),
-  },
-  {
-    label: 'Estoque',
-    key: '/inventory',
     icon: () => h(WarehouseOutlined),
-  },
-  {
-    label: 'Cargas',
-    key: '/cargo',
-    icon: () => h(AgricultureOutlined),
-  },
-  {
-    label: 'Tratamentos',
-    key: '/treatments',
-    icon: () => h(CategoryOutlined),
-  },
-  {
-    label: 'Vendas',
-    key: '/sales',
-    icon: () => h(AttachMoneyOutlined),
-  },
-  {
-    label: 'Relatório',
-    key: '/report',
-    icon: () => h(ShowChartOutlined),
-  },
-  {
-    label: 'Cálculadora SPV',
-    key: '/spv-calculator',
-    icon: () => h(CalculateOutlined),
   },
   {
     type: 'divider',

@@ -6,5 +6,6 @@
 // biome-ignore lint: disable
 export {}
 declare global {
-
+  const NButton: typeof import('naive-ui')['NButton']
+  const NTag: typeof import('naive-ui')['NTag']
 }

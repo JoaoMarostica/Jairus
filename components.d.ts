@@ -8,11 +8,14 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppBacthDetails: typeof import('./src/components/AppBacthDetails.vue')['default']
     AppDataTable: typeof import('./src/components/AppDataTable.vue')['default']
     AppDrawer: typeof import('./src/components/AppDrawer.vue')['default']
     AppFileUpload: typeof import('./src/components/AppFileUpload.vue')['default']
     AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     AppToolbar: typeof import('./src/components/AppToolbar.vue')['default']
+    BacthDetails: typeof import('./src/components/BacthDetails.vue')['default']
+    BacthDetailsPage: typeof import('./src/components/BacthDetailsPage.vue')['default']
     copy: typeof import('./src/components/AppToolbar copy.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
     NButtonGroup: typeof import('naive-ui')['NButtonGroup']
