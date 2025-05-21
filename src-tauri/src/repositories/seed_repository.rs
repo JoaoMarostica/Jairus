@@ -3,23 +3,23 @@ use crate::models::seed::Seed;
 pub struct SeedRepository;
 
 impl SeedRepository {
-    fn Create(object:&Seed) {
+    fn create(object:&Seed) {
 
     }
 
-    fn Read(id:&str) -> Option<Seed> {
+    fn read(id:&str) -> Option<Seed> {
         None
     }
 
-    fn ReadAll() -> Vec<Seed> {
+    fn read_all() -> Vec<Seed> {
         vec![]
     }
 
-    fn Update(id:&str, object:&Seed) {
+    fn update(id:&str, object:&Seed) {
 
     }
 
-    fn Delete(id:&str) {
+    fn delete(id:&str) {
 
     }
 }

@@ -3,23 +3,23 @@ use crate::models::process::Process;
 pub struct ProcessRepository;
 
 impl ProcessRepository {
-    fn Create(object:&Process) {
+    fn create(object:&Process) {
 
     }
 
-    fn Read(id:&str) -> Option<Process> {
+    fn read(id:&str) -> Option<Process> {
         None
     }
 
-    fn ReadAll() -> Vec<Process> {
+    fn read_all() -> Vec<Process> {
         vec![]
     }
 
-    fn Update(id:&str, object:&Process) {
+    fn update(id:&str, object:&Process) {
 
     }
 
-    fn Delete(id:&str) {
+    fn delete(id:&str) {
 
     }
 }
