@@ -1,7 +1,7 @@
 use diesel::prelude::Queryable;
 use serde::Serialize;
 
-use crate::models::{balance::Balance, seed::Seed, process::Process, brand::Brand};
+use crate::models::{balance::Balance, seed::Seed, coating::Coating, brand::Brand};
 
 #[derive(Queryable,Serialize)]
 pub struct Batch {
@@ -9,9 +9,9 @@ pub struct Batch {
     year:u32,
     month:u32,
     seed:Seed,
-    processing:Process,
+    coating:Coating,
     brand:Brand,
-    bag_weight:u32,
+    sack_weight:u32,
     pureness_score:f32,
     initial_balance:Balance,
     origin:String

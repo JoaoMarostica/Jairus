@@ -67,7 +67,7 @@ const columns = ref([
     ]
   },
   { title: 'Quantidade Disponível (kg)', key: 'availableQuantity' },
-  { title: 'Ponto de Pureza (PP)', key: 'purityPoint' },
+  { title: 'Ponto de Pureza (PP)', key: 'purenessScore' },
   { title: 'Total PP', key: 'totalPP' },
   {
     title: 'Ações',
@@ -112,7 +112,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 800,
-    purityPoint: 0.85,
+    purenessScore: 0.85,
     totalPP: 680
   },
   {
@@ -126,7 +126,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 1000,
-    purityPoint: 0.92,
+    purenessScore: 0.92,
     totalPP: 920
   },
   {
@@ -140,7 +140,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 1200,
-    purityPoint: 0.88,
+    purenessScore: 0.88,
     totalPP: 1056
   },
   {
@@ -154,7 +154,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 600,
-    purityPoint: 0.87,
+    purenessScore: 0.87,
     totalPP: 522
   },
   {
@@ -168,7 +168,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 400,
-    purityPoint: 0.90,
+    purenessScore: 0.90,
     totalPP: 360
   },
   {
@@ -182,7 +182,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 480,
-    purityPoint: 0.84,
+    purenessScore: 0.84,
     totalPP: 403.2
   },
   {
@@ -196,7 +196,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 720,
-    purityPoint: 0.89,
+    purenessScore: 0.89,
     totalPP: 640.8
   },
   {
@@ -210,7 +210,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 880,
-    purityPoint: 0.91,
+    purenessScore: 0.91,
     totalPP: 800.8
   },
   {
@@ -224,7 +224,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 640,
-    purityPoint: 0.88,
+    purenessScore: 0.88,
     totalPP: 563.2
   },
   {
@@ -238,7 +238,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 560,
-    purityPoint: 0.93,
+    purenessScore: 0.93,
     totalPP: 520.8
   },
   {
@@ -252,7 +252,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 800,
-    purityPoint: 0.91,
+    purenessScore: 0.91,
     totalPP: 728
   },
   {
@@ -266,7 +266,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 960,
-    purityPoint: 0.86,
+    purenessScore: 0.86,
     totalPP: 825.6
   },
   {
@@ -280,7 +280,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 760,
-    purityPoint: 0.89,
+    purenessScore: 0.89,
     totalPP: 676.4
   },
   {
@@ -294,7 +294,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 520,
-    purityPoint: 0.88,
+    purenessScore: 0.88,
     totalPP: 457.6
   },
   {
@@ -308,7 +308,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 680,
-    purityPoint: 0.92,
+    purenessScore: 0.92,
     totalPP: 625.6
   },
   {
@@ -322,7 +322,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 840,
-    purityPoint: 0.87,
+    purenessScore: 0.87,
     totalPP: 730.8
   },
   {
@@ -336,7 +336,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 920,
-    purityPoint: 0.90,
+    purenessScore: 0.90,
     totalPP: 828
   },
   {
@@ -350,7 +350,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 1040,
-    purityPoint: 0.85,
+    purenessScore: 0.85,
     totalPP: 884
   },
   {
@@ -364,7 +364,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 440,
-    purityPoint: 0.93,
+    purenessScore: 0.93,
     totalPP: 409.2
   },
   {
@@ -378,7 +378,7 @@ const data = ref([
       sackWeight: 40
     },
     availableQuantity: 1160,
-    purityPoint: 0.86,
+    purenessScore: 0.86,
     totalPP: 997.6
   }
 ])
