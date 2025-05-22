@@ -1,5 +1,5 @@
 <template>
-  <n-modal v-model="isModalOpen">
+  <n-modal v-model:show="isModalOpen" :width="800" :mask-closable="false">
     <n-grid cols="1" responsive="screen" x-gap="16" y-gap="16">
       <n-grid-item>
         <!-- Top cards -->
@@ -63,12 +63,28 @@ import { NCard, NGrid, NGridItem, NModal } from 'naive-ui'
 import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts'
 
+type Batch = {
+  batchNumber: string
+  expireDate: string
+  seed: string
+  treatment: string
+  sack: {
+    sackBrand: string
+    sackQuantity: number
+    sackWeight: number
+  }
+  availableQuantity: number
+  PPKilo: number
+  totalPP: number
+}
+
 const props = defineProps<{
-  selectedBatch: any[],
+  selectedBatch: any,
+  model: boolean
 }>()
 
-const isModalOpen = defineModel()
-const selectedBatch = ref<any>(props.selectedBatch)
+const isModalOpen = ref<boolean>(props.model)
+const selectedBatch = ref<Batch>(props.selectedBatch)
 
 const chartPurezaRef = ref<HTMLElement | null>(null)
 const chartMovimentacaoRef = ref<HTMLElement | null>(null)
@@ -76,6 +92,7 @@ const chartTratamentoRef = ref<HTMLElement | null>(null)
 
 watch(props, () => {
   selectedBatch.value = props.selectedBatch
+  isModalOpen.value = props.model
 })
 
 onMounted(() => {
