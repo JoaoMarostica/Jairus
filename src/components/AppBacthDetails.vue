@@ -49,7 +49,7 @@
         <!-- Tabela de saídas -->
         <n-grid-item>
           <n-card title="Saídas do lote">
-            <n-data-table :columns="columns" :data="saidaData" :pagination="false" />
+            <n-data-table :columns="saidaColumns" :data="saidaData" :pagination="false" />
           </n-card>
         </n-grid-item>
       </n-grid>
@@ -162,20 +162,8 @@ function closeModal(model: boolean) {
   }
 }
 
-// <n-grid-item>
-//   <n-card title="Informações do Lote" class="mt-6">
-//     <p><strong>Número:</strong> {{ props.selectedBatch.batchNumber }}</p>
-//     <p><strong>Vencimento:</strong> {{ props.selectedBatch.expireDate }}</p>
-//     <p><strong>Cultivar:</strong> {{ props.selectedBatch.seed }}</p>
-//     <p><strong>Revestimento:</strong> {{ props.selectedBatch.coating }}</p>
-//     <p><strong>Sacaria:</strong> {{ props.selectedBatch.sackBrand }} - 
-//       {{ props.selectedBatch.sackQuantity }} x {{ props.selectedBatch.sackWeight }}kg</p>
-//     <p><strong>Quantidade Disponível:</strong> {{ props.selectedBatch.availableQuantity }}kg</p>
-//     <p><strong>PP/Kg:</strong> {{ props.selectedBatch.purenessScore.toLocaleString() }}</p>
-//     <p><strong>Total PP:</strong> {{ props.selectedBatch.totalPP.toLocaleString() }}</p>
-//   </n-card>
-// </n-grid-item>
 function getKeyPointIndicators() {
+  // Precisa formata melhor isso, falta ainda alguns campos para a sacaria...
   return [
     { titulo: 'Data de validade', valor: selectedBatch.value.expireDate, unidade: '' },
     { titulo: 'Cultivar', valor: selectedBatch.value.seed, unidade: '' },
@@ -187,7 +175,7 @@ function getKeyPointIndicators() {
   ]
 }
 
-const columns = [
+const saidaColumns = [
   { title: 'Data', key: 'data' },
   { title: 'Destino', key: 'destino' },
   { title: 'Quantidade (kg)', key: 'quantidade' },

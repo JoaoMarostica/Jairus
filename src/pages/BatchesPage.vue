@@ -15,10 +15,10 @@
         scroll-x="max-content"
       />
     </div>
-
+    
+    <!-- Modal de detalhes -->
+    <AppBacthDetails v-model:model="isModalOpen" :selectedBatch="selectedBatch"/>
   </n-card>
-  <!-- Modal de detalhes -->
-  <AppBacthDetails v-model:model="isModalOpen" :selectedBatch="selectedBatch"/>
 </template>
 
 <script setup lang="ts">
