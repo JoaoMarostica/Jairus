@@ -1,110 +1,103 @@
 <template>
-  <n-modal v-model:show="isModalOpen" :width="800" :mask-closable="false">
-    <n-grid cols="1" responsive="screen" x-gap="16" y-gap="16">
-      <n-grid-item>
-        <!-- Top cards -->
-        <n-grid cols="1 m:4" responsive="screen" x-gap="16" y-gap="16">
-          <n-grid-item v-for="(indicator, index) in keyPointIndicators" :key="index">
-            <n-card :title="indicator.titulo" class="text-center">
-              <div class="text-xl font-bold">{{ indicator.valor }} {{ indicator.unidade }}</div>
-            </n-card>
-          </n-grid-item>
-        </n-grid>
-      </n-grid-item>
+  <n-modal
+    v-model:show="isModalOpen"
+    class="w-screen h-screen p-4"
+    :style="{ top: '0px', left: '0px', margin: '0', padding: '0' }"
+    :mask-closable="false"
+    preset="card"
+    :closable="true"
+    :title="modalTitle"
+    size="huge"
+  >
+    <div class="w-screen h-screen bg-white overflow-auto p-4">
+      <n-grid cols="1" responsive="screen" x-gap="16" y-gap="16">
+        <!-- Indicadores -->
+        <n-grid-item>
+          <n-grid cols="1 m:4" responsive="screen" x-gap="16" y-gap="16">
+            <n-grid-item v-for="(indicator, index) in keyPointIndicators" :key="index">
+              <n-card :title="indicator.titulo" class="text-center shadow-lg border border-gray-200">
+                <div class="text-2xl font-extrabold text-primary">{{ indicator.valor }} {{ indicator.unidade }}</div>
+              </n-card>
+            </n-grid-item>
+          </n-grid>
+        </n-grid-item>
 
-      <!-- Chart Section -->
-      <n-grid-item>
-        <n-card class="mt-6" title="Evolução mensal da pureza" style="height: 300px;">
-          <div ref="chartPurezaRef" style="height: 250px;" />
-        </n-card>
-      </n-grid-item>
+        <!-- Gráfico de Pureza -->
+        <n-grid-item>
+          <n-card class="mt-6" title="Evolução mensal da pureza" style="height: 300px;">
+            <div ref="chartPurezaRef" style="height: 250px;" />
+          </n-card>
+        </n-grid-item>
 
-      <n-grid-item>
-        <n-grid cols="1 m:2" responsive="screen" x-gap="16" y-gap="16" class="mt-6">
-          <n-grid-item>
-            <n-card title="Kg movimentados" style="height: 300px;">
-              <div ref="chartMovimentacaoRef" style="height: 250px;" />
-            </n-card>
-          </n-grid-item>
-          <n-grid-item>
-            <n-card title="Distribuição por tratamento" style="height: 300px;">
-              <div ref="chartTratamentoRef" style="height: 250px;" />
-            </n-card>
-          </n-grid-item>
-        </n-grid>
-      </n-grid-item>
-    </n-grid>
-    <n-card
-      style="width: 600px"
-      title="Detalhes do Lote"
-      :bordered="false"
-      size="huge"
-      role="dialog"
-      aria-modal="true"
-    >
-      <p><strong>Número:</strong> {{ selectedBatch.batchNumber }}</p>
-      <p><strong>Vencimento:</strong> {{ selectedBatch.expireDate }}</p>
-      <p><strong>Cultivar:</strong> {{ selectedBatch.seed }}</p>
-      <p><strong>Tipo:</strong> {{ selectedBatch.treatment }}</p>
-      <p><strong>Sacaria:</strong>
-        {{ selectedBatch.sack.sackBrand }} -
-        {{ selectedBatch.sack.sackQuantity }} x
-        {{ selectedBatch.sack.sackWeight }}kg
-      </p>
-      <p><strong>Quantidade Disponível:</strong> {{ selectedBatch.availableQuantity }}kg</p>
-      <p><strong>PP/Kg:</strong> {{ selectedBatch.PPKilo }}</p>
-      <p><strong>Total PP:</strong> {{ selectedBatch.totalPP }}</p>
-    </n-card>
+        <!-- Gráficos: Kg movimentados e Distribuição -->
+        <n-grid-item>
+          <n-grid cols="1 m:2" responsive="screen" x-gap="16" y-gap="16" class="mt-6">
+            <n-grid-item>
+              <n-card title="Kg movimentados" style="height: 300px;">
+                <div ref="chartMovimentacaoRef" style="height: 250px;" />
+              </n-card>
+            </n-grid-item>
+            <n-grid-item>
+              <n-card title="Distribuição por tratamento" style="height: 300px;">
+                <div ref="chartTratamentoRef" style="height: 250px;" />
+              </n-card>
+            </n-grid-item>
+          </n-grid>
+        </n-grid-item>
+
+        <!-- Tabela de saídas -->
+        <n-grid-item>
+          <n-card title="Saídas do lote">
+            <n-data-table :columns="columns" :data="saidaData" :pagination="false" />
+          </n-card>
+        </n-grid-item>
+      </n-grid>
+    </div>
   </n-modal>
 </template>
 
 <script setup lang="ts">
-import { NCard, NGrid, NGridItem, NModal } from 'naive-ui'
-import { ref, onMounted, watch } from 'vue'
+import { NModal, NCard, NGrid, NGridItem, NDataTable } from 'naive-ui'
+import { nextTick, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 
-type Batch = {
-  batchNumber: string
-  expireDate: string
-  seed: string
-  treatment: string
-  sack: {
-    sackBrand: string
-    sackQuantity: number
-    sackWeight: number
-  }
-  availableQuantity: number
-  PPKilo: number
-  totalPP: number
-}
-
 const props = defineProps<{
-  selectedBatch: any,
-  model: boolean
+  selectedBatch: any
 }>()
 
-const isModalOpen = ref<boolean>(props.model)
-const selectedBatch = ref<Batch>(props.selectedBatch)
-
-const chartPurezaRef = ref<HTMLElement | null>(null)
-const chartMovimentacaoRef = ref<HTMLElement | null>(null)
-const chartTratamentoRef = ref<HTMLElement | null>(null)
-
-watch(props, () => {
-  selectedBatch.value = props.selectedBatch
-  isModalOpen.value = props.model
+const isModalOpen = defineModel('model', {
+  type: Boolean,
+  default: false
 })
 
-onMounted(() => {
+const selectedBatch = ref(props.selectedBatch)
+const modalTitle = ref(`Detalhes do Lote ${props.selectedBatch}`)
+
+const keyPointIndicators = ref<{ titulo: string; valor: any; unidade: string }[]>([])
+const chartPurezaRef = ref(null)
+const chartMovimentacaoRef = ref(null)
+const chartTratamentoRef = ref(null)
+
+watch(isModalOpen, async () => {
+  if (isModalOpen) {
+    await nextTick()
+    selectedBatch.value = props.selectedBatch
+    modalTitle.value = `Detalhes do Lote ${selectedBatch.value.batchNumber}`
+    keyPointIndicators.value = getKeyPointIndicators()
+    renderCharts()
+  }
+})
+
+function renderCharts() {
   if (chartPurezaRef.value) {
     const chart = echarts.init(chartPurezaRef.value)
     chart.setOption({
-      xAxis: { type: 'category', data: evolucaoPureza.meses },
-      yAxis: { type: 'value', min: 0, max: 100 },
+      xAxis: { type: 'category', data: ['Jan', 'Fev', 'Mar', 'Abr'] },
+      yAxis: { type: 'value', min: 0, max: 1 },
       series: [{
-        name: 'Pureza (%)',
+        name: 'Pureza',
         type: 'line',
-        data: evolucaoPureza.pureza,
+        data: [0.8, 0.82, 0.85, props.selectedBatch.purenessScore],
         smooth: true
       }]
     })
@@ -113,13 +106,11 @@ onMounted(() => {
   if (chartMovimentacaoRef.value) {
     const chart = echarts.init(chartMovimentacaoRef.value)
     chart.setOption({
-      tooltip: { trigger: 'axis' },
-      legend: { data: ['Entrada', 'Saída'] },
-      xAxis: { type: 'category', data: movimentacaoKg.meses },
+      xAxis: { type: 'category', data: ['Jan', 'Fev', 'Mar', 'Abr'] },
       yAxis: { type: 'value' },
       series: [
-        { name: 'Entrada', type: 'bar', data: movimentacaoKg.entrada },
-        { name: 'Saída', type: 'bar', data: movimentacaoKg.saida }
+        { name: 'Entrada', type: 'bar', data: [300, 400, 500, 350] },
+        { name: 'Saída', type: 'bar', data: [200, 250, 300, 270] }
       ]
     })
   }
@@ -127,50 +118,55 @@ onMounted(() => {
   if (chartTratamentoRef.value) {
     const chart = echarts.init(chartTratamentoRef.value)
     chart.setOption({
-      tooltip: { trigger: 'item' },
-      legend: { orient: 'vertical', left: 'left' },
-      series: [
-        {
-          name: 'PP por tratamento',
-          type: 'pie',
-          radius: '60%',
-          data: tratamentoPP.tipos.map((tipo, i) => ({
-            name: tipo,
-            value: tratamentoPP.pontos[i]
-          }))
-        }
-      ]
+      series: [{
+        name: 'Tratamento',
+        type: 'pie',
+        radius: '50%',
+        data: [
+          { value: 400, name: 'Golden' },
+          { value: 300, name: 'Podium' },
+          { value: 280, name: 'Convencional' }
+        ]
+      }]
     })
   }
-})
+}
 
-const keyPointIndicators = [
-  { titulo: 'PP Entrados', valor: '12.300', unidade: 'pts' },
-  { titulo: 'PP Vendidos', valor: '9.500', unidade: 'pts' },
-  { titulo: 'Estoque atual', valor: '2.800', unidade: 'pts' },
-  { titulo: 'Quebra média', valor: '18%', unidade: '' }
+// <n-grid-item>
+//   <n-card title="Informações do Lote" class="mt-6">
+//     <p><strong>Número:</strong> {{ props.selectedBatch.batchNumber }}</p>
+//     <p><strong>Vencimento:</strong> {{ props.selectedBatch.expireDate }}</p>
+//     <p><strong>Cultivar:</strong> {{ props.selectedBatch.seed }}</p>
+//     <p><strong>Revestimento:</strong> {{ props.selectedBatch.coating }}</p>
+//     <p><strong>Sacaria:</strong> {{ props.selectedBatch.sackBrand }} - 
+//       {{ props.selectedBatch.sackQuantity }} x {{ props.selectedBatch.sackWeight }}kg</p>
+//     <p><strong>Quantidade Disponível:</strong> {{ props.selectedBatch.availableQuantity }}kg</p>
+//     <p><strong>PP/Kg:</strong> {{ props.selectedBatch.purenessScore.toLocaleString() }}</p>
+//     <p><strong>Total PP:</strong> {{ props.selectedBatch.totalPP.toLocaleString() }}</p>
+//   </n-card>
+// </n-grid-item>
+const getKeyPointIndicators = () => {
+  return [
+    { titulo: 'Data de validade', valor: selectedBatch.value.expireDate, unidade: '' },
+    { titulo: 'Cultivar', valor: selectedBatch.value.seed, unidade: '' },
+    { titulo: 'Revestimento', valor: selectedBatch.value.coating, unidade: '' },
+    { titulo: 'Sacaria', valor: selectedBatch.value.sackQuantity, unidade: '' },
+    { titulo: 'Quantidade Disponível', valor: selectedBatch.value.availableQuantity, unidade: 'kg' },
+    { titulo: 'PP', valor: selectedBatch.value.purenessScore, unidade: '' },
+    { titulo: 'Total de PP', valor: selectedBatch.value.totalPP, unidade: '' },
+  ]
+}
+
+const columns = [
+  { title: 'Data', key: 'data' },
+  { title: 'Destino', key: 'destino' },
+  { title: 'Quantidade (kg)', key: 'quantidade' },
+  { title: 'Responsável', key: 'responsavel' }
 ]
 
-const evolucaoPureza = {
-  meses: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai'],
-  pureza: [92, 88, 90, 89, 91]
-}
-
-const movimentacaoKg = {
-  meses: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai'],
-  entrada: [1200, 1500, 1300, 1100, 1700],
-  saida: [800, 1000, 900, 950, 1300]
-}
-
-const tratamentoPP = {
-  tipos: ['Golden', 'Podium', 'Convencional'],
-  pontos: [4000, 3500, 2800]
-}
-
+const saidaData = [
+  { data: '2025-05-01', destino: 'Cliente A', quantidade: 200, responsavel: 'João' },
+  { data: '2025-05-10', destino: 'Cliente B', quantidade: 100, responsavel: 'Maria' },
+  { data: '2025-05-15', destino: 'Cliente C', quantidade: 50, responsavel: 'Pedro' }
+]
 </script>
-
-<style scoped>
-.table-wrapper {
-margin-top: 30px;
-}
-</style>

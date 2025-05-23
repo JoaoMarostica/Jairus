@@ -17,7 +17,6 @@
     <n-data-table
       :columns="columns"
       :data="filteredData"
-      :pagination="{ pageSize }"
       scroll-x="max-content"
     />
   </div>
@@ -33,8 +32,6 @@ const props = defineProps<{
   categoryKey?: string,
   pageSize?: number
 }>()
-
-const pageSize = ref(props.pageSize ?? 12)
 
 const search = ref('')
 const selectedCategory = ref<string | null>(null)
