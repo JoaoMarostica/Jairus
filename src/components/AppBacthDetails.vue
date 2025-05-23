@@ -6,6 +6,7 @@
     :mask-closable="false"
     preset="card"
     :closable="true"
+    v-on:update-show="closeModal"
     :title="modalTitle"
     size="huge"
   >
@@ -132,6 +133,35 @@ function renderCharts() {
   }
 }
 
+function closeModal(model: boolean) {
+  if (!model) {
+    selectedBatch.value = null
+    modalTitle.value = ''
+    keyPointIndicators.value = []
+
+    if (chartPurezaRef.value) {
+      const chart = echarts.getInstanceByDom(chartPurezaRef.value)
+      if (chart) {
+        chart.dispose()
+      }
+    }
+
+    if (chartMovimentacaoRef.value) {
+      const chart = echarts.getInstanceByDom(chartMovimentacaoRef.value)
+      if (chart) {
+        chart.dispose()
+      }
+    }
+
+    if (chartTratamentoRef.value) {
+      const chart = echarts.getInstanceByDom(chartTratamentoRef.value)
+      if (chart) {
+        chart.dispose()
+      }
+    }
+  }
+}
+
 // <n-grid-item>
 //   <n-card title="Informações do Lote" class="mt-6">
 //     <p><strong>Número:</strong> {{ props.selectedBatch.batchNumber }}</p>
@@ -145,7 +175,7 @@ function renderCharts() {
 //     <p><strong>Total PP:</strong> {{ props.selectedBatch.totalPP.toLocaleString() }}</p>
 //   </n-card>
 // </n-grid-item>
-const getKeyPointIndicators = () => {
+function getKeyPointIndicators() {
   return [
     { titulo: 'Data de validade', valor: selectedBatch.value.expireDate, unidade: '' },
     { titulo: 'Cultivar', valor: selectedBatch.value.seed, unidade: '' },

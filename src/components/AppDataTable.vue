@@ -42,7 +42,7 @@ const categoryOptions = computed(() => {
   return unique.map(c => ({ label: c, value: c }))
 })
 
-const normalizeText = (text: string | null) => {
+function normalizeText(text: string | null) {
   if (!text) return ''
 
   // Normaliza o texto: remove espaços extras, converte para minúsculas, remove acentos
