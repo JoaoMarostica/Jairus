@@ -1,34 +1,42 @@
 <template>
-    <n-modal v-model:show="fileUploadModal" preset="card" title="Upload de Planilha" style="width: 500px">
-        <n-upload
-            :default-upload="false"
-            :on-change="handleFileChange"
-            :max="1"
-            directory-dnd
-        >
-            <n-upload-dragger>
-            <div style="margin-bottom: 12px">
-                <n-icon size="48" :depth="3">
-                <ArchiveOutlined />
-                </n-icon>
-            </div>
-            <n-text style="font-size: 16px">
-                Clique ou arraste arquivos para esta área para fazer upload
-            </n-text>
-            <n-p depth="3" style="margin: 8px 0 0 0">
-                Não envie informações sensíveis como senhas ou dados bancários.
-            </n-p>
-            </n-upload-dragger>
-        </n-upload>
-    </n-modal>
+  <n-modal v-model:show="fileUploadModal" preset="card" title="Upload de Planilha" style="width: 500px">
+    <n-spin :show="loading">
+      <n-upload
+        :default-upload="false"
+        :on-change="handleFileChange"
+        :max="1"
+        directory-dnd
+      >
+        <n-upload-dragger>
+          <div style="margin-bottom: 12px">
+            <n-icon size="48" :depth="3">
+            <ArchiveOutlined />
+            </n-icon>
+          </div>
+          <n-text style="font-size: 16px">
+            Clique ou arraste arquivos para esta área para fazer upload
+          </n-text>
+          <n-p depth="3" style="margin: 8px 0 0 0">
+            Não envie informações sensíveis como senhas ou dados bancários.
+          </n-p>
+        </n-upload-dragger>
+      </n-upload>
+      <template #description>
+        Lendo planilha...
+      </template>
+    </n-spin>
+  </n-modal>
 </template>
   
 <script setup lang="ts">
 import { ArchiveOutlined } from '@vicons/material'
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
-import { invoke } from '@tauri-apps/api/core'
+import { ref } from 'vue';
+import { useBatchesStore } from '@/stores/batchesStore';
+// import { invoke } from '@tauri-apps/api/core'
 import { UploadFileInfo } from 'naive-ui'
+import ExcelJS from 'exceljs'
 import {
     NModal,
     NUpload,
@@ -36,34 +44,83 @@ import {
     NText,
     NP,
     NIcon,
+    NSpin
 } from 'naive-ui'
 
 const globalStore = useGlobalStore();
 const { fileUploadModal } = storeToRefs(globalStore);
+const batchStore = useBatchesStore();
+
+const loading = ref(false)
 
 function handleFileChange({ file }: { file: UploadFileInfo }) {
-    const raw = file.file
-    if (!raw) return
+  loading.value = true
+  const raw = file.file
+  if (!raw) return
 
-    const reader = new FileReader()
+  readExcelFile(raw)
+    .then((data) => {
+      console.log(data)
+      // enviar para o back...
+      batchStore.setBatches(data)
+      loading.value = false
+      fileUploadModal.value = false
+    })
+    .catch((err) => {
+      console.error('Erro ao ler o Excel:', err)
+    })
+}
 
-    reader.onload = async () => {
-        const buffer = reader.result as ArrayBuffer
-        const bytes = Array.from(new Uint8Array(buffer))
+async function readExcelFile(file: File) {
+  const buffer = await file.arrayBuffer()
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(buffer)
 
-        try {
-            const res = await invoke("process_file", {
-            fileName: raw.name,
-            fileBytes: bytes
-            })
-            console.log('Arquivo enviado com sucesso:', res)
-        } catch (err) {
-            console.error('Erro ao enviar o arquivo:', err)
-        }
-        fileUploadModal.value = false
+  const sheet = workbook.getWorksheet('LOT')
+  if (!sheet) {
+    throw new Error('Aba "LOT" não encontrada')
+  }
+
+  // Pega os títulos da linha 2 (cabeçalho)
+  const headers: string[] = []
+  sheet.getRow(2).eachCell((cell, colNumber) => {
+    headers[colNumber - 1] = (cell.value as string).trim()
+  })
+
+  const data = []
+  for (let i = 3; i <= sheet.rowCount; i++) {
+    const row = sheet.getRow(i)
+
+    if (row.getCell(1).value === null) continue
+    if (row.getCell(1).value === "RESUMO SEMENTES FISCALIZADAS") break
+
+    // Monta um objeto que mapeia header -> valor da célula
+    const rowData: Record<string, any> = {}
+    row.eachCell((cell, colNumber) => {
+      const header = headers[colNumber - 1]
+      rowData[header] = cell.value
+    })
+
+    const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100
+
+    // Pegando os dados do lote que realmente interessam
+    const batch = {
+      number: rowData['LOTE'],
+      year: parseInt(rowData['ANO']),
+      expireDate: new Date(rowData['VCTO']),
+      seed: rowData['VARIEDADE'],
+      coating: rowData['TIPO'],
+      sackBrand: rowData['SC'],
+      sackQuantity: parseInt(rowData['QT.SC.']),
+      sackWeight: toFloat2(rowData['P.SC.']),
+      purenessScore: toFloat2(rowData['PP']),
+      outflowPP: toFloat2(rowData['SAÍDAS PP']),
+      outflowKg: toFloat2(rowData['SAÍDAS KG']),
+      usage: rowData['USO'],
     }
-
-    reader.readAsArrayBuffer(raw)
+    data.push(batch)
+  }
+  return data
 }
 
 </script>
