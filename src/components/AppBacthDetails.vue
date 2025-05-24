@@ -115,15 +115,22 @@ function renderCharts() {
   }
 
   if (balanceChart.value && batchBalance.value) {
-    console.log(batchBalance.value);
-    
     const chart = echarts.init(balanceChart.value)
     chart.setOption({
+        tooltip: {
+        trigger: 'item',
+        formatter: '{b}: {c} ({d}%)'
+      },
       series: [{
         name: 'Saldo',
         type: 'pie',
         radius: '50%',
         data: batchBalance.value,
+        label: {
+          show: true,
+          formatter: '{b}: {c}',
+          fontSize: 14
+        }
       }]
     })
   }

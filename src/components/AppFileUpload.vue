@@ -60,7 +60,7 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
 
   readExcelFile(raw)
     .then((data) => {
-      console.log(data)
+      // console.log(data)
       // enviar para o back...
       batchStore.setBatches(data)
       loading.value = false

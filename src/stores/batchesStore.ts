@@ -132,9 +132,9 @@ export const useBatchesStore = defineStore('batches', {
         const balanceSack = batch.sackQuantity - totalBatchOutflowSack;
 
         return [
-            { value: Math.max(balancePP, 0), name: 'Ponto de Pureza (PP)' },
-            { value: Math.max(balanceKg, 0), name: 'Quantidade (Kg)' },
-            { value: Math.max(balanceSack, 0), name: 'Sacos' }
+            { value: parseFloat(Math.max(balancePP, 0).toFixed(2)), name: 'Ponto de Pureza (PP)' },
+            { value: parseFloat(Math.max(balanceKg, 0).toFixed(2)), name: 'Quantidade (Kg)' },
+            { value: parseFloat(Math.max(balanceSack, 0).toFixed(2)), name: 'Sacos' }
         ];
     },
   }
