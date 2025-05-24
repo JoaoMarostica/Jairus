@@ -12,35 +12,32 @@
   >
     <div class="w-screen h-screen bg-white overflow-auto p-4">
       <n-grid cols="1" responsive="screen" x-gap="16" y-gap="16">
-        <!-- Indicadores -->
+        <!-- Dados do lote -->
         <n-grid-item>
-          <n-grid cols="1 m:4" responsive="screen" x-gap="16" y-gap="16">
-            <n-grid-item v-for="(indicator, index) in keyPointIndicators" :key="index">
-              <n-card :title="indicator.titulo" class="text-center shadow-lg border border-gray-200">
-                <div class="text-2xl font-extrabold text-primary">{{ indicator.valor }} {{ indicator.unidade }}</div>
-              </n-card>
-            </n-grid-item>
-          </n-grid>
-        </n-grid-item>
-
-        <!-- Gráfico de Pureza -->
-        <n-grid-item>
-          <n-card class="mt-6" title="Evolução mensal da pureza" style="height: 300px;">
-            <div ref="chartPurezaRef" style="height: 250px;" />
+          <n-card class="border border-gray-200">
+            <n-descriptions label-placement="top" :column="11" size="small">
+              <n-descriptions-item
+                v-for="(indicator, index) in batchData"
+                :key="index"
+                :label="indicator.titulo"
+              >
+                {{ indicator.valor }} {{ indicator.unidade }}
+              </n-descriptions-item>
+            </n-descriptions>
           </n-card>
         </n-grid-item>
 
-        <!-- Gráficos: Kg movimentados e Distribuição -->
+        <!-- Gráficos -->
         <n-grid-item>
           <n-grid cols="1 m:2" responsive="screen" x-gap="16" y-gap="16" class="mt-6">
             <n-grid-item>
-              <n-card title="Kg movimentados" style="height: 300px;">
-                <div ref="chartMovimentacaoRef" style="height: 250px;" />
+              <n-card title="Saídas" style="height: 300px;">
+                <div ref="outflowChart" style="height: 250px;" />
               </n-card>
             </n-grid-item>
             <n-grid-item>
-              <n-card title="Distribuição por tratamento" style="height: 300px;">
-                <div ref="chartTratamentoRef" style="height: 250px;" />
+              <n-card title="Saldo" style="height: 300px;">
+                <div ref="balanceChart" style="height: 250px;" />
               </n-card>
             </n-grid-item>
           </n-grid>
@@ -49,7 +46,7 @@
         <!-- Tabela de saídas -->
         <n-grid-item>
           <n-card title="Saídas do lote">
-            <n-data-table :columns="saidaColumns" :data="saidaData" :pagination="false" />
+            <n-data-table :columns="outflowColumns" :data="outflowData" :pagination="false" />
           </n-card>
         </n-grid-item>
       </n-grid>
@@ -58,9 +55,21 @@
 </template>
 
 <script setup lang="ts">
-import { NModal, NCard, NGrid, NGridItem, NDataTable } from 'naive-ui'
+import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptionsItem } from 'naive-ui'
 import { nextTick, ref, watch } from 'vue'
 import * as echarts from 'echarts'
+import { useBatchesStore } from '@/stores/batchesStore';
+
+type BatchOutflow = {
+  outflowPP: number;
+  outflowKg: number;
+  outflowSack: number;
+  usage: string;
+};
+
+type BatchBalance = {value: number; name: string};
+
+const batchesStore = useBatchesStore();
 
 const props = defineProps<{
   selectedBatch: any
@@ -74,38 +83,27 @@ const isModalOpen = defineModel('model', {
 const selectedBatch = ref(props.selectedBatch)
 const modalTitle = ref(`Detalhes do Lote ${props.selectedBatch}`)
 
-const keyPointIndicators = ref<{ titulo: string; valor: any; unidade: string }[]>([])
-const chartPurezaRef = ref(null)
-const chartMovimentacaoRef = ref(null)
-const chartTratamentoRef = ref(null)
+const batchData = ref<{ titulo: string; valor: any; unidade: string }[]>([])
+const outflowChart = ref<HTMLElement | null>(null)
+const balanceChart = ref<HTMLElement | null>(null)
+const outflowData = ref<BatchOutflow[]>([])
+const batchBalance = ref<BatchBalance[]>([])
 
 watch(isModalOpen, async () => {
   if (isModalOpen) {
     await nextTick()
     selectedBatch.value = props.selectedBatch
-    modalTitle.value = `Detalhes do Lote ${selectedBatch.value.batchNumber}`
-    keyPointIndicators.value = getKeyPointIndicators()
+    modalTitle.value = `Detalhes do Lote ${selectedBatch.value.number}`
+    batchData.value = getbatchData()
+    outflowData.value = await batchesStore.getBatchOutflow(selectedBatch.value.number)
+    batchBalance.value = await batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
     renderCharts()
   }
 })
 
 function renderCharts() {
-  if (chartPurezaRef.value) {
-    const chart = echarts.init(chartPurezaRef.value)
-    chart.setOption({
-      xAxis: { type: 'category', data: ['Jan', 'Fev', 'Mar', 'Abr'] },
-      yAxis: { type: 'value', min: 0, max: 1 },
-      series: [{
-        name: 'Pureza',
-        type: 'line',
-        data: [0.8, 0.82, 0.85, props.selectedBatch.purenessScore],
-        smooth: true
-      }]
-    })
-  }
-
-  if (chartMovimentacaoRef.value) {
-    const chart = echarts.init(chartMovimentacaoRef.value)
+  if (outflowChart.value && selectedBatch.value) {
+    const chart = echarts.init(outflowChart.value)
     chart.setOption({
       xAxis: { type: 'category', data: ['Jan', 'Fev', 'Mar', 'Abr'] },
       yAxis: { type: 'value' },
@@ -116,18 +114,16 @@ function renderCharts() {
     })
   }
 
-  if (chartTratamentoRef.value) {
-    const chart = echarts.init(chartTratamentoRef.value)
+  if (balanceChart.value && batchBalance.value) {
+    console.log(batchBalance.value);
+    
+    const chart = echarts.init(balanceChart.value)
     chart.setOption({
       series: [{
-        name: 'Tratamento',
+        name: 'Saldo',
         type: 'pie',
         radius: '50%',
-        data: [
-          { value: 400, name: 'Golden' },
-          { value: 300, name: 'Podium' },
-          { value: 280, name: 'Convencional' }
-        ]
+        data: batchBalance.value,
       }]
     })
   }
@@ -137,24 +133,17 @@ function closeModal(model: boolean) {
   if (!model) {
     selectedBatch.value = null
     modalTitle.value = ''
-    keyPointIndicators.value = []
+    batchData.value = []
 
-    if (chartPurezaRef.value) {
-      const chart = echarts.getInstanceByDom(chartPurezaRef.value)
+    if (outflowChart.value) {
+      const chart = echarts.getInstanceByDom(outflowChart.value)
       if (chart) {
         chart.dispose()
       }
     }
 
-    if (chartMovimentacaoRef.value) {
-      const chart = echarts.getInstanceByDom(chartMovimentacaoRef.value)
-      if (chart) {
-        chart.dispose()
-      }
-    }
-
-    if (chartTratamentoRef.value) {
-      const chart = echarts.getInstanceByDom(chartTratamentoRef.value)
+    if (balanceChart.value) {
+      const chart = echarts.getInstanceByDom(balanceChart.value)
       if (chart) {
         chart.dispose()
       }
@@ -162,29 +151,26 @@ function closeModal(model: boolean) {
   }
 }
 
-function getKeyPointIndicators() {
-  // Precisa formata melhor isso, falta ainda alguns campos para a sacaria...
+function getbatchData() {
   return [
+    { titulo: 'Ano', valor: selectedBatch.value.year, unidade: '' },
     { titulo: 'Data de validade', valor: selectedBatch.value.expireDate, unidade: '' },
     { titulo: 'Cultivar', valor: selectedBatch.value.seed, unidade: '' },
     { titulo: 'Revestimento', valor: selectedBatch.value.coating, unidade: '' },
-    { titulo: 'Sacaria', valor: selectedBatch.value.sackQuantity, unidade: '' },
-    { titulo: 'Quantidade Disponível', valor: selectedBatch.value.availableQuantity, unidade: 'kg' },
-    { titulo: 'PP', valor: selectedBatch.value.purenessScore, unidade: '' },
+    { titulo: 'Marca da Sacaria', valor: selectedBatch.value.sackBrand, unidade: '' },
+    { titulo: 'Sacos', valor: selectedBatch.value.sackQuantity, unidade: '' },
+    { titulo: 'Peso da Sacaria', valor: selectedBatch.value.sackWeight, unidade: 'Kg' },
+    { titulo: 'Quantidade (Kg)', valor: selectedBatch.value.availableQuantity, unidade: 'kg' },
+    { titulo: 'Ponto de Pureza (PP)', valor: selectedBatch.value.purenessScore, unidade: '' },
     { titulo: 'Total de PP', valor: selectedBatch.value.totalPP, unidade: '' },
   ]
 }
 
-const saidaColumns = [
-  { title: 'Data', key: 'data' },
-  { title: 'Destino', key: 'destino' },
-  { title: 'Quantidade (kg)', key: 'quantidade' },
-  { title: 'Responsável', key: 'responsavel' }
+const outflowColumns = [
+  { title: 'Ponto de Pureza (PP)', key: 'outflowPP' },
+  { title: 'Quantidade (kg)', key: 'outflowKg' },
+  { title: 'Sacos', key: 'outflowSack' },
+  { title: 'Uso', key: 'usage' }
 ]
 
-const saidaData = [
-  { data: '2025-05-01', destino: 'Cliente A', quantidade: 200, responsavel: 'João' },
-  { data: '2025-05-10', destino: 'Cliente B', quantidade: 100, responsavel: 'Maria' },
-  { data: '2025-05-15', destino: 'Cliente C', quantidade: 50, responsavel: 'Pedro' }
-]
 </script>

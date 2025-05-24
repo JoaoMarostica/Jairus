@@ -49,38 +49,43 @@ export const useBatchesStore = defineStore('batches', {
   },
   actions: {
     setBatches(batches: Batch[]) {
-        const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100
-        
+        const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100;
+
+        const existingBatchNumbers = new Set(this.batches.map(b => b.number));
+
         batches.forEach((batch) => {
-            const formatBatch: DataTableBatch = {
-                key: batch.number,
-                number: batch.number,
-                year: batch.year,
-                // Convert the expireDate to a MM/YYYY format
-                expireDate: parseExpireDate(batch.expireDate),
-                seed: batch.seed,
-                coating: batch.coating,
-                sackBrand: batch.sackBrand,
-                sackQuantity: batch.sackQuantity,
-                sackWeight: batch.sackWeight,
-                availableQuantity: batch.sackQuantity * batch.sackWeight,
-                purenessScore: batch.purenessScore,
-                totalPP: toFloat2(batch.sackQuantity * batch.sackWeight * batch.purenessScore),
-                _searchIndex: normalizeText(
-                    [
-                        batch.number,
-                        batch.year,
-                        parseExpireDate(batch.expireDate),
-                        batch.seed,
-                        batch.coating,
-                        batch.sackBrand,
-                        batch.sackQuantity,
-                        batch.sackWeight,
-                        batch.purenessScore,
-                        batch.usage
-                    ].join(' ')
-                )
-            };
+            if (!existingBatchNumbers.has(batch.number)) {
+                const formatBatch: DataTableBatch = {
+                    key: batch.number,
+                    number: batch.number,
+                    year: batch.year,
+                    expireDate: parseExpireDate(batch.expireDate),
+                    seed: batch.seed,
+                    coating: batch.coating,
+                    sackBrand: batch.sackBrand,
+                    sackQuantity: batch.sackQuantity,
+                    sackWeight: batch.sackWeight,
+                    availableQuantity: batch.sackQuantity * batch.sackWeight,
+                    purenessScore: batch.purenessScore,
+                    totalPP: toFloat2(batch.sackQuantity * batch.sackWeight * batch.purenessScore),
+                    _searchIndex: normalizeText(
+                        [
+                            batch.number,
+                            batch.year,
+                            parseExpireDate(batch.expireDate),
+                            batch.seed,
+                            batch.coating,
+                            batch.sackBrand,
+                            batch.sackQuantity,
+                            batch.sackWeight,
+                            batch.purenessScore,
+                            batch.usage
+                        ].join(' ')
+                    )
+                };
+                this.batches.push(formatBatch);
+                existingBatchNumbers.add(batch.number);
+            }
 
             const batchOutflow: BatchOutflow = {
                 batchNumber: batch.number,
@@ -98,18 +103,40 @@ export const useBatchesStore = defineStore('batches', {
                     ].join(' ')
                 )
             };
-
-            this.batches.push(formatBatch);
             this.batchOutflows.push(batchOutflow);
         });
     },
-    getBatchOutflowBy(batchNumber: number) {
-        const batchOutflow = this.batchOutflows.find((batch) => batch.batchNumber === batchNumber);
-        if (batchOutflow) {
-            return batchOutflow;
-        }
-        return false;
-    }
+    async getBatchOutflow(batchNumber: number) {
+        return this.batchOutflows
+            .filter(batch => batch.batchNumber === batchNumber)
+            .map(batchOutflow => ({
+                outflowPP: batchOutflow.outflowPP,
+                outflowKg: batchOutflow.outflowKg,
+                outflowSack: batchOutflow.outflowSack,
+                usage: batchOutflow.usage,
+            }));
+    },
+    async getBatchBalance(batch: DataTableBatch, batchOutflows: any[]) {
+        let totalBatchOutflowPP = 0;
+        let totalBatchOutflowKg = 0;
+        let totalBatchOutflowSack = 0;
+
+        batchOutflows.forEach((batchOutflow) => {
+            totalBatchOutflowPP += batchOutflow.outflowPP;
+            totalBatchOutflowKg += batchOutflow.outflowKg;
+            totalBatchOutflowSack += batchOutflow.outflowSack;
+        });
+
+        const balancePP = batch.totalPP - totalBatchOutflowPP;
+        const balanceKg = batch.availableQuantity - totalBatchOutflowKg;
+        const balanceSack = batch.sackQuantity - totalBatchOutflowSack;
+
+        return [
+            { value: Math.max(balancePP, 0), name: 'Ponto de Pureza (PP)' },
+            { value: Math.max(balanceKg, 0), name: 'Quantidade (Kg)' },
+            { value: Math.max(balanceSack, 0), name: 'Sacos' }
+        ];
+    },
   }
 });
 
