@@ -60,8 +60,7 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
 
   readExcelFile(raw)
     .then((data) => {
-      // console.log(data)
-      // enviar para o back...
+      // enviar para o backend...
       batchStore.setBatches(data)
       loading.value = false
       fileUploadModal.value = false
@@ -117,6 +116,8 @@ async function readExcelFile(file: File) {
       outflowPP: toFloat2(rowData['SAÍDAS PP']),
       outflowKg: toFloat2(rowData['SAÍDAS KG']),
       usage: rowData['USO'],
+      status: "active",
+      deletedAt: null,
     }
     data.push(batch)
   }

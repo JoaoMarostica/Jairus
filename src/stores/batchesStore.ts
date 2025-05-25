@@ -13,6 +13,8 @@ type Batch = {
     outflowPP: number;
     outflowKg: number;
     usage: string;
+    status: string;
+    deletedAt: Date | null;
 };
 
 type DataTableBatch = {
@@ -28,6 +30,8 @@ type DataTableBatch = {
     availableQuantity: number;
     purenessScore: number;
     totalPP: number;
+    status: string;
+    deletedAt: Date | null;
     _searchIndex: string;
 };
 
@@ -68,6 +72,8 @@ export const useBatchesStore = defineStore('batches', {
                     availableQuantity: batch.sackQuantity * batch.sackWeight,
                     purenessScore: batch.purenessScore,
                     totalPP: toFloat2(batch.sackQuantity * batch.sackWeight * batch.purenessScore),
+                    status: batch.status,
+                    deletedAt: batch.deletedAt,
                     _searchIndex: normalizeText(
                         [
                             batch.number,

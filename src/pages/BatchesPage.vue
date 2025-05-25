@@ -3,13 +3,41 @@
     <!-- Filtro -->
     <n-grid cols="1 m:6" responsive="screen" x-gap="16" y-gap="16">
       <n-grid-item span="m:3">
-        <n-input
-          @change="handleSearch"
-          placeholder="Buscar..."
-          autosize
-          style="min-width: 50%"
-          clearable
-        />
+        <n-input-group>
+          <n-input
+            @change="handleSearch"
+            placeholder="Pesquisar"
+            autosize
+            :style="{ minWidth: '50%', width: '33%' }"
+            clearable
+          />
+          <n-select
+            v-model:value="columnFilter"
+            filterable
+            placeholder="Coluna"
+            :options="columnFilterOptions"
+            :style="{ width: '33%' }"
+            clearable
+          />
+          <n-select
+            v-model:value="yearFilter"
+            filterable
+            placeholder="Ano"
+            :options="yearFilterOptions"
+            :style="{ width: '33%' }"
+            clearable
+          />
+        </n-input-group>
+      </n-grid-item>
+      <n-grid-item>
+        <n-button v-if="checkedRowKeys.length !== 0" type="error" ghost>
+          <template #icon>
+            <n-icon>
+              <DeleteOutlined />
+            </n-icon>
+          </template>
+          Remover
+        </n-button>
       </n-grid-item>
     </n-grid>
 
@@ -19,6 +47,8 @@
         :columns="columns"
         :data="filteredData"
         :pagination="pagination"
+        @update:checked-row-keys="handleCheck"
+        @update:sorter="handleUpdateSorter"
         scroll-x="max-content"
       />
     </div>
@@ -36,13 +66,41 @@ import {
   NInput,
   NDataTable,
   NButton,
+  NTag,
+  NIcon,
+  NSelect,
+  NInputGroup,
 } from 'naive-ui';
+import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
-import { ref, computed, h, Ref, reactive } from 'vue';
-import { InsertChartOutlined, ModeEditOutlined } from '@vicons/material'
+import { ref, computed, h, Ref, reactive, watch } from 'vue';
+import { AutoAwesomeMosaicOutlined, ModeEditOutlined, DeleteOutlined } from '@vicons/material'
 import AppBacthDetails from '@/components/AppBacthDetails.vue';
 import { useBatchesStore } from '@/stores/batchesStore';
 import { storeToRefs } from 'pinia';
+
+type DataTableBatch = {
+  key: number;
+  number: number;
+  year: number;
+  expireDate: string;
+  seed: string;
+  coating: string;
+  sackBrand: string;
+  sackQuantity: number;
+  sackWeight: number;
+  availableQuantity: number;
+  purenessScore: number;
+  totalPP: number;
+  status: string;
+  deletedAt: Date | null;
+  _searchIndex: string;
+};
+
+type Sorter = {
+  columnKey: string;
+  order: 'ascend' | 'descend' | false;
+};
 
 const isModalOpen = ref<boolean>(false);
 
@@ -51,6 +109,14 @@ const { batches } = storeToRefs(batchesStore);
 
 const selectedBatch = ref<any>(null);
 const search = ref('');
+const checkedRowKeys = ref<DataTableRowKey[]>([])
+const sortStates = ref<Sorter[]>([]);
+
+const columns = ref<TableColumn<RowData>[]>([]);
+const columnFilter = ref(null);
+const columnFilterOptions = ref<{label: string, value: string}[]>([]);
+const yearFilter = ref(null);
+const yearFilterOptions = ref<{label: string, value: string}[]>([]);
 
 const pagination = reactive({
   page: 1,
@@ -66,20 +132,103 @@ const pagination = reactive({
   }
 })
 
-function handleSearch(searchTerm: string) {
-  search.value = searchTerm;
-}
+const sortKeyMapOrder = computed<Record<string, 'ascend' | 'descend' | false>>(() =>
+  sortStates.value.reduce<Record<string, 'ascend' | 'descend' | false>>((result, { columnKey, order }) => {
+    result[columnKey] = order || false
+    return result
+  }, {})
+)
 
 // Filtro de busca
 const filteredData: Ref<RowData[]> = computed(() => {
   const term = normalizeText(search.value);
-  if (!term) return batches.value;
+  const column = columnFilter.value || 'all';
+  const year = yearFilter.value || 'all';
 
-  const filteredBatches = batches.value.filter(batch => batch._searchIndex.includes(term));
+  let filteredBatches = batches.value.filter(batch => {
+    const matchesYear = year === 'all' || batch.year.toString() === year;
+
+    if (!matchesYear) return false;
+
+    if (column === 'all') {
+      return !term || batch._searchIndex.includes(term);
+    } else {
+      const key = column as keyof DataTableBatch;
+      const value = batch[key];
+      const valueStr = value == null ? '' : String(value);
+      const matchesColumn = !term || normalizeText(valueStr).includes(term);
+
+      return matchesColumn;
+    }
+  });
+
+  if (sortStates.value.length > 0) {
+    const { columnKey, order } = sortStates.value[0];
+
+    filteredBatches.sort((a: any, b: any) => {
+      const aVal = a[columnKey];
+      const bVal = b[columnKey];
+
+      if (aVal == null) return -1;
+      if (bVal == null) return 1;
+
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return order === 'ascend' ? aVal - bVal : bVal - aVal;
+      }
+
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      return order === 'ascend'
+        ? aStr.localeCompare(bStr)
+        : bStr.localeCompare(aStr);
+    });
+  }
+
   const start = (pagination.page - 1) * pagination.pageSize;
-
-  return filteredBatches.slice(start, start + pagination.pageSize)
+  return filteredBatches.slice(start, start + pagination.pageSize);
 });
+
+watch(batches.value, async () => {
+  await createColumns();
+  await setColumnFilterOptions();
+  await setYearFilterOptions();
+})
+
+function handleCheck(rowKeys: DataTableRowKey[]) {
+  checkedRowKeys.value = rowKeys
+}
+
+function handleSearch(searchTerm: string) {
+  search.value = searchTerm;
+}
+
+function handleUpdateSorter(sorter: Sorter[]) {
+  const s = sorter[sorter.length - 1];
+
+  if (!s) {
+    sortStates.value = [];
+    return;
+  }
+
+  const current = sortStates.value.find(state => state.columnKey === s.columnKey);
+  let nextOrder: 'ascend' | 'descend' | false;
+
+  if (!current) {
+    nextOrder = 'ascend';
+  } else if (current.order === 'ascend') {
+    nextOrder = 'descend';
+  } else if (current.order === 'descend') {
+    nextOrder = false;
+  } else {
+    nextOrder = 'ascend';
+  }
+
+  if (nextOrder) {
+    sortStates.value = [{ columnKey: s.columnKey, order: nextOrder }];
+  } else {
+    sortStates.value = [];
+  }
+}
 
 // Ações
 function openBatchDetails(batch: any) {
@@ -92,54 +241,38 @@ function editBatch(batch: any) {
   // Implementar redirecionamento ou modal de edição
 }
 
-// Colunas da tabela
-const columns = ref<TableColumn<RowData>[]>([
-  {
-    type: 'selection' as const,
-    disabled(row: RowData) {
-      return (row as any).name === 'Edward King 3'
+async function setColumnFilterOptions() {
+  columns.value.forEach((column: any) => {
+    if (column.type !== 'selection' && column.key !== 'actions' && column.key !== 'year') {
+      if (column.key === 'sack') {
+        column.children.forEach((child: any) => {
+          columnFilterOptions.value.push({
+            label: child.title,
+            value: child.key
+          });
+        });
+      } else {
+        columnFilterOptions.value.push({
+            label: column.title,
+            value: column.key
+          });
+      }
     }
-  },
-  { title: 'Número', key: 'number' },
-  { title: 'Ano', key: 'year' },
-  { title: 'Data de Validade', key: 'expireDate' },
-  { title: 'Cultivar', key: 'seed' },
-  { title: 'Revestimento', key: 'coating' },
-  {
-    title: 'Sacaria',
-    key: 'sack',
-    children: [
-      { title: 'Marca', key: 'sackBrand' },
-      { title: 'Quantidade', key: 'sackQuantity' },
-      { title: 'Peso', key: 'sackWeight' }
-    ]
-  },
-  { title: 'Quantidade (kg)', key: 'availableQuantity' },
-  { title: 'Ponto de Pureza (PP)', key: 'purenessScore' },
-  { title: 'Total PP', key: 'totalPP' },
-  {
-    title: 'Ações',
-    key: 'actions',
-    render(batch: any) {
-      return [
-        h(
-          NButton,
-          {
-            renderIcon: () => h(InsertChartOutlined),
-            onClick: () => openBatchDetails(batch)
-          }
-        ),
-        h(
-          NButton,
-          {
-            renderIcon: () => h(ModeEditOutlined),
-            onClick: () => editBatch(batch)
-          }
-        )
-      ];
-    }
-  }
-]);
+  });
+}
+
+async function setYearFilterOptions() {
+  const uniqueYears = Array.from(new Set(batches.value
+    .map(batch => batch.year)
+    .filter(year => year != null)));
+
+  yearFilterOptions.value = [
+    ...uniqueYears.sort().map(year => ({
+      label: String(year),
+      value: String(year)
+    }))
+  ];
+}
 
 // Normalização de texto para busca
 function normalizeText(text: string | null): string {
@@ -147,6 +280,202 @@ function normalizeText(text: string | null): string {
     ? text.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     : '';
 }
+
+function getStatusLabel(status: string) {
+  switch (status) {
+    case 'active':
+      return 'Em uso'
+    case 'closed':
+      return 'Encerrado'
+    default:
+      return 'erro'
+  }
+}
+
+function getStatusType(status: string) {
+  switch (status) {
+    case 'active':
+      return 'success'
+    case 'closed':
+      return 'warning'
+    default:
+      return 'error'
+  }
+}
+
+function parseExpireDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+
+  const parts = dateStr.toLowerCase().split('/');
+  if (parts.length !== 2) return null;
+
+  const month = monthMap[parts[0]];
+  const year = Number(parts[1]);
+
+  if (month === undefined || isNaN(year)) return null;
+
+  return new Date(year, month, 1);
+}
+
+const monthMap: Record<string, number> = {
+  jan: 0,
+  fev: 1,
+  mar: 2,
+  abr: 3,
+  mai: 4,
+  jun: 5,
+  jul: 6,
+  ago: 7,
+  set: 8,
+  out: 9,
+  nov: 10,
+  dez: 11,
+}
+
+watch(sortStates, () => {
+  createColumns();
+});
+
+function createColumns() {
+  columns.value = [
+    {
+      type: 'selection' as const,
+      disabled(row: RowData) {
+        return (row as any).number === '0'
+      }
+    },
+    { 
+      title: 'Número', 
+      key: 'number',
+      sortOrder: sortKeyMapOrder.value['number'] || false,
+      sorter: {
+        compare: (a, b) => a.number - b.number,
+        multiple: 1
+      }
+    },
+    { 
+      title: 'Ano', 
+      key: 'year',
+      sortOrder: sortKeyMapOrder.value['year'] || false,
+      sorter: {
+        compare: (a, b) => a.year - b.year,
+        multiple: 1
+      }
+    },
+    {
+      title: 'Data de Validade',
+      key: 'expireDate',
+      sortOrder: sortKeyMapOrder.value['expireDate'] || false,
+      sorter: {
+        compare: (a, b) => {
+          const dateA = parseExpireDate(a.expireDate);
+          const dateB = parseExpireDate(b.expireDate);
+
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return -1;
+          if (!dateB) return 1;
+
+          return dateA.getTime() - dateB.getTime();
+        },
+        multiple: 1
+      }
+    },
+    { 
+      title: 'Status', 
+      key: 'status', 
+      render(row) {
+        return h(
+          NTag,
+          {
+            type: getStatusType(row.status),
+            bordered: false
+          },
+          { default: () => getStatusLabel(row.status) }
+        )
+      }
+    },
+    { title: 'Cultivar', key: 'seed' },
+    { title: 'Revestimento', key: 'coating' },
+    {
+      title: 'Sacaria',
+      key: 'sack',
+      children: [
+        { title: 'Marca', key: 'sackBrand' },
+        { 
+          title: 'Quantidade', 
+          key: 'sackQuantity',
+          sortOrder: sortKeyMapOrder.value['sackQuantity'] || false,
+          sorter: {
+            compare: (a, b) => a.sackQuantity - b.sackQuantity,
+            multiple: 1
+          }
+        },
+        { 
+          title: 'Peso', 
+          key: 'sackWeight',
+          sortOrder: sortKeyMapOrder.value['sackWeight'] || false,
+          sorter: {
+            compare: (a, b) => a.sackWeight - b.sackWeight,
+            multiple: 1
+          }
+        }
+      ]
+    },
+    { 
+      title: 'Quantidade (kg)', 
+      key: 'availableQuantity',
+      sortOrder: sortKeyMapOrder.value['availableQuantity'] || false,
+      sorter: {
+        compare: (a, b) => a.availableQuantity - b.availableQuantity,
+        multiple: 1
+      }
+    },
+    { 
+      title: 'Ponto de Pureza (PP)', 
+      key: 'purenessScore',
+      sortOrder: sortKeyMapOrder.value['purenessScore'] || false,
+      sorter: {
+        compare: (a, b) => a.purenessScore - b.purenessScore,
+        multiple: 1
+      }
+    },
+    { 
+      title: 'Total PP', 
+      key: 'totalPP',
+      sortOrder: sortKeyMapOrder.value['totalPP'] || false,
+      sorter: {
+        compare: (a, b) => a.totalPP - b.totalPP,
+        multiple: 1
+      }
+    },
+    {
+      title: 'Ações',
+      key: 'actions',
+      render(batch: any) {
+        return [
+          h(
+            NButton,
+            {
+              renderIcon: () =>
+                h(AutoAwesomeMosaicOutlined, {
+                  style: { color: '#2080f0' }
+                }),
+              onClick: () => openBatchDetails(batch)
+            }
+          ),
+          h(
+            NButton,
+            {
+              renderIcon: () => h(ModeEditOutlined),
+              onClick: () => editBatch(batch)
+            }
+          )
+        ];
+      }
+    }
+  ]
+}
+
 </script>
 
 <style scoped>
