@@ -6,7 +6,12 @@
       <n-flex>
         <n-button @click="fileUploadModal = true">
           <template #icon>
-            <n-icon><FileUploadOutlined /></n-icon>
+            <n-icon><UploadFileOutlined /></n-icon>
+          </template>
+        </n-button>
+        <n-button @click="batchesStore.downloadPdf">
+          <template #icon>
+            <n-icon><PictureAsPdfOutlined /></n-icon>
           </template>
         </n-button>
         <n-button @click="globalStore.toggleTheme">
@@ -30,11 +35,12 @@
 </template>
 
 <script setup lang="ts">
-import { FileUploadOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined } from '@vicons/material';
+import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined, PictureAsPdfOutlined } from '@vicons/material';
 import AppFileUpload from './AppFileUpload.vue';
 import AppSettings from './AppSettings.vue';
 import { useGlobalStore } from '@/stores/globalStore';
 import { useSettingsStore } from '@/stores/settingsStore'
+import { useBatchesStore } from '@/stores/batchesStore';
 import { storeToRefs } from 'pinia';
 import {
   NLayoutHeader,
@@ -50,6 +56,8 @@ const { theme, fileUploadModal } = storeToRefs(globalStore);
 
 const settingsStore = useSettingsStore()
 const { settingsModal } = storeToRefs(settingsStore)
+
+const batchesStore = useBatchesStore()
 
 </script>
 

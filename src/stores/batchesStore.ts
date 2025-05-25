@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import type { DataTableRowKey } from 'naive-ui'
 
 type Batch = {
     number: number;
@@ -48,6 +49,7 @@ export const useBatchesStore = defineStore('batches', {
   state: () => ({
     batches: [] as DataTableBatch[],
     batchOutflows: [] as BatchOutflow[],
+    batchesForDownload: [] as DataTableRowKey[],
   }),
   getters: {
   },
@@ -143,6 +145,42 @@ export const useBatchesStore = defineStore('batches', {
             { value: parseFloat(Math.max(balanceSack, 0).toFixed(2)), name: 'Sacos' }
         ];
     },
+    async downloadPdf() {
+        let downloadData: any[] = [];
+
+        if (this.batchesForDownload.length === 0) {
+            downloadData = this.batches.map((batch) => {
+                return {
+                    number: batch.number,
+                    year: batch.year,
+                    expireDate: batch.expireDate,
+                    seed: batch.seed,
+                    coating: batch.coating,
+                    sackBrand: batch.sackBrand,
+                    sackQuantity: batch.sackQuantity,
+                    sackWeight: batch.sackWeight,
+                    availableQuantity: batch.availableQuantity,
+                };
+            })
+        } else {
+            downloadData = this.batches.map((batch) => {
+                if (this.batchesForDownload.some((b: any) => b.number === batch.number)) {
+                    return {
+                        number: batch.number,
+                        year: batch.year,
+                        expireDate: batch.expireDate,
+                        seed: batch.seed,
+                        coating: batch.coating,
+                        sackBrand: batch.sackBrand,
+                        sackQuantity: batch.sackQuantity,
+                        sackWeight: batch.sackWeight,
+                        availableQuantity: batch.availableQuantity,
+                    };
+                }
+            })
+        }
+        console.log('Download data: ', downloadData);
+    }
   }
 });
 

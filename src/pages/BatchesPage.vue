@@ -30,7 +30,7 @@
         </n-input-group>
       </n-grid-item>
       <n-grid-item>
-        <n-button v-if="checkedRowKeys.length !== 0" type="error" ghost>
+        <n-button v-if="batchesForDownload.length !== 0" type="error" ghost>
           <template #icon>
             <n-icon>
               <DeleteOutlined />
@@ -105,11 +105,10 @@ type Sorter = {
 const isModalOpen = ref<boolean>(false);
 
 const batchesStore = useBatchesStore();
-const { batches } = storeToRefs(batchesStore);
+const { batches, batchesForDownload } = storeToRefs(batchesStore);
 
 const selectedBatch = ref<any>(null);
 const search = ref('');
-const checkedRowKeys = ref<DataTableRowKey[]>([])
 const sortStates = ref<Sorter[]>([]);
 
 const columns = ref<TableColumn<RowData>[]>([]);
@@ -139,7 +138,6 @@ const sortKeyMapOrder = computed<Record<string, 'ascend' | 'descend' | false>>((
   }, {})
 )
 
-// Filtro de busca
 const filteredData: Ref<RowData[]> = computed(() => {
   const term = normalizeText(search.value);
   const column = columnFilter.value || 'all';
@@ -189,13 +187,13 @@ const filteredData: Ref<RowData[]> = computed(() => {
 });
 
 watch(batches.value, async () => {
-  await createColumns();
+  createColumns();
   await setColumnFilterOptions();
   await setYearFilterOptions();
 })
 
 function handleCheck(rowKeys: DataTableRowKey[]) {
-  checkedRowKeys.value = rowKeys
+  batchesForDownload.value = rowKeys
 }
 
 function handleSearch(searchTerm: string) {
