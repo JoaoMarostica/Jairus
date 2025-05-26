@@ -4,16 +4,26 @@
       <div>Jairus</div>
 
       <n-flex>
-        <n-button @click="fileUploadModal = true">
-          <template #icon>
-            <n-icon><UploadFileOutlined /></n-icon>
+        <n-tooltip placement="bottom-start" trigger="hover">
+          <template #trigger>
+            <n-button @click="fileUploadModal = true">
+              <template #icon>
+                <n-icon><UploadFileOutlined /></n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
-        <n-button @click="batchesStore.downloadPdf">
-          <template #icon>
-            <n-icon><PictureAsPdfOutlined /></n-icon>
+          Importar planilha excel
+        </n-tooltip>
+        <n-tooltip placement="bottom-start" trigger="hover">
+          <template #trigger>
+            <n-button @click="batchesStore.downloadPdf">
+              <template #icon>
+                <n-icon><PictureAsPdfOutlined /></n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
+          Baixar PDF
+        </n-tooltip>
         <n-button @click="globalStore.toggleTheme">
           <template #icon v-if="theme === 'light'">
             <n-icon><NightlightOutlined /></n-icon>
@@ -47,6 +57,7 @@ import {
   NButton,
   NIcon,
   NFlex,
+  NTooltip
 } from 'naive-ui'
 
 defineEmits(['toggle-sidebar']);

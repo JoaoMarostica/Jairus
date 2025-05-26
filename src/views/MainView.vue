@@ -1,12 +1,16 @@
 <template>
   <n-layout 
     has-sider 
+    position="absolute"
     class="app-layout" 
   >
     <AppToolbar @toggle-sidebar="globalStore.toggleSidebar" />
     <AppDrawer />
     
-    <n-layout-content class="content-wrapper">
+    <n-layout-content
+      class="content-wrapper"
+      :style="{ marginLeft: siderbarWidth + 'px' }"
+    >
       <router-view />
     </n-layout-content>
   </n-layout>
@@ -16,6 +20,7 @@
 import AppDrawer from '../components/AppDrawer.vue'
 import AppToolbar from '../components/AppToolbar.vue'
 import { useGlobalStore } from '@/stores/globalStore';
+import { storeToRefs } from 'pinia'
 import {
   NLayout,
   NLayoutContent,
@@ -24,21 +29,19 @@ import {
 defineEmits(['toggle-sidebar']);
 
 const globalStore = useGlobalStore();
+const { siderbarWidth } = storeToRefs(globalStore)
 
 </script>
 
 <style scoped>
 .app-layout {
   padding-top: 50px;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh; /* usa min-height para que cresça conforme o conteúdo */
+  min-height: 100vh;
 }
 
 .content-wrapper {
   flex: 1;
-  padding: 16px;
-  margin-left: 250px;
+  padding: 16px 16px 16px 0px;
 }
 
 </style>

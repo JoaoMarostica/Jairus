@@ -6,6 +6,7 @@ export const useGlobalStore = defineStore('global', {
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') as 'light' | 'dark',
     sidebar: false,
     fileUploadModal: false,
+    siderbarWidth: 250,
   }),
   actions: {
     toggleTheme() {

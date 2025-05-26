@@ -49,7 +49,7 @@
         :pagination="pagination"
         @update:checked-row-keys="handleCheck"
         @update:sorter="handleUpdateSorter"
-        scroll-x="max-content"
+        scroll-x="100%"
       />
     </div>
     
@@ -70,6 +70,7 @@ import {
   NIcon,
   NSelect,
   NInputGroup,
+  NTooltip
 } from 'naive-ui';
 import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
@@ -452,20 +453,42 @@ function createColumns() {
       render(batch: any) {
         return [
           h(
-            NButton,
+            NTooltip,
+            { placement: 'bottom' },
             {
-              renderIcon: () =>
-                h(AutoAwesomeMosaicOutlined, {
-                  style: { color: '#2080f0' }
-                }),
-              onClick: () => openBatchDetails(batch)
+              trigger: () =>
+                h(
+                  NButton,
+                  {
+                    quaternary: true,
+                    type: 'primary',
+                    size: 'small',
+                    onClick: () => openBatchDetails(batch),
+                    renderIcon: () =>
+                      h(AutoAwesomeMosaicOutlined, {
+                        style: { color: '#2080f0' }
+                      })
+                  }
+                ),
+              default: () => 'Ver detalhes'
             }
           ),
           h(
-            NButton,
+            NTooltip,
+            { placement: 'bottom' },
             {
-              renderIcon: () => h(ModeEditOutlined),
-              onClick: () => editBatch(batch)
+              trigger: () =>
+                h(
+                  NButton,
+                  {
+                    quaternary: true,
+                    type: 'default',
+                    size: 'small',
+                    onClick: () => editBatch(batch),
+                    renderIcon: () => h(ModeEditOutlined)
+                  }
+                ),
+              default: () => 'Editar lote'
             }
           )
         ];
@@ -479,6 +502,13 @@ function createColumns() {
 <style scoped>
 .table-wrapper {
   margin-top: 30px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.n-data-table {
+  width: 100%;
+  min-width: 100%;
 }
 
 .n-button {
