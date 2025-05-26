@@ -38,13 +38,13 @@ import { useBatchesStore } from '@/stores/batchesStore';
 import { UploadFileInfo } from 'naive-ui'
 import ExcelJS from 'exceljs'
 import {
-    NModal,
-    NUpload,
-    NUploadDragger,
-    NText,
-    NP,
-    NIcon,
-    NSpin
+  NModal,
+  NUpload,
+  NUploadDragger,
+  NText,
+  NP,
+  NIcon,
+  NSpin,
 } from 'naive-ui'
 
 const globalStore = useGlobalStore();
@@ -62,11 +62,20 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
     .then((data) => {
       // enviar para o backend...
       batchStore.setBatches(data)
-      loading.value = false
+      globalStore.showMessage({
+        content: `Planilha lida com sucesso! ${data.length} lotes encontrados.`,
+        type: 'success',
+      })
       fileUploadModal.value = false
+      loading.value = false
     })
     .catch((err) => {
       console.error('Erro ao ler o Excel:', err)
+      globalStore.showMessage({
+        content: `Erro ao ler a planilha: ${err.message}`,
+        type: 'error',
+      })
+      loading.value = false
     })
 }
 
