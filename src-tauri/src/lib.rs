@@ -4,6 +4,7 @@ mod commands;
 mod services;
 mod repositories;
 mod models;
+mod schema;
 
 use crate::commands::*;
 
