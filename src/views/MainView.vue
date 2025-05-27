@@ -22,12 +22,42 @@ import { storeToRefs } from 'pinia'
 import {
   NLayout,
   NLayoutContent,
+  useMessage
 } from 'naive-ui'
+import { watch } from 'vue';
 
 defineEmits(['toggle-sidebar']);
 
 const globalStore = useGlobalStore();
-const { siderbarWidth } = storeToRefs(globalStore)
+const { siderbarWidth, message } = storeToRefs(globalStore)
+
+const messageApi = useMessage();
+
+watch(message.value, () => {
+  if (message.value) {
+    createMessage();
+  }
+});
+
+function createMessage() {
+  if (!message.value.content) {
+    console.error('Message content is empty');
+    return;
+  }
+  messageApi.create(
+    message.value.content,
+    {
+      closable: message.value.closable,
+      duration: message.value.duration,
+      keepAliveOnHover: message.value.keepAliveOnHover,
+      showIcon: message.value.showIcon,
+      type: message.value.type,
+      onAfterLeave: message.value.onAfterLeave,
+      onClose: message.value.onClose,
+      onLeave: message.value.onLeave,
+    }
+  );
+}
 
 </script>
 
