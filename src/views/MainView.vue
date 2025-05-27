@@ -5,7 +5,6 @@
     class="app-layout" 
   >
     <AppToolbar @toggle-sidebar="globalStore.toggleSidebar" />
-    <AppDrawer />
     
     <n-layout-content
       class="content-wrapper"
@@ -17,7 +16,6 @@
 </template>
 
 <script setup lang="ts">
-import AppDrawer from '../components/AppDrawer.vue'
 import AppToolbar from '../components/AppToolbar.vue'
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia'

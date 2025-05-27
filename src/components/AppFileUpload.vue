@@ -63,7 +63,7 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
       // enviar para o backend...
       batchStore.setBatches(data)
       globalStore.showMessage({
-        content: `Planilha lida com sucesso! ${data.length} lotes encontrados.`,
+        content: 'Planilha lida com sucesso!',
         type: 'success',
       })
       fileUploadModal.value = false

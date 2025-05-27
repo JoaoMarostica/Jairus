@@ -21,7 +21,7 @@ export const useGlobalStore = defineStore('global', {
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') as 'light' | 'dark',
     sidebar: false,
     fileUploadModal: false,
-    siderbarWidth: 250,
+    siderbarWidth: 16, // If using the AppDrawer component this can be set to 250
     message: ref<MessageData>({
       content: '',
       placement: 'top',
