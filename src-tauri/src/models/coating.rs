@@ -1,7 +1,17 @@
-use diesel::prelude::Queryable;
-use serde::Serialize;
+use diesel::{Insertable, Queryable, Selectable};
 
-#[derive(Queryable,Serialize)]
+#[derive(Queryable,Selectable,Insertable)]
+#[diesel(table_name = crate::schema::tb_coating)]
 pub struct Coating {
-    name:String
+    coating_name:String
+}
+
+impl Coating {
+    pub fn new(id:&str) -> Self {
+        Coating { coating_name: id.to_string() }
+    }
+
+    pub fn id(&self) -> &String {
+        &self.coating_name
+    }
 }
