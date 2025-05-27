@@ -30,13 +30,13 @@
         </n-input-group>
       </n-grid-item>
       <n-grid-item>
-        <n-button v-if="batchesForDownload.length !== 0" type="error" ghost>
+        <n-button type="success" ghost @click="createBatch">
           <template #icon>
             <n-icon>
-              <DeleteOutlined />
+              <PlusOutlined />
             </n-icon>
           </template>
-          Remover
+          Criar Lote
         </n-button>
       </n-grid-item>
     </n-grid>
@@ -49,7 +49,6 @@
         :pagination="pagination"
         @update:checked-row-keys="handleCheck"
         @update:sorter="handleUpdateSorter"
-        scroll-x="100%"
       />
     </div>
     
@@ -70,12 +69,13 @@ import {
   NIcon,
   NSelect,
   NInputGroup,
-  NTooltip
+  NTooltip,
+  NDropdown
 } from 'naive-ui';
 import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import { ref, computed, h, Ref, reactive, watch } from 'vue';
-import { AutoAwesomeMosaicOutlined, ModeEditOutlined, DeleteOutlined } from '@vicons/material'
+import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, PlusOutlined, MoreVertOutlined } from '@vicons/material'
 import AppBacthDetails from '@/components/AppBacthDetails.vue';
 import { useBatchesStore } from '@/stores/batchesStore';
 import { storeToRefs } from 'pinia';
@@ -193,6 +193,11 @@ watch(batches.value, async () => {
   await setYearFilterOptions();
 })
 
+function createBatch() {
+  console.log('Criar novo lote');
+  // Implementar lógica de criação de lote
+}
+
 function handleCheck(rowKeys: DataTableRowKey[]) {
   batchesForDownload.value = rowKeys
 }
@@ -235,9 +240,14 @@ function openBatchDetails(batch: any) {
   isModalOpen.value = true;
 }
 
-function editBatch(batch: any) {
+function handleEdit(batch: any) {
   console.log('Editar', batch);
   // Implementar redirecionamento ou modal de edição
+}
+
+function handleDelete(batch: any) {
+  console.log('Deletar', batch);
+  // Implementar redirecionamento ou modal de remoção
 }
 
 async function setColumnFilterOptions() {
@@ -430,7 +440,7 @@ function createColumns() {
       }
     },
     { 
-      title: 'Ponto de Pureza (PP)', 
+      title: 'Ponto de Pureza (PP/Kg)', 
       key: 'purenessScore',
       sortOrder: sortKeyMapOrder.value['purenessScore'] || false,
       sorter: {
@@ -474,21 +484,39 @@ function createColumns() {
             }
           ),
           h(
-            NTooltip,
-            { placement: 'bottom' },
+            NDropdown,
             {
-              trigger: () =>
+              options: [
+                {
+                  label: 'Editar',
+                  key: 'edit',
+                  icon: () => h(EditOutlined)
+                },
+                {
+                  label: 'Remover',
+                  key: 'delete',
+                  icon: () => h(DeleteOutlined)
+                }
+              ],
+              onSelect: (key: string) => {
+                if (key === 'edit') {
+                  handleEdit(batch)
+                } else if (key === 'delete') {
+                  handleDelete(batch)
+                }
+              },
+              placement: 'bottom'
+            },
+            {
+              default: () =>
                 h(
                   NButton,
                   {
                     quaternary: true,
-                    type: 'default',
                     size: 'small',
-                    onClick: () => editBatch(batch),
-                    renderIcon: () => h(ModeEditOutlined)
+                    renderIcon: () => h(MoreVertOutlined)
                   }
-                ),
-              default: () => 'Editar lote'
+                )
             }
           )
         ];

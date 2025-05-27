@@ -62,7 +62,10 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
     .then((data) => {
       // enviar para o backend...
       batchStore.setBatches(data)
-      loading.value = false
+      globalStore.showMessage({
+        content: 'Planilha lida com sucesso!',
+        type: 'success',
+      })
       fileUploadModal.value = false
     })
     .catch((err) => {

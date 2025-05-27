@@ -1,16 +1,24 @@
 <template>
   <n-modal
     v-model:show="isModalOpen"
-    class="w-screen h-screen p-4"
-    :style="{ top: '0px', left: '0px', margin: '0', padding: '0' }"
+    :style="{
+      top: '0px',
+      left: '0px',
+      margin: '0',
+      padding: '0',
+      width: '100vw',
+      height: '100vh',
+      maxHeight: '100vh'
+    }"
     :mask-closable="false"
     preset="card"
     :closable="true"
     v-on:update-show="closeModal"
     :title="modalTitle"
     size="huge"
+    class="!w-screen !h-screen"
   >
-    <div class="w-screen h-screen bg-white overflow-auto p-4">
+    <div style="width: 100%; height: 100%; overflow: auto;" class="bg-white dark:bg-black p-4">
       <n-grid cols="1" responsive="screen" x-gap="16" y-gap="16">
         <!-- Dados do lote -->
         <n-grid-item>
@@ -59,6 +67,8 @@ import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptio
 import { nextTick, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useBatchesStore } from '@/stores/batchesStore';
+import { useGlobalStore } from '@/stores/globalStore';
+import { storeToRefs } from 'pinia';
 
 type BatchOutflow = {
   outflowPP: number;
@@ -68,6 +78,9 @@ type BatchOutflow = {
 };
 
 type BatchBalance = {value: number; name: string};
+
+const globalStore = useGlobalStore();
+const { theme } = storeToRefs(globalStore);
 
 const batchesStore = useBatchesStore();
 
@@ -102,36 +115,98 @@ watch(isModalOpen, async () => {
 })
 
 function renderCharts() {
+  const isDark = theme.value === 'dark'
+
+  const axisLabelColor = isDark ? '#ccc' : '#333'
+  const axisLineColor = isDark ? '#888' : '#999'
+  const splitLineColor = isDark ? '#555' : '#e0e0e0'
+  const legendTextColor = isDark ? '#ccc' : '#333'
+
+  // Gráfico de barra (saídas)
   if (outflowChart.value && selectedBatch.value) {
+    // Evita instância duplicada
+    const existing = echarts.getInstanceByDom(outflowChart.value)
+    if (existing) existing.dispose()
+
     const chart = echarts.init(outflowChart.value)
+
     chart.setOption({
-      xAxis: { type: 'category', data: ['Jan', 'Fev', 'Mar', 'Abr'] },
-      yAxis: { type: 'value' },
+      xAxis: {
+        type: 'category',
+        data: ['Jan', 'Fev', 'Mar', 'Abr'],
+        axisLabel: {
+          color: axisLabelColor,
+          fontSize: 12
+        },
+        axisLine: {
+          lineStyle: {
+            color: axisLineColor
+          }
+        }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          color: axisLabelColor,
+          fontSize: 12
+        },
+        axisLine: {
+          lineStyle: {
+            color: axisLineColor
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: splitLineColor
+          }
+        }
+      },
+      tooltip: {
+        trigger: 'axis'
+      },
       series: [
         { name: 'Entrada', type: 'bar', data: [300, 400, 500, 350] },
         { name: 'Saída', type: 'bar', data: [200, 250, 300, 270] }
-      ]
+      ],
+      legend: {
+        textStyle: {
+          color: legendTextColor
+        }
+      }
     })
   }
 
+  // Gráfico de pizza (saldo)
   if (balanceChart.value && batchBalance.value) {
+    const existing = echarts.getInstanceByDom(balanceChart.value)
+    if (existing) existing.dispose()
+
     const chart = echarts.init(balanceChart.value)
+
     chart.setOption({
-        tooltip: {
+      tooltip: {
         trigger: 'item',
-        formatter: '{b}: {c} ({d}%)'
+        formatter: '{b}: {d}%'
       },
-      series: [{
-        name: 'Saldo',
-        type: 'pie',
-        radius: '50%',
-        data: batchBalance.value,
-        label: {
-          show: true,
-          formatter: '{b}: {c}',
-          fontSize: 14
+      series: [
+        {
+          name: 'Saldo',
+          type: 'pie',
+          radius: '50%',
+          data: batchBalance.value,
+          label: {
+            show: true,
+            formatter: '{c}',
+            fontSize: 14,
+            color: axisLabelColor
+          },
         }
-      }]
+      ],
+      legend: {
+        textStyle: {
+          color: legendTextColor
+        },
+      }
     })
   }
 }
@@ -168,13 +243,13 @@ function getbatchData() {
     { titulo: 'Sacos', valor: selectedBatch.value.sackQuantity, unidade: '' },
     { titulo: 'Peso da Sacaria', valor: selectedBatch.value.sackWeight, unidade: 'Kg' },
     { titulo: 'Quantidade (Kg)', valor: selectedBatch.value.availableQuantity, unidade: 'kg' },
-    { titulo: 'Ponto de Pureza (PP)', valor: selectedBatch.value.purenessScore, unidade: '' },
+    { titulo: 'Ponto de Pureza (PP/Kg)', valor: selectedBatch.value.purenessScore, unidade: '' },
     { titulo: 'Total de PP', valor: selectedBatch.value.totalPP, unidade: '' },
   ]
 }
 
 const outflowColumns = [
-  { title: 'Ponto de Pureza (PP)', key: 'outflowPP' },
+  { title: 'Ponto de Pureza (PP/Kg)', key: 'outflowPP' },
   { title: 'Quantidade (kg)', key: 'outflowKg' },
   { title: 'Sacos', key: 'outflowSack' },
   { title: 'Uso', key: 'usage' }
