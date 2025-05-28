@@ -18,10 +18,10 @@ impl SeedRepository {
         let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set");
 
-        let c = SqliteConnection::establish(&database_url)
+        let connection = SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
 
-        Self { connection: c }
+        Self { connection }
     }
 
     pub fn create(&mut self, object:&Seed) -> Seed {
@@ -29,7 +29,7 @@ impl SeedRepository {
         .values(object)
         .returning(Seed::as_returning())
         .get_result(&mut self.connection)
-        .expect("Error creating a new record")
+        .expect("Error creating a new record in seed table")
     }
 
     pub fn read(&mut self, id:&str) -> Option<Seed> {
@@ -39,7 +39,7 @@ impl SeedRepository {
         .get_result(&mut self.connection)
         .optional() {
             Ok(option) => option,
-            Err(e) => panic!("Error trying to read coating id={}\n{}", id, e)
+            Err(e) => panic!("Error trying to read seed id={}\n{}", id, e)
         }
  
     }
@@ -49,7 +49,7 @@ impl SeedRepository {
         .select(Seed::as_select())
         .get_results(&mut self.connection) {
             Ok(result) => result,
-            Err(e) => panic!("Error trying to read all coatings\n{}", e)
+            Err(e) => panic!("Error trying to read all seeds\n{}", e)
         }
     }
 
@@ -60,13 +60,13 @@ impl SeedRepository {
         .get_result(&mut self.connection)
         .optional() {
             Ok(option) => option,
-            Err(e) => panic!("Error trying to update coating id={}\n{}", id, e)
+            Err(e) => panic!("Error trying to update seed id={}\n{}", id, e)
         }
     }
 
     pub fn delete(&mut self, id:&str) -> usize {
         diesel::delete(tb_seed.find(id))
         .execute(&mut self.connection)
-        .expect("Error deleting record")
+        .expect("Error deleting record in seed table")
     }
 }

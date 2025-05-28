@@ -1,4 +1,4 @@
-use diesel::{prelude::*,SqliteConnection};
+use diesel::{prelude::*, SqliteConnection};
 use dotenvy::dotenv;
 
 use core::panic;
@@ -12,16 +12,16 @@ pub struct BrandRepository {
 }
 
 impl BrandRepository {
-    fn new() -> Self {
+    pub fn new() -> Self {
         dotenv().ok();
 
         let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set");
 
-        let c = SqliteConnection::establish(&database_url)
+        let connection = SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
 
-        Self { connection: c }
+        Self { connection }
     }
 
     pub fn create(&mut self, object:&VBrand) -> VBrand {
@@ -29,7 +29,7 @@ impl BrandRepository {
         .values(object)
         .returning(VBrand::as_returning())
         .get_result(&mut self.connection)
-        .expect("Error creating a new record")
+        .expect("Error creating a new record in brand table")
     }
 
     pub fn read(&mut self, id:&str) -> Option<Brand> {
@@ -96,7 +96,7 @@ impl BrandRepository {
     pub fn delete(&mut self, id:&str) -> usize {
         diesel::delete(tb_brand.filter(brand_name.eq(id)))
         .execute(&mut self.connection)
-        .expect("Error deleting record")
+        .expect("Error deleting multiple records in brand table")
     }
 
     pub fn delete_subvalue(&mut self, id:&str, value:i32) -> usize {
@@ -105,6 +105,6 @@ impl BrandRepository {
                 brand_name.eq(id)
                 .and(sack_weight.eq(value))))
         .execute(&mut self.connection)
-        .expect("Error deleting record")
+        .expect("Error deleting record in brand table")
     }
 }

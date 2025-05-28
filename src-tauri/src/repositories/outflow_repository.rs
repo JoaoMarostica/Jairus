@@ -1,4 +1,4 @@
-use diesel::{prelude::*,SqliteConnection};
+use diesel::{prelude::*, SqliteConnection};
 use dotenvy::dotenv;
 
 use core::panic;
@@ -18,10 +18,10 @@ impl OutflowRepository {
         let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set");
 
-        let c = SqliteConnection::establish(&database_url)
+        let connection = SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
 
-        Self { connection: c }
+        Self { connection }
     }
 
     pub fn create(&mut self, object:&NewOutflow) -> Outflow {
@@ -29,7 +29,7 @@ impl OutflowRepository {
         .values(object)
         .returning(Outflow::as_returning())
         .get_result(&mut self.connection)
-        .expect("Error creating a new record")
+        .expect("Error creating a new record in outflow table")
     }
 
     pub fn read(&mut self, id:&i32) -> Option<Outflow> {
@@ -39,7 +39,7 @@ impl OutflowRepository {
         .get_result(&mut self.connection)
         .optional() {
             Ok(option) => option,
-            Err(e) => panic!("Error trying to read coating id={}\n{}", id, e)
+            Err(e) => panic!("Error trying to read outflow id={}\n{}", id, e)
         }
     }
 
@@ -48,7 +48,7 @@ impl OutflowRepository {
         .select(Outflow::as_select())
         .get_results(&mut self.connection) {
             Ok(result) => result,
-            Err(e) => panic!("Error trying to read all coatings\n{}", e)
+            Err(e) => panic!("Error trying to read all outflows\n{}", e)
         }
     }
 
@@ -59,13 +59,13 @@ impl OutflowRepository {
         .get_result(&mut self.connection)
         .optional() {
             Ok(option) => option,
-            Err(e) => panic!("Error trying to update coating id={}\n{}", id, e)
+            Err(e) => panic!("Error trying to update outflow id={}\n{}", id, e)
         }
     }
 
     pub fn delete(&mut self, id:&i32) -> usize {
         diesel::delete(tb_outflow.find(id))
         .execute(&mut self.connection)
-        .expect("Error deleting record")
+        .expect("Error deleting record in outflow table")
     }
 }
