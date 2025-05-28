@@ -1,14 +1,14 @@
 <template>
   <n-card title="Lotes">
     <!-- Filtro -->
-    <n-grid cols="1 m:6" responsive="screen" x-gap="16" y-gap="16" v-if="batches.length !== 0">
+    <n-grid cols="1 m:6" responsive="screen" x-gap="16" y-gap="16" v-if="dataTableBatches.length !== 0">
       <n-grid-item span="m:3">
         <n-input-group>
           <n-input
             @change="handleSearch"
             placeholder="Pesquisar"
             autosize
-            :style="{ minWidth: '50%', width: '33%' }"
+            :style="{ width: '60%' }"
             clearable
           />
           <n-select
@@ -16,7 +16,7 @@
             filterable
             placeholder="Coluna"
             :options="columnFilterOptions"
-            :style="{ width: '33%' }"
+            :style="{ width: '20%' }"
             clearable
           />
           <n-select
@@ -24,7 +24,7 @@
             filterable
             placeholder="Ano"
             :options="yearFilterOptions"
-            :style="{ width: '33%' }"
+            :style="{ width: '20%' }"
             clearable
           />
         </n-input-group>
@@ -43,7 +43,7 @@
 
     <!-- Tabela -->
     <div class="table-wrapper">
-      <n-card v-if="batches.length === 0">
+      <n-card v-if="dataTableBatches.length === 0">
         <n-empty description="Nenhum Lote Encontrado" size="large">
           <template #extra>
             <n-space>
@@ -75,6 +75,7 @@
         :pagination="pagination"
         @update:checked-row-keys="handleCheck"
         @update:sorter="handleUpdateSorter"
+        :max-height="550"
       />
     </div>
     
@@ -118,9 +119,9 @@ type DataTableBatch = {
   sackBrand: string;
   sackQuantity: number;
   sackWeight: number;
-  availableQuantity: number;
-  purenessScore: number;
-  totalPP: number;
+  availableQuantity: string;
+  purenessScore: string;
+  totalPP: string;
   status: string;
   deletedAt: Date | null;
   _searchIndex: string;
@@ -137,7 +138,7 @@ const globalStore = useGlobalStore()
 const { fileUploadModal } = storeToRefs(globalStore);
 
 const batchesStore = useBatchesStore();
-const { batches, batchesForDownload } = storeToRefs(batchesStore);
+const { dataTableBatches, batchesForDownload } = storeToRefs(batchesStore);
 
 const selectedBatch = ref<any>(null);
 const search = ref('');
@@ -146,7 +147,7 @@ const sortStates = ref<Sorter[]>([]);
 const columns = ref<TableColumn<RowData>[]>([]);
 const columnFilter = ref(null);
 const columnFilterOptions = ref<{label: string, value: string}[]>([]);
-const yearFilter = ref(null);
+const yearFilter = ref<string>(new Date().getFullYear().toString());
 const yearFilterOptions = ref<{label: string, value: string}[]>([]);
 
 const pagination = reactive({
@@ -175,7 +176,7 @@ const filteredData: Ref<RowData[]> = computed(() => {
   const column = columnFilter.value || 'all';
   const year = yearFilter.value || 'all';
 
-  let filteredBatches = batches.value.filter(batch => {
+  let filteredBatches = dataTableBatches.value.filter(batch => {
     const matchesYear = year === 'all' || batch.year.toString() === year;
 
     if (!matchesYear) return false;
@@ -218,7 +219,7 @@ const filteredData: Ref<RowData[]> = computed(() => {
   return filteredBatches.slice(start, start + pagination.pageSize);
 });
 
-watch(batches.value, async () => {
+watch(dataTableBatches.value, async () => {
   createColumns();
   await setColumnFilterOptions();
   await setYearFilterOptions();
@@ -302,7 +303,7 @@ async function setColumnFilterOptions() {
 }
 
 async function setYearFilterOptions() {
-  const uniqueYears = Array.from(new Set(batches.value
+  const uniqueYears = Array.from(new Set(dataTableBatches.value
     .map(batch => batch.year)
     .filter(year => year != null)));
 
@@ -324,7 +325,7 @@ function normalizeText(text: string | null): string {
 function getStatusLabel(status: string) {
   switch (status) {
     case 'active':
-      return 'Em uso'
+      return 'Ativo'
     case 'closed':
       return 'Encerrado'
     default:
@@ -385,7 +386,7 @@ function createColumns() {
       }
     },
     { 
-      title: 'Número', 
+      title: 'Lote', 
       key: 'number',
       sortOrder: sortKeyMapOrder.value['number'] || false,
       sorter: {
@@ -421,7 +422,7 @@ function createColumns() {
       }
     },
     { title: 'Cultivar', key: 'seed' },
-    { title: 'Revestimento', key: 'coating' },
+    { title: 'Tratamento', key: 'coating' },
     {
       title: 'Sacaria',
       key: 'sack',
@@ -532,6 +533,7 @@ function createColumns() {
           h(
             NDropdown,
             {
+              trigger: "click",
               options: [
                 {
                   label: 'Editar',

@@ -125,6 +125,7 @@ function createSeedColumns() {
                     {
                     quaternary: true,
                     size: 'small',
+                    type: 'error',
                     renderIcon: () => h(DeleteOutlined)
                     }
                 )
@@ -161,6 +162,7 @@ function createCoatingColumns() {
                     {
                     quaternary: true,
                     size: 'small',
+                    type: 'error',
                     renderIcon: () => h(DeleteOutlined)
                     }
                 )
@@ -195,6 +197,7 @@ function createbrandColumns() {
                     {
                     quaternary: true,
                     size: 'small',
+                    type: 'error',
                     renderIcon: () => h(DeleteOutlined)
                     }
                 )

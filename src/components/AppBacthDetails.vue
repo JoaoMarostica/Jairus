@@ -54,7 +54,7 @@
         <!-- Tabela de saídas -->
         <n-grid-item>
           <n-card title="Saídas do lote">
-            <n-data-table :columns="outflowColumns" :data="outflowData" :pagination="false" />
+            <n-data-table :columns="outflowColumns" :data="outflowData" :pagination="false" :max-height="250" />
           </n-card>
         </n-grid-item>
       </n-grid>
@@ -64,15 +64,17 @@
 
 <script setup lang="ts">
 import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptionsItem } from 'naive-ui'
+import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import { nextTick, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useBatchesStore } from '@/stores/batchesStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
 
-type BatchOutflow = {
-  outflowPP: number;
-  outflowKg: number;
+type DataTableBatchOutflow = {
+  outflowTotalPP: string;
+  outflowKg: string;
+  outflowPP: string;
   outflowSack: number;
   usage: string;
 };
@@ -99,7 +101,8 @@ const modalTitle = ref(`Detalhes do Lote ${props.selectedBatch}`)
 const batchData = ref<{ titulo: string; valor: any; unidade: string }[]>([])
 const outflowChart = ref<HTMLElement | null>(null)
 const balanceChart = ref<HTMLElement | null>(null)
-const outflowData = ref<BatchOutflow[]>([])
+const outflowData = ref<DataTableBatchOutflow[]>([])
+const outflowColumns = ref<TableColumn<RowData>[]>([]);
 const batchBalance = ref<BatchBalance[]>([])
 
 watch(isModalOpen, async () => {
@@ -108,8 +111,9 @@ watch(isModalOpen, async () => {
     selectedBatch.value = props.selectedBatch
     modalTitle.value = `Detalhes do Lote ${selectedBatch.value.number}`
     batchData.value = getbatchData()
-    outflowData.value = await batchesStore.getBatchOutflow(selectedBatch.value.number)
+    outflowData.value = await batchesStore.getBatchOutflow(selectedBatch.value.number, selectedBatch.value.year)
     batchBalance.value = await batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
+    createColumns()
     renderCharts()
   }
 })
@@ -243,16 +247,19 @@ function getbatchData() {
     { titulo: 'Sacos', valor: selectedBatch.value.sackQuantity, unidade: '' },
     { titulo: 'Peso da Sacaria', valor: selectedBatch.value.sackWeight, unidade: 'Kg' },
     { titulo: 'Quantidade (Kg)', valor: selectedBatch.value.availableQuantity, unidade: 'kg' },
-    { titulo: 'Ponto de Pureza (PP/Kg)', valor: selectedBatch.value.purenessScore, unidade: '' },
+    { titulo: 'PP/Kg', valor: selectedBatch.value.purenessScore, unidade: '' },
     { titulo: 'Total de PP', valor: selectedBatch.value.totalPP, unidade: '' },
   ]
 }
 
-const outflowColumns = [
-  { title: 'Ponto de Pureza (PP/Kg)', key: 'outflowPP' },
-  { title: 'Quantidade (kg)', key: 'outflowKg' },
-  { title: 'Sacos', key: 'outflowSack' },
-  { title: 'Uso', key: 'usage' }
-]
+function createColumns() {
+  outflowColumns.value = [
+    { title: 'Total de PP', key: 'outflowTotalPP' },
+    { title: 'Quantidade (kg)', key: 'outflowKg', titleAlign: 'center', align: 'center' },
+    { title: 'PP/Kg', key: 'outflowPP' },
+    { title: 'Sacos', key: 'outflowSack' },
+    { title: 'Pedido', key: 'usage' }
+  ]
+}
 
 </script>

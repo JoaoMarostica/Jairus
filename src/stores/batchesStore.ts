@@ -1,5 +1,23 @@
 import { defineStore } from 'pinia';
 import type { DataTableRowKey } from 'naive-ui'
+import { invoke } from '@tauri-apps/api/core'
+
+type RawBatch = {
+    number: number;
+    year: number;
+    expireDate: number;
+    seed: string;
+    coating: string;
+    sackBrand: string;
+    sackQuantity: number;
+    sackWeight: number;
+    purenessScore: number;
+    outflowTotalPP: number;
+    outflowKg: number;
+    usage: string;
+    status: string;
+    deletedAt: number | null;
+};
 
 type Batch = {
     number: number;
@@ -11,9 +29,6 @@ type Batch = {
     sackQuantity: number;
     sackWeight: number;
     purenessScore: number;
-    outflowPP: number;
-    outflowKg: number;
-    usage: string;
     status: string;
     deletedAt: number | null;
 };
@@ -28,9 +43,9 @@ type DataTableBatch = {
     sackBrand: string;
     sackQuantity: number;
     sackWeight: number;
-    availableQuantity: number;
-    purenessScore: number;
-    totalPP: number;
+    availableQuantity: string;
+    purenessScore: string;
+    totalPP: string;
     status: string;
     deletedAt: number | null;
     _searchIndex: string;
@@ -38,8 +53,19 @@ type DataTableBatch = {
 
 type BatchOutflow = {
     batchNumber: number;
-    outflowPP: number;
+    batchYear: number;
+    outflowTotalPP: number;
     outflowKg: number;
+    outflowSack: number;
+    usage: string;
+};
+
+type DataTableBatchOutflow = {
+    batchNumber: number;
+    batchYear: number;
+    outflowTotalPP: string;
+    outflowKg: string;
+    outflowPP: string;
     outflowSack: number;
     usage: string;
     _searchIndex: string;
@@ -47,21 +73,38 @@ type BatchOutflow = {
 
 export const useBatchesStore = defineStore('batches', {
   state: () => ({
-    batches: [] as DataTableBatch[],
+    batches: [] as Batch[],
     batchOutflows: [] as BatchOutflow[],
+    dataTableBatches: [] as DataTableBatch[],
+    dataTableBatchOutflows: [] as DataTableBatchOutflow[],
     batchesForDownload: [] as DataTableRowKey[],
   }),
   getters: {
   },
   actions: {
-    setBatches(batches: Batch[]) {
+    setBatches(data: RawBatch[]) {
         const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100;
 
-        const existingBatchNumbers = new Set(this.batches.map(b => b.number));
+        const existingBatchNumbers = new Set(this.dataTableBatches.map(b => b.number));
 
-        batches.forEach((batch) => {
+        data.forEach((batch) => {
             if (!existingBatchNumbers.has(batch.number)) {
-                const formatBatch: DataTableBatch = {
+                const formatBatch: Batch = {
+                    number: batch.number,
+                    year: batch.year,
+                    expireDate: batch.expireDate,
+                    seed: batch.seed,
+                    coating: batch.coating,
+                    sackBrand: batch.sackBrand,
+                    sackQuantity: batch.sackQuantity,
+                    sackWeight: batch.sackWeight,
+                    purenessScore: batch.purenessScore,
+                    status: batch.status,
+                    deletedAt: batch.deletedAt,
+                };
+                this.batches.push(formatBatch);
+
+                const formatBatchForDataTable: DataTableBatch = {
                     key: batch.number,
                     number: batch.number,
                     year: batch.year,
@@ -71,9 +114,9 @@ export const useBatchesStore = defineStore('batches', {
                     sackBrand: batch.sackBrand,
                     sackQuantity: batch.sackQuantity,
                     sackWeight: batch.sackWeight,
-                    availableQuantity: batch.sackQuantity * batch.sackWeight,
-                    purenessScore: batch.purenessScore,
-                    totalPP: toFloat2(batch.sackQuantity * batch.sackWeight * batch.purenessScore),
+                    availableQuantity: (batch.sackQuantity * batch.sackWeight).toLocaleString("pt-BR"),
+                    purenessScore: batch.purenessScore.toLocaleString("pt-BR"),
+                    totalPP: toFloat2(batch.sackQuantity * batch.sackWeight * batch.purenessScore).toLocaleString("pt-BR"),
                     status: batch.status,
                     deletedAt: batch.deletedAt,
                     _searchIndex: normalizeText(
@@ -86,45 +129,54 @@ export const useBatchesStore = defineStore('batches', {
                             batch.sackBrand,
                             batch.sackQuantity,
                             batch.sackWeight,
+                            (batch.sackQuantity * batch.sackWeight).toLocaleString("pt-BR"),
                             batch.purenessScore,
-                            batch.usage
+                            toFloat2(batch.sackQuantity * batch.sackWeight * batch.purenessScore).toLocaleString("pt-BR"),
                         ].join(' ')
                     )
                 };
-                this.batches.push(formatBatch);
+                this.dataTableBatches.push(formatBatchForDataTable);
                 existingBatchNumbers.add(batch.number);
             }
 
-            const batchOutflow: BatchOutflow = {
+            const batchOutflow: DataTableBatchOutflow = {
                 batchNumber: batch.number,
-                outflowPP: toFloat2(batch.outflowPP),
-                outflowKg: toFloat2(batch.outflowKg),
+                batchYear: batch.year,
+                outflowTotalPP: toFloat2(batch.outflowTotalPP).toLocaleString("pt-BR"),
+                outflowKg: toFloat2(batch.outflowKg).toLocaleString("pt-BR"),
+                outflowPP: toFloat2(batch.outflowTotalPP / batch.outflowKg).toLocaleString("pt-BR"),
                 outflowSack: toFloat2(batch.outflowKg / batch.sackWeight),
                 usage: batch.usage,
                 _searchIndex: normalizeText(
                     [
                         batch.number,
-                        toFloat2(batch.outflowPP),
-                        toFloat2(batch.outflowKg),
+                        toFloat2(batch.outflowTotalPP).toLocaleString("pt-BR"),
+                        toFloat2(batch.outflowKg).toLocaleString("pt-BR"),
+                        toFloat2(batch.outflowTotalPP / batch.outflowKg).toLocaleString("pt-BR"),
                         toFloat2(batch.outflowKg / batch.sackWeight),
                         batch.usage
                     ].join(' ')
                 )
             };
-            this.batchOutflows.push(batchOutflow);
+            this.dataTableBatchOutflows.push(batchOutflow);
         });
+
+        // send data to backend
     },
-    async getBatchOutflow(batchNumber: number) {
-        return this.batchOutflows
-            .filter(batch => batch.batchNumber === batchNumber)
+    async getBatchOutflow(batchNumber: number, batchYear: number) {
+        return this.dataTableBatchOutflows
+            .filter(batch => batch.batchNumber === batchNumber && batch.batchYear === batchYear)
             .map(batchOutflow => ({
-                outflowPP: batchOutflow.outflowPP,
+                outflowTotalPP: batchOutflow.outflowTotalPP,
                 outflowKg: batchOutflow.outflowKg,
+                outflowPP: batchOutflow.outflowPP,
                 outflowSack: batchOutflow.outflowSack,
                 usage: batchOutflow.usage,
             }));
     },
-    async getBatchBalance(batch: DataTableBatch, batchOutflows: any[]) {
+    async getBatchBalance(dataTableBatch: DataTableBatch, batchOutflows: any[]) {
+        const batch = this.batches.find(batch => batch.number === dataTableBatch.number && batch.year === dataTableBatch.year);
+
         let totalBatchOutflowPP = 0;
         let totalBatchOutflowKg = 0;
         let totalBatchOutflowSack = 0;
@@ -135,9 +187,14 @@ export const useBatchesStore = defineStore('batches', {
             totalBatchOutflowSack += batchOutflow.outflowSack;
         });
 
-        const balancePP = batch.totalPP - totalBatchOutflowPP;
-        const balanceKg = batch.availableQuantity - totalBatchOutflowKg;
-        const balanceSack = batch.sackQuantity - totalBatchOutflowSack;
+        // Calculate totalPP and availableQuantity from batch properties
+        const totalPP = batch ? batch.sackQuantity * batch.sackWeight * batch.purenessScore : 0;
+        const availableQuantity = batch ? batch.sackQuantity * batch.sackWeight : 0;
+        const sackQuantity = batch ? batch.sackQuantity : 0;
+
+        const balancePP = totalPP - totalBatchOutflowPP;
+        const balanceKg = availableQuantity - totalBatchOutflowKg;
+        const balanceSack = sackQuantity - totalBatchOutflowSack;
 
         return [
             { value: parseFloat(Math.max(balancePP, 0).toFixed(2)), name: 'Ponto de Pureza (PP)' },
@@ -149,7 +206,7 @@ export const useBatchesStore = defineStore('batches', {
         let downloadData: any[] = [];
 
         if (this.batchesForDownload.length === 0) {
-            downloadData = this.batches.map((batch) => {
+            downloadData = this.dataTableBatches.map((batch) => {
                 return {
                     number: batch.number,
                     year: batch.year,
@@ -163,7 +220,7 @@ export const useBatchesStore = defineStore('batches', {
                 };
             })
         } else {
-            downloadData = this.batches.map((batch) => {
+            downloadData = this.dataTableBatches.map((batch) => {
                 if (this.batchesForDownload.some((b: any) => b.number === batch.number)) {
                     return {
                         number: batch.number,

@@ -34,7 +34,6 @@ import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import { useBatchesStore } from '@/stores/batchesStore';
-// import { invoke } from '@tauri-apps/api/core'
 import { UploadFileInfo } from 'naive-ui'
 import ExcelJS from 'exceljs'
 import {
@@ -49,6 +48,7 @@ import {
 
 const globalStore = useGlobalStore();
 const { fileUploadModal } = storeToRefs(globalStore);
+
 const batchStore = useBatchesStore();
 
 const loading = ref(false)
@@ -60,8 +60,6 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
 
   readExcelFile(raw)
     .then((data) => {
-      // função para enviar para o backend...
-      
       batchStore.setBatches(data)
       globalStore.showMessage({
         content: 'Planilha lida com sucesso!',
@@ -125,7 +123,7 @@ async function readExcelFile(file: File) {
       sackQuantity: parseInt(rowData['QT.SC.']),
       sackWeight: toFloat2(rowData['P.SC.']),
       purenessScore: toFloat2(rowData['PP']),
-      outflowPP: toFloat2(rowData['SAÍDAS PP']),
+      outflowTotalPP: toFloat2(rowData['SAÍDAS PP']),
       outflowKg: toFloat2(rowData['SAÍDAS KG']),
       usage: rowData['USO'],
       status: "active",
