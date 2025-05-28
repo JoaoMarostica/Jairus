@@ -4,9 +4,9 @@
       <div>Jairus</div>
 
       <n-flex>
-        <n-tooltip placement="bottom-start" trigger="hover">
+        <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
           <template #trigger>
-            <n-button @click="fileUploadModal = true">
+            <n-button @click="fileUploadModal = true" :disabled="batches.length === 0">
               <template #icon>
                 <n-icon><UploadFileOutlined /></n-icon>
               </template>
@@ -14,9 +14,9 @@
           </template>
           Importar planilha excel
         </n-tooltip>
-        <n-tooltip placement="bottom-start" trigger="hover">
+        <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
           <template #trigger>
-            <n-button @click="batchesStore.downloadPdf">
+            <n-button @click="batchesStore.downloadPdf" :disabled="batches.length === 0">
               <template #icon>
                 <n-icon><PictureAsPdfOutlined /></n-icon>
               </template>
@@ -24,19 +24,29 @@
           </template>
           Baixar PDF
         </n-tooltip>
-        <n-button @click="globalStore.toggleTheme">
-          <template #icon v-if="theme === 'light'">
-            <n-icon><NightlightOutlined /></n-icon>
+        <n-tooltip placement="bottom" trigger="hover">
+          <template #trigger>
+            <n-button @click="globalStore.toggleTheme">
+              <template #icon v-if="theme === 'light'">
+                <n-icon><WbSunnyOutlined /></n-icon>
+              </template>
+              <template #icon v-else>
+                <n-icon><NightlightOutlined /></n-icon>
+              </template>
+            </n-button>
           </template>
-          <template #icon v-else>
-            <n-icon><WbSunnyOutlined /></n-icon>
+          Tema {{ theme === 'light' ? 'Claro' : 'Escuro' }}
+        </n-tooltip>
+        <n-tooltip placement="bottom-end" trigger="hover">
+          <template #trigger>
+            <n-button @click="settingsModal = true">
+              <template #icon>
+                <n-icon><SettingsOutlined /></n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
-        <n-button @click="settingsModal = true">
-          <template #icon>
-            <n-icon><SettingsOutlined /></n-icon>
-          </template>
-        </n-button>
+          Configurações
+        </n-tooltip>
       </n-flex>
     </n-flex>
     <AppFileUpload />
@@ -69,6 +79,7 @@ const settingsStore = useSettingsStore()
 const { settingsModal } = storeToRefs(settingsStore)
 
 const batchesStore = useBatchesStore()
+const { batches } = storeToRefs(batchesStore);
 
 </script>
 

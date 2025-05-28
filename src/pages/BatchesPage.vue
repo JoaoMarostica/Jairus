@@ -1,7 +1,7 @@
 <template>
   <n-card title="Lotes">
     <!-- Filtro -->
-    <n-grid cols="1 m:6" responsive="screen" x-gap="16" y-gap="16">
+    <n-grid cols="1 m:6" responsive="screen" x-gap="16" y-gap="16" v-if="batches.length !== 0">
       <n-grid-item span="m:3">
         <n-input-group>
           <n-input
@@ -30,20 +30,46 @@
         </n-input-group>
       </n-grid-item>
       <n-grid-item>
-        <n-button type="success" ghost @click="createBatch">
+        <n-button strong secondary type="info" @click="createBatch">
           <template #icon>
             <n-icon>
               <PlusOutlined />
             </n-icon>
           </template>
-          Criar Lote
+          Novo Lote
         </n-button>
       </n-grid-item>
     </n-grid>
 
     <!-- Tabela -->
     <div class="table-wrapper">
+      <n-card v-if="batches.length === 0">
+        <n-empty description="Nenhum Lote Encontrado" size="large">
+          <template #extra>
+            <n-space>
+              <n-button secondary type="info" size="small" @click="fileUploadModal = true" class="empty-button">
+                <template #icon>
+                  <n-icon>
+                    <UploadFileOutlined />
+                  </n-icon>
+                </template>
+                Importar Planilha
+              </n-button>
+              ou
+              <n-button secondary type="info" size="small" @click="createBatch" class="empty-button">
+                <template #icon>
+                  <n-icon>
+                    <PlusOutlined />
+                  </n-icon>
+                </template>
+                Novo Lote
+              </n-button>
+            </n-space>
+          </template>
+        </n-empty>
+      </n-card>
       <n-data-table
+        v-else
         :columns="columns"
         :data="filteredData"
         :pagination="pagination"
@@ -70,14 +96,16 @@ import {
   NSelect,
   NInputGroup,
   NTooltip,
-  NDropdown
+  NDropdown,
+  NEmpty
 } from 'naive-ui';
 import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
-import { ref, computed, h, Ref, reactive, watch, Component } from 'vue';
-import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, PlusOutlined, MoreVertOutlined } from '@vicons/material'
+import { ref, computed, h, Ref, reactive, watch } from 'vue';
+import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, PlusOutlined, MoreVertOutlined, UploadFileOutlined } from '@vicons/material'
 import AppBacthDetails from '@/components/AppBacthDetails.vue';
 import { useBatchesStore } from '@/stores/batchesStore';
+import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
 
 type DataTableBatch = {
@@ -104,6 +132,9 @@ type Sorter = {
 };
 
 const isModalOpen = ref<boolean>(false);
+
+const globalStore = useGlobalStore()
+const { fileUploadModal } = storeToRefs(globalStore);
 
 const batchesStore = useBatchesStore();
 const { batches, batchesForDownload } = storeToRefs(batchesStore);
@@ -304,7 +335,7 @@ function getStatusLabel(status: string) {
 function getStatusType(status: string) {
   switch (status) {
     case 'active':
-      return 'success'
+      return 'primary'
     case 'closed':
       return 'warning'
     default:
@@ -559,5 +590,10 @@ function createColumns() {
 .n-button {
   margin-right: 6px;
 }
+
+.empty-button{
+  margin: 0;
+}
+
 </style>
 

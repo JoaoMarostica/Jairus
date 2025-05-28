@@ -7,7 +7,7 @@
                     :data="seeds"
                 />
                 <div style="text-align: center; margin-top: 24px;">
-                    <n-button type="success" ghost>
+                    <n-button strong secondary type="info">
                         <template #icon>
                             <n-icon>
                                 <PlusOutlined />
@@ -24,7 +24,7 @@
                     :data="coatings"
                 />
                 <div style="text-align: center; margin-top: 24px;">
-                    <n-button type="success" ghost>
+                    <n-button strong secondary type="info">
                         <template #icon>
                             <n-icon>
                                 <PlusOutlined />
@@ -41,7 +41,7 @@
                     :data="brands"
                 />
                 <div style="text-align: center; margin-top: 24px;">
-                    <n-button type="success" ghost>
+                    <n-button strong secondary type="info">
                         <template #icon>
                             <n-icon>
                                 <PlusOutlined />
