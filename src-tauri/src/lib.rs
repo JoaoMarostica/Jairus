@@ -1,4 +1,5 @@
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
+use crate::commands::batch_commands;
 
 mod commands;
 mod services;
@@ -12,7 +13,15 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            batch_commands::exemplo
+            batch_commands::create_batch,
+            batch_commands::get_batch,
+            batch_commands::list_batches,
+            batch_commands::update_batch,
+            batch_commands::delete_batch,
+            batch_commands::filter_batches_by_year,
+            batch_commands::filter_batches_by_month,
+            batch_commands::filter_batches_by_seed,
+            batch_commands::get_batch_statistics,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
