@@ -18,10 +18,10 @@ pub fn run() {
             batch_commands::list_batches,
             batch_commands::update_batch,
             batch_commands::delete_batch,
-            batch_commands::filter_batches_by_year,
-            batch_commands::filter_batches_by_month,
-            batch_commands::filter_batches_by_seed,
             batch_commands::get_batch_statistics,
+//            batch_commands::filter_batches_by_year,
+//            batch_commands::filter_batches_by_month,
+//            batch_commands::filter_batches_by_seed,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

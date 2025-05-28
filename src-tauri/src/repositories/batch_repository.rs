@@ -4,8 +4,7 @@ use dotenvy::dotenv;
 use core::panic;
 use std::env;
 
-use crate::schema::tb_batch::dsl::*;
-use crate::models::batch::Batch;
+use crate::{schema::tb_batch::dsl::*,models::batch::Batch};
 
 pub struct BatchRepository {
     connection:SqliteConnection
@@ -20,60 +19,45 @@ impl BatchRepository {
         Self { connection: connection }
     }
 
-    pub fn create(&mut self, object:&Batch) -> Batch {
+    pub fn create(&mut self, object:&Batch) -> Result<Batch, diesel::result::Error> {
         diesel::insert_into(tb_batch)
         .values(object)
         .returning(Batch::as_returning())
         .get_result(&mut self.connection)
-        .expect("Error creating a new record in batch table")
     }
 
-    pub fn read(&mut self, id:&(i32,i32)) -> Option<Batch> {
+    pub fn read(&mut self, id:&(i32,i32)) -> Result<Option<Batch>, diesel::result::Error> {
         let (bn, by) = id;
-        match tb_batch
-        .filter(
+        tb_batch.filter(
             batch_number.eq(bn)
             .and(batch_year.eq(by)))
         .select(Batch::as_select())
         .get_result(&mut self.connection)
-        .optional() {
-            Ok(option) => option,
-            Err(e) => panic!("Error trying to read batch id={:?}\n{}", id, e)
-        }
- 
+        .optional()
     }
 
-    pub fn read_all(&mut self) -> Vec<Batch> {
-        match tb_batch
-        .select(Batch::as_select())
-        .get_results(&mut self.connection) {
-            Ok(result) => result,
-            Err(e) => panic!("Error trying to read all batchs\n{}", e)
-        }
+    pub fn read_all(&mut self) -> Result<Vec<Batch>, diesel::result::Error> {
+        tb_batch .select(Batch::as_select())
+        .get_results(&mut self.connection)
     }
 
-    pub fn update(&mut self, id:&(i32, i32), object:&Batch) -> Option<Batch> {
+    pub fn update(&mut self, id:&(i32, i32), object:&Batch) -> Result<Option<Batch>,diesel::result::Error> {
         let (bn, by) = id;
-        match diesel::update(
-            tb_batch.filter(
-                batch_number.eq(bn)
+        diesel::update(tb_batch.filter(
+            batch_number.eq(bn)
             .and(batch_year.eq(by))))
         .set(object)
         .returning(Batch::as_returning())
         .get_result(&mut self.connection)
-        .optional() {
-            Ok(option) => option,
-            Err(e) => panic!("Error trying to update batch id={:?}\n{}", id, e)
-        }
+        .optional()
     }
 
-    pub fn delete(&mut self, id:&(i32,i32)) -> usize {
+    pub fn delete(&mut self, id:&(i32,i32)) -> Result<Option<Batch>, diesel::result::Error>{
         let (bn, by) = id;
-        diesel::delete(
-            tb_batch.filter(
-                batch_number.eq(bn)
+        diesel::delete(tb_batch.filter(
+            batch_number.eq(bn)
             .and(batch_year.eq(by))))
-        .execute(&mut self.connection)
-        .expect("Error deleting record in batch table")
+        .get_result(&mut self.connection)
+        .optional()
     }
 }

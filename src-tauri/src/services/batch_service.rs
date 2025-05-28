@@ -1,5 +1,6 @@
-use crate::{ models::batch::Batch, repositories::batch_repository::BatchRepository};
-use crate::commands::batch_commands::{BatchStatistics, YearCount, SeedCount};
+use crate::{
+    models::{batch::Batch,stats::*},
+    repositories::batch_repository::BatchRepository};
 use std::collections::HashMap;
 
 pub struct BatchService {
@@ -7,38 +8,48 @@ pub struct BatchService {
 }
 
 impl BatchService {
-    /// Cria uma nova instância do serviço de lotes
     pub fn new() -> Self {
-        Self {
-            repo: BatchRepository::new()
+        Self { repo: BatchRepository::new() }
+    }
+    
+    pub fn create_batch(&mut self, batch: &Batch) -> Result<Batch,String> {
+        match self.repo.create(batch) {
+            Ok(result) => Ok(result),
+            Err(e) => Err(format!("Erro ao criar lote\n{}", e))
         }
     }
     
-    /// Cria um novo lote no banco de dados
-    pub fn create_batch(&mut self, batch: &Batch) -> Batch {
-        self.repo.create(batch)
+    pub fn get_batch(&mut self, id: &(i32, i32)) -> Result<Option<Batch>,String> {
+        match self.repo.read(&id) {
+            Ok(result) => Ok(result),
+            Err(e) => Err(format!("Erro ao buscar lote {:?}\n{}", id, e))
+        }
     }
     
-    /// Obtém um lote específico pelo ID composto (batch_number, batch_year)
-    pub fn get_batch(&mut self, id: &(i32, i32)) -> Option<Batch> {
-        self.repo.read(id)
+    pub fn list_batches(&mut self) -> Result<Vec<Batch>,String> {
+        match self.repo.read_all() {
+            Ok(result) => Ok(result),
+            Err(e) => Err(format!("Erro ao listar lotes\n{}",e))
+        }
     }
     
-    /// Lista todos os lotes
-    pub fn list_batches(&mut self) -> Vec<Batch> {
-        self.repo.read_all()
+    pub fn update_batch(&mut self, id: &(i32, i32), batch: &Batch) -> Result<Option<Batch>,String> {
+        match self.repo.update(id, batch) {
+            Ok(result) => Ok(result),
+            Err(e) => Err(format!("Erro ao atualizar lote {}-{}\n{}",
+            batch.batch_number, batch.batch_year, e)
+            )
+        }
+        
     }
     
-    /// Atualiza um lote existente
-    pub fn update_batch(&mut self, id: &(i32, i32), batch: &Batch) -> Option<Batch> {
-        self.repo.update(id, batch)
+    pub fn delete_batch(&mut self, id: &(i32, i32)) -> Result<Option<Batch>, String> {
+        match self.repo.delete(id) {
+            Ok(result) => Ok(result),
+            Err(e) => Err(format!("Erro ao excluir lote {:?}\n{}", id, e))
+        }
     }
-    
-    /// Exclui um lote
-    pub fn delete_batch(&mut self, id: &(i32, i32)) -> usize {
-        self.repo.delete(id)
-    }
-    
+/*
     /// Filtra lotes por ano
     pub fn filter_by_year(&mut self, year_value: i32) -> Vec<Batch> {
         let all_batches = self.list_batches();
@@ -62,58 +73,59 @@ impl BatchService {
             .filter(|batch| batch.seed == seed_name)
             .collect()
     }
-    
-    /// Obtém estatísticas de lotes
-    pub fn get_statistics(&mut self) -> BatchStatistics {
-        let all_batches = self.list_batches();
-        
-        // Total de lotes
-        let total_batches = all_batches.len();
-        
-        // Peso total
-        let total_weight: i32 = all_batches.iter()
-            .map(|batch| batch.total_weight)
-            .sum();
-        
-        // Agrupar por ano
-        let mut years_map: HashMap<i32, (usize, i32)> = HashMap::new();
-        for batch in &all_batches {
-            let entry = years_map.entry(batch.batch_year).or_insert((0, 0));
-            entry.0 += 1; // Incrementa contagem
-            entry.1 += batch.total_weight; // Adiciona peso
-        }
-        
-        let total_by_year: Vec<YearCount> = years_map
-            .into_iter()
-            .map(|(year, (count, total_weight))| YearCount { 
-                year, 
-                count, 
-                total_weight 
+*/
+    pub fn get_statistics(&mut self) -> Result<BatchStatistics, String> {
+        if let Ok(all_batches) = self.list_batches() {
+
+            let total_batches = all_batches.len();
+            
+            let total_weight:i32 = all_batches.iter()
+                .map(|batch| batch.total_weight)
+                .sum();
+
+            let mut years_map: HashMap<i32,(usize, i32)> = HashMap::new();
+            for batch in &all_batches {
+                let entry =
+                years_map.entry(batch.batch_year).or_insert((0, 0));
+                entry.0 += 1;
+                entry.1 += batch.total_weight;
+            }
+            
+            let total_by_year: Vec<YearCount> = years_map
+                .into_iter()
+                .map(|(year, (count, total_weight))| YearCount { 
+                    year, 
+                    count, 
+                    total_weight 
+                })
+                .collect();
+            
+            let mut seeds_map: HashMap<String,(usize, i32)> = HashMap::new();
+            for batch in &all_batches {
+                let entry = seeds_map.entry(batch.seed.clone()).or_insert((0, 0));
+                entry.0 += 1;
+                entry.1 += batch.total_weight;
+            }
+            
+            let total_by_seed: Vec<SeedCount> = seeds_map
+                .into_iter()
+                .map(|(seed, (count, total_weight))| SeedCount { 
+                    seed, 
+                    count, 
+                    total_weight 
+                })
+                .collect();
+            
+            Ok(BatchStatistics {
+                total_batches,
+                total_weight,
+                total_by_year,
+                total_by_seed,
             })
-            .collect();
-        
-        // Agrupar por semente
-        let mut seeds_map: HashMap<String, (usize, i32)> = HashMap::new();
-        for batch in &all_batches {
-            let entry = seeds_map.entry(batch.seed.clone()).or_insert((0, 0));
-            entry.0 += 1; // Incrementa contagem
-            entry.1 += batch.total_weight; // Adiciona peso
+        } else {
+            return Err("Erro ao obter estatísticas de lotes".to_string())
         }
         
-        let total_by_seed: Vec<SeedCount> = seeds_map
-            .into_iter()
-            .map(|(seed, (count, total_weight))| SeedCount { 
-                seed, 
-                count, 
-                total_weight 
-            })
-            .collect();
         
-        BatchStatistics {
-            total_batches,
-            total_weight,
-            total_by_year,
-            total_by_seed,
-        }
     }
 }

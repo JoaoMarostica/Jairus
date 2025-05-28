@@ -13,7 +13,9 @@ diesel::table! {
         total_weight -> Integer,
         pureness_score -> Float,
         total_pureness_score -> Float,
-        origin -> Text,
+        batch_status -> Text,
+        deleted_at -> Nullable<Text>,
+        origin -> Nullable<Text>,
     }
 }
 

@@ -1,20 +1,23 @@
 use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
+use serde::{Deserialize, Serialize};
 
-#[derive(Queryable,Selectable,Insertable,AsChangeset)]
+#[derive(Queryable,Selectable,Insertable,AsChangeset,Deserialize,Serialize)]
 #[diesel(table_name = crate::schema::tb_batch)]
 pub struct Batch {
-    pub batch_number: i32,
-    pub batch_year: i32,
-    pub batch_month: i32,
-    pub seed: String,
-    pub coating: String,
-    pub brand: String,
-    pub sack_weight: i32,
-    pub sack_amount: i32,
-    pub total_weight: i32,
-    pub pureness_score: f32,
-    pub total_pureness_score: f32,
-    pub origin: String
+    pub batch_number:i32,
+    pub batch_year:i32,
+    pub batch_month:i32,
+    pub seed:String,
+    pub coating:String,
+    pub brand:String,
+    pub sack_weight:i32,
+    pub sack_amount:i32,
+    pub total_weight:i32,
+    pub pureness_score:f32,
+    pub total_pureness_score:f32,
+    pub batch_status:String,
+    pub deleted_at:Option<String>,
+    pub origin:Option<String>
 }
 
 impl Batch {
@@ -30,7 +33,7 @@ impl Batch {
         total_weight: i32,
         pureness_score: f32,
         total_pureness_score: f32,
-        origin: String) -> Self {
+        batch_status:String) -> Self {
             Batch {
                 batch_number,
                 batch_year,
@@ -43,7 +46,9 @@ impl Batch {
                 total_weight,
                 pureness_score,
                 total_pureness_score,
-                origin
+                batch_status,
+                deleted_at:None,
+                origin:None
             }
         }
 }
