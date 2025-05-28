@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import type { DataTableRowKey } from 'naive-ui'
-import { invoke } from '@tauri-apps/api/core'
+// import { invoke } from '@tauri-apps/api/core'
 
 type RawBatch = {
     number: number;
@@ -162,6 +162,7 @@ export const useBatchesStore = defineStore('batches', {
         });
 
         // send data to backend
+        console.log('dados formatados para o backend:', this.batches);
     },
     async getBatchOutflow(batchNumber: number, batchYear: number) {
         return this.dataTableBatchOutflows

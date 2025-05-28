@@ -18,7 +18,7 @@
                 </div>
             </n-tab-pane>
 
-            <n-tab-pane name="coatings" tab="Revestimentos">
+            <n-tab-pane name="coatings" tab="Tratamentos">
                 <n-data-table
                     :columns="coatingColumns"
                     :data="coatings"
