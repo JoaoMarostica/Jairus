@@ -60,7 +60,8 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
 
   readExcelFile(raw)
     .then((data) => {
-      // enviar para o backend...
+      // função para enviar para o backend...
+      
       batchStore.setBatches(data)
       globalStore.showMessage({
         content: 'Planilha lida com sucesso!',
@@ -115,7 +116,7 @@ async function readExcelFile(file: File) {
     const batch = {
       number: rowData['LOTE'],
       year: parseInt(rowData['ANO']),
-      expireDate: parseMonthYearToTimestamp(rowData['VCTO']),
+      expireDate: new Date(rowData['VCTO']).getMonth() + 1,
       seed: rowData['VARIEDADE'],
       coating: rowData['TIPO'],
       sackBrand: rowData['SC'],
@@ -132,21 +133,5 @@ async function readExcelFile(file: File) {
   }
   return data
 }
-
-function parseMonthYearToTimestamp(value: string): number {
-  const [monthStr, yearStr] = value.split('-');
-  const monthIndex = [
-    'jan', 'feb', 'mar', 'apr', 'may', 'jun',
-    'jul', 'aug', 'sep', 'oct', 'nov', 'dec'
-  ].indexOf(monthStr.toLowerCase());
-
-  if (monthIndex === -1) throw new Error(`Formato de mês inválido: ${value}`);
-
-  const year = parseInt('20' + yearStr);
-  const timestamp = new Date(year, monthIndex).getTime();
-
-  return monthIndex;
-}
-
 
 </script>
