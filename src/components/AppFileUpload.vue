@@ -115,7 +115,7 @@ async function readExcelFile(file: File) {
     const batch = {
       number: rowData['LOTE'],
       year: parseInt(rowData['ANO']),
-      expireDate: new Date(rowData['VCTO']),
+      expireDate: new Date(rowData['VCTO']).getTime(),
       seed: rowData['VARIEDADE'],
       coating: rowData['TIPO'],
       sackBrand: rowData['SC'],

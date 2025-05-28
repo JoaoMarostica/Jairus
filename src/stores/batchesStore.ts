@@ -4,7 +4,7 @@ import type { DataTableRowKey } from 'naive-ui'
 type Batch = {
     number: number;
     year: number;
-    expireDate: Date;
+    expireDate: number;
     seed: string;
     coating: string;
     sackBrand: string;
@@ -15,7 +15,7 @@ type Batch = {
     outflowKg: number;
     usage: string;
     status: string;
-    deletedAt: Date | null;
+    deletedAt: number | null;
 };
 
 type DataTableBatch = {
@@ -32,7 +32,7 @@ type DataTableBatch = {
     purenessScore: number;
     totalPP: number;
     status: string;
-    deletedAt: Date | null;
+    deletedAt: number | null;
     _searchIndex: string;
 };
 
@@ -190,51 +190,11 @@ function normalizeText(text: string | null): string {
     : '';
 }
 
-function parseExpireDate(expireDate: Date): string {
-    const monthNumber = expireDate.getMonth() + 1;
-    const year = expireDate.getFullYear();
-    let month = "--"
-
-    switch (monthNumber) {
-        case 1:
-            month = 'jan';
-            break;
-        case 2:
-            month = 'fev';
-            break;
-        case 3:
-            month = 'mar';
-            break;
-        case 4:
-            month = 'abr';
-            break;
-        case 5:
-            month = 'mai';
-            break;
-        case 6:
-            month = 'jun';
-            break;
-        case 7:
-            month = 'jul';
-            break;
-        case 8:
-            month = 'ago';
-            break;
-        case 9:
-            month = 'set';
-            break;
-        case 10:
-            month = 'out';
-            break;
-        case 11:
-            month = 'nov';
-            break;
-        case 12:
-            month = 'dez';
-            break;
-        default:
-            return 'formato inválido';
-    }
-
-    return `${month}/${year}`;
+function parseExpireDate(expireDate: number): string {
+  const date = new Date(expireDate);
+  const monthNumber = date.getMonth() + 1;
+  const year = date.getFullYear();
+  const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  const month = monthNames[monthNumber - 1] || '--';
+  return `${month}/${year}`;
 }

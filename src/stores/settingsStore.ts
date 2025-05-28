@@ -3,18 +3,19 @@ import { defineStore } from 'pinia'
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
     settingsModal: false,
-    safraAtual: '',
-    unidade: 'kg',
-    precoPP: 0,
-    tratamentos: ['Golden', 'Podium'],
-    cultivares: ['Mombaça', 'Piatã']
+    seeds: ['Mombaça', 'Piatã'],
+    coatings: ['Golden', 'Podium'],
+    brands: ['Ponto Alto', 'Nova Safra'],
   }),
   actions: {
-    atualizarTratamentos(novos: string[]) {
-      this.tratamentos = novos
+    updateSeeds(newSeeds: string[]) {
+      this.seeds = newSeeds
     },
-    atualizarCultivares(novos: string[]) {
-      this.cultivares = novos
-    }
+    updateCoatings(newCoatings: string[]) {
+      this.coatings = newCoatings
+    },
+    updateBrands(newBrands: string[]) {
+      this.brands = newBrands
+    },
   }
 })
