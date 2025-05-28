@@ -53,14 +53,14 @@ impl SeedRepository {
         }
     }
 
-    pub fn update(&mut self, object:&Seed) -> Option<Seed> {
-        match diesel::update(tb_seed.find(object.id()))
+    pub fn update(&mut self, id:&str, object:&Seed) -> Option<Seed> {
+        match diesel::update(tb_seed.filter(scientific_name.eq(id)))
         .set(object)
         .returning(Seed::as_returning())
         .get_result(&mut self.connection)
         .optional() {
             Ok(option) => option,
-            Err(e) => panic!("Error trying to update coating id={}\n{}", object.id(), e)
+            Err(e) => panic!("Error trying to update coating id={}\n{}", id, e)
         }
     }
 

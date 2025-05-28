@@ -52,14 +52,14 @@ impl CoatingRepository {
         }
     }
 
-    pub fn update(&mut self, object:&Coating) -> Option<Coating> {
-        match diesel::update(tb_coating.find(object.id()))
+    pub fn update(&mut self, id:&str, object:&Coating) -> Option<Coating> {
+        match diesel::update(tb_coating.filter(coating_name.eq(id)))
         .set(object)
         .returning(Coating::as_returning())
         .get_result(&mut self.connection)
         .optional() {
             Ok(option) => option,
-            Err(e) => panic!("Error trying to update coating id={}\n{}", object.id(), e)
+            Err(e) => panic!("Error trying to update coating id={}\n{}", id, e)
         }
     }
 

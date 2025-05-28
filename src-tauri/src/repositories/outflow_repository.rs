@@ -52,14 +52,14 @@ impl OutflowRepository {
         }
     }
 
-    pub fn update(&mut self, object:&Outflow) -> Option<Outflow> {
-        match diesel::update(tb_outflow.find(object.id()))
+    pub fn update(&mut self, id:&i32, object:&Outflow) -> Option<Outflow> {
+        match diesel::update(tb_outflow.filter(outflow_id.eq(id)))
         .set(object)
         .returning(Outflow::as_returning())
         .get_result(&mut self.connection)
         .optional() {
             Ok(option) => option,
-            Err(e) => panic!("Error trying to update coating id={}\n{}", object.id(), e)
+            Err(e) => panic!("Error trying to update coating id={}\n{}", id, e)
         }
     }
 
