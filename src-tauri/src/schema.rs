@@ -41,13 +41,11 @@ diesel::table! {
 }
 
 diesel::table! {
-    tb_seed (scientific_name) {
-        scientific_name -> Text,
+    tb_seed (popular_name) {
         popular_name -> Text,
+        scientific_name -> Text,
     }
 }
-
-diesel::joinable!(tb_batch -> tb_seed (seed));
 
 diesel::allow_tables_to_appear_in_same_query!(
     tb_batch,

@@ -7,8 +7,8 @@ CREATE TABLE tb_outflow (
 );
 
 CREATE TABLE tb_seed (
-    scientific_name TEXT NOT NULL PRIMARY KEY,
-    popular_name TEXT NOT NULL
+    popular_name TEXT NOT NULL PRIMARY KEY,
+    scientific_name TEXT NOT NULL
 );
 
 CREATE TABLE tb_coating (
