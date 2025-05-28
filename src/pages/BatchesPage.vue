@@ -74,7 +74,7 @@ import {
 } from 'naive-ui';
 import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
-import { ref, computed, h, Ref, reactive, watch } from 'vue';
+import { ref, computed, h, Ref, reactive, watch, Component } from 'vue';
 import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, PlusOutlined, MoreVertOutlined } from '@vicons/material'
 import AppBacthDetails from '@/components/AppBacthDetails.vue';
 import { useBatchesStore } from '@/stores/batchesStore';
@@ -472,6 +472,7 @@ function createColumns() {
       key: 'actions',
       titleAlign: 'center',
       align: 'center',
+      width: '100px',
       render(batch: any) {
         return [
           h(
@@ -486,9 +487,11 @@ function createColumns() {
                     type: 'primary',
                     size: 'small',
                     onClick: () => openBatchDetails(batch),
-                    renderIcon: () =>
-                      h(AutoAwesomeMosaicOutlined, {
-                        style: { color: '#2080f0' }
+                    renderIcon: () =>h(NIcon, null, 
+                      { default: () => 
+                        h(AutoAwesomeMosaicOutlined, {
+                          style: { color: '#2080f0' }
+                        }) 
                       })
                   }
                 ),
@@ -502,12 +505,14 @@ function createColumns() {
                 {
                   label: 'Editar',
                   key: 'edit',
-                  icon: () => h(EditOutlined)
+                  icon: () => h(NIcon, null, { default: () => h(EditOutlined) })
                 },
                 {
                   label: 'Remover',
                   key: 'delete',
-                  icon: () => h(DeleteOutlined)
+                  icon: () => h(NIcon, {
+                    color: 'red'
+                  }, { default: () => h(DeleteOutlined) })
                 }
               ],
               onSelect: (key: string) => {
@@ -526,7 +531,7 @@ function createColumns() {
                   {
                     quaternary: true,
                     size: 'small',
-                    renderIcon: () => h(MoreVertOutlined)
+                    renderIcon: () => h(NIcon, null, { default: () => h(MoreVertOutlined) })
                   }
                 )
             }

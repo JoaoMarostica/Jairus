@@ -1,5 +1,5 @@
 <template>
-    <n-modal v-model:show="settingsModal" preset="card" title="Configurações" style="width: 700px; min-height: 700px">
+    <n-modal v-model:show="settingsModal" preset="card" title="Configurações" style="width: 600px; min-height: 600px">
         <n-tabs type="segment" animated>
             <n-tab-pane name="seeds" tab="Cultivares">
                 <n-data-table
@@ -109,6 +109,7 @@ function createSeedColumns() {
         key: 'actions',
         titleAlign: 'center',
         align: 'center',
+        width: '100px',
         render() {
             return [
                 h(
@@ -138,13 +139,13 @@ function createCoatingColumns() {
     { 
         title: 'Tipo', 
         key: 'name',
-        minWidth: '550px',
     },
     {
         title: 'Ações',
         key: 'actions',
         titleAlign: 'center',
         align: 'center',
+        width: '100px',
         render() {
             return [
                 h(
@@ -172,12 +173,13 @@ function createCoatingColumns() {
 function createbrandColumns() {
   brandColumns.value = [
     { title: 'Nome', key: 'name' },
-    { title: 'Sacos', key: 'sackWeights' },
+    { title: 'Sacos', key: 'sackWeights'},
     {
         title: 'Ações',
         key: 'actions',
         titleAlign: 'center',
         align: 'center',
+        width: '100px',
         render() {
             return [
                 h(
