@@ -53,9 +53,7 @@ impl CoatingRepository {
     }
 
     pub fn update(&mut self, id:&str, object:&Coating) -> Option<Coating> {
-        match diesel::update(
-            tb_coating
-            .filter(coating_name.eq(id)))
+        match diesel::update(tb_coating.find(id))
         .set(object)
         .returning(Coating::as_returning())
         .get_result(&mut self.connection)
@@ -66,7 +64,7 @@ impl CoatingRepository {
     }
 
     pub fn delete(&mut self, id:&str) -> usize {
-        diesel::delete(tb_coating.filter(coating_name.eq(id)))
+        diesel::delete(tb_coating.find(id))
         .execute(&mut self.connection)
         .expect("Error deleting record")
     }

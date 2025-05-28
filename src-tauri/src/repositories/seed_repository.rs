@@ -54,9 +54,7 @@ impl SeedRepository {
     }
 
     pub fn update(&mut self, id:&str, object:&Seed) -> Option<Seed> {
-        match diesel::update(
-            tb_seed
-            .filter(scientific_name.eq(id)))
+        match diesel::update(tb_seed.find(id))
         .set(object)
         .returning(Seed::as_returning())
         .get_result(&mut self.connection)
@@ -67,7 +65,7 @@ impl SeedRepository {
     }
 
     pub fn delete(&mut self, id:&str) -> usize {
-        diesel::delete(tb_seed.filter(scientific_name.eq(id)))
+        diesel::delete(tb_seed.find(id))
         .execute(&mut self.connection)
         .expect("Error deleting record")
     }
