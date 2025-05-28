@@ -44,7 +44,7 @@ impl SeedRepository {
  
     }
 
-    pub fn read_all(&mut self, ) -> Vec<Seed> {
+    pub fn read_all(&mut self) -> Vec<Seed> {
         match tb_seed
         .select(Seed::as_select())
         .get_results(&mut self.connection) {
@@ -53,14 +53,14 @@ impl SeedRepository {
         }
     }
 
-    pub fn update(&mut self, id:&str, object:&Seed) -> Option<Seed> {
-        match diesel::update(tb_seed.find(id))
+    pub fn update(&mut self, object:&Seed) -> Option<Seed> {
+        match diesel::update(tb_seed.find(object.id()))
         .set(object)
         .returning(Seed::as_returning())
         .get_result(&mut self.connection)
         .optional() {
             Ok(option) => option,
-            Err(e) => panic!("Error trying to update coating id={}\n{}", id, e)
+            Err(e) => panic!("Error trying to update coating id={}\n{}", object.id(), e)
         }
     }
 

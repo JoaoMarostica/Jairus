@@ -1,25 +1,71 @@
-use crate::models::outflow::Outflow;
+use diesel::{prelude::*,SqliteConnection};
+use dotenvy::dotenv;
 
-pub struct OutflowRepository;
+use core::panic;
+use std::env;
+
+use crate::schema::tb_outflow::dsl::*;
+use crate::models::outflow::{NewOutflow, Outflow};
+
+pub struct OutflowRepository {
+    connection: SqliteConnection
+}
 
 impl OutflowRepository {
-    fn create(object:&Outflow) {
+    pub fn new() -> Self {
+        dotenv().ok();
 
+        let database_url = env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set");
+
+        let c = SqliteConnection::establish(&database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+
+        Self { connection: c }
     }
 
-    fn read(id:&u32) -> Option<Outflow> {
-        None
+    pub fn create(&mut self, object:&NewOutflow) -> Outflow {
+        diesel::insert_into(tb_outflow)
+        .values(object)
+        .returning(Outflow::as_returning())
+        .get_result(&mut self.connection)
+        .expect("Error creating a new record")
     }
 
-    fn read_all(id:&(u32,u32)) -> Vec<Outflow> {
-        vec![]
+    pub fn read(&mut self, id:&i32) -> Option<Outflow> {
+        match tb_outflow
+        .find(id)
+        .select(Outflow::as_select())
+        .get_result(&mut self.connection)
+        .optional() {
+            Ok(option) => option,
+            Err(e) => panic!("Error trying to read coating id={}\n{}", id, e)
+        }
     }
 
-    fn update(id:&u32, object:&Outflow) {
-
+    pub fn read_all(&mut self) -> Vec<Outflow> {
+        match tb_outflow
+        .select(Outflow::as_select())
+        .get_results(&mut self.connection) {
+            Ok(result) => result,
+            Err(e) => panic!("Error trying to read all coatings\n{}", e)
+        }
     }
 
-    fn delete(id:&u32) {
+    pub fn update(&mut self, object:&Outflow) -> Option<Outflow> {
+        match diesel::update(tb_outflow.find(object.id()))
+        .set(object)
+        .returning(Outflow::as_returning())
+        .get_result(&mut self.connection)
+        .optional() {
+            Ok(option) => option,
+            Err(e) => panic!("Error trying to update coating id={}\n{}", object.id(), e)
+        }
+    }
 
+    pub fn delete(&mut self, id:&i32) -> usize {
+        diesel::delete(tb_outflow.find(id))
+        .execute(&mut self.connection)
+        .expect("Error deleting record")
     }
 }
