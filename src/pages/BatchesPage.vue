@@ -372,7 +372,7 @@ function createColumns() {
       }
     },
     {
-      title: 'Data de Validade',
+      title: 'Vencimento',
       key: 'expireDate',
       sortOrder: sortKeyMapOrder.value['expireDate'] || false,
       sorter: {
@@ -389,30 +389,20 @@ function createColumns() {
         multiple: 1
       }
     },
-    { 
-      title: 'Status', 
-      key: 'status', 
-      render(row) {
-        return h(
-          NTag,
-          {
-            type: getStatusType(row.status),
-            bordered: false
-          },
-          { default: () => getStatusLabel(row.status) }
-        )
-      }
-    },
     { title: 'Cultivar', key: 'seed' },
     { title: 'Revestimento', key: 'coating' },
     {
       title: 'Sacaria',
       key: 'sack',
+      titleAlign: 'center',
+      align: 'center',
       children: [
         { title: 'Marca', key: 'sackBrand' },
         { 
           title: 'Quantidade', 
           key: 'sackQuantity',
+          titleAlign: 'center',
+          align: 'center',
           sortOrder: sortKeyMapOrder.value['sackQuantity'] || false,
           sorter: {
             compare: (a, b) => a.sackQuantity - b.sackQuantity,
@@ -422,6 +412,8 @@ function createColumns() {
         { 
           title: 'Peso', 
           key: 'sackWeight',
+          titleAlign: 'center',
+          align: 'center',
           sortOrder: sortKeyMapOrder.value['sackWeight'] || false,
           sorter: {
             compare: (a, b) => a.sackWeight - b.sackWeight,
@@ -433,6 +425,8 @@ function createColumns() {
     { 
       title: 'Quantidade (kg)', 
       key: 'availableQuantity',
+      titleAlign: 'center',
+      align: 'center',
       sortOrder: sortKeyMapOrder.value['availableQuantity'] || false,
       sorter: {
         compare: (a, b) => a.availableQuantity - b.availableQuantity,
@@ -440,7 +434,7 @@ function createColumns() {
       }
     },
     { 
-      title: 'Ponto de Pureza (PP/Kg)', 
+      title: 'PP/Kg', 
       key: 'purenessScore',
       sortOrder: sortKeyMapOrder.value['purenessScore'] || false,
       sorter: {
@@ -457,9 +451,27 @@ function createColumns() {
         multiple: 1
       }
     },
+    { 
+      title: 'Status', 
+      key: 'status',
+      titleAlign: 'center',
+      align: 'center',
+      render(row) {
+        return h(
+          NTag,
+          {
+            type: getStatusType(row.status),
+            bordered: false
+          },
+          { default: () => getStatusLabel(row.status) }
+        )
+      }
+    },
     {
       title: 'Ações',
       key: 'actions',
+      titleAlign: 'center',
+      align: 'center',
       render(batch: any) {
         return [
           h(

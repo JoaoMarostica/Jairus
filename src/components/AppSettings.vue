@@ -1,25 +1,55 @@
 <template>
-    <n-modal v-model:show="settingsModal" preset="card" title="Configurações do Sistema" style="width: 500px; min-height: 500px">
+    <n-modal v-model:show="settingsModal" preset="card" title="Configurações" style="width: 700px; min-height: 700px">
         <n-tabs type="segment" animated>
             <n-tab-pane name="seeds" tab="Cultivares">
-                <n-dynamic-input
-                v-model:value="settings.seeds.value"
-                placeholder="Digite uma cultivar"
+                <n-data-table
+                    :columns="seedColumns"
+                    :data="seeds"
                 />
+                <div style="text-align: center; margin-top: 24px;">
+                    <n-button type="success" ghost>
+                        <template #icon>
+                            <n-icon>
+                                <PlusOutlined />
+                            </n-icon>
+                        </template>
+                        Nova Cultivar
+                    </n-button>
+                </div>
             </n-tab-pane>
 
             <n-tab-pane name="coatings" tab="Revestimentos">
-                <n-dynamic-input
-                v-model:value="settings.coatings.value"
-                placeholder="Digite um tipo de revestimento"
+                <n-data-table
+                    :columns="coatingColumns"
+                    :data="coatings"
                 />
+                <div style="text-align: center; margin-top: 24px;">
+                    <n-button type="success" ghost>
+                        <template #icon>
+                            <n-icon>
+                                <PlusOutlined />
+                            </n-icon>
+                        </template>
+                        Novo Revestimento
+                    </n-button>
+                </div>
             </n-tab-pane>
 
             <n-tab-pane name="brands" tab="Marcas">
-                <n-dynamic-input
-                v-model:value="settings.brands.value"
-                placeholder="Digite uma marca"
+                <n-data-table
+                    :columns="brandColumns"
+                    :data="brands"
                 />
+                <div style="text-align: center; margin-top: 24px;">
+                    <n-button type="success" ghost>
+                        <template #icon>
+                            <n-icon>
+                                <PlusOutlined />
+                            </n-icon>
+                        </template>
+                        Nova Marca
+                    </n-button>
+                </div>
             </n-tab-pane>
         </n-tabs>
   
@@ -33,42 +63,143 @@
   </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, h } from 'vue'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { storeToRefs } from 'pinia';
+import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@vicons/material'
 import {
   NModal,
   NTabs,
   NTabPane,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NDynamicInput,
-  NButton
+  NButton,
+  NDataTable,
+  NSpace,
+  NIcon,
 } from 'naive-ui'
 
 const settingsStore = useSettingsStore()
 const { settingsModal, seeds, coatings, brands } = storeToRefs(settingsStore)
 
-const settings = {
-  seeds,
-  coatings,
-  brands
-}
+const seedColumns = ref<TableColumn<RowData>[]>([]);
+const coatingColumns = ref<TableColumn<RowData>[]>([]);
+const brandColumns = ref<TableColumn<RowData>[]>([]);
 
-const show = ref(false) // controle local — substitua pelo global se quiser
+watch(settingsModal, async () => {
+  createSeedColumns();
+  createCoatingColumns();
+  createbrandColumns();
+})
 
 function handleSave() {
-    settingsStore.updateSeeds(settings.seeds.value)
-    settingsStore.updateCoatings(settings.coatings.value)
-    settingsStore.updateBrands(settings.brands.value)
-    show.value = false
+    settingsModal.value = false
 }
 
 // Função para cancelar (fechar o modal sem salvar)
 const handleCancel = () => {
     settingsModal.value = false
 }
+
+function createSeedColumns() {
+  seedColumns.value = [
+    { title: 'Nome Científico', key: 'scientificName' },
+    { title: 'Nome Popular', key: 'popularName' },
+    {
+        title: 'Ações',
+        key: 'actions',
+        titleAlign: 'center',
+        align: 'center',
+        render() {
+            return [
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    renderIcon: () => h(EditOutlined)
+                    }
+                ),
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    renderIcon: () => h(DeleteOutlined)
+                    }
+                )
+            ];
+        }
+    }
+  ]
+}
+
+function createCoatingColumns() {
+  coatingColumns.value = [
+    { 
+        title: 'Tipo', 
+        key: 'name',
+        minWidth: '550px',
+    },
+    {
+        title: 'Ações',
+        key: 'actions',
+        titleAlign: 'center',
+        align: 'center',
+        render() {
+            return [
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    renderIcon: () => h(EditOutlined)
+                    }
+                ),
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    renderIcon: () => h(DeleteOutlined)
+                    }
+                )
+            ];
+        }
+    }
+  ]
+}
+
+function createbrandColumns() {
+  brandColumns.value = [
+    { title: 'Nome', key: 'name' },
+    { title: 'Sacos', key: 'sackWeights' },
+    {
+        title: 'Ações',
+        key: 'actions',
+        titleAlign: 'center',
+        align: 'center',
+        render() {
+            return [
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    renderIcon: () => h(EditOutlined)
+                    }
+                ),
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    renderIcon: () => h(DeleteOutlined)
+                    }
+                )
+            ];
+        }
+    }
+  ]
+}
+
 </script>

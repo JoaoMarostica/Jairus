@@ -71,11 +71,11 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
       loading.value = false
     })
     .catch((err) => {
-      console.error('Erro ao ler o Excel:', err)
       globalStore.showMessage({
         content: `Erro ao ler a planilha: ${err.message}`,
         type: 'error',
       })
+      fileUploadModal.value = false
       loading.value = false
     })
 }
@@ -87,7 +87,7 @@ async function readExcelFile(file: File) {
 
   const sheet = workbook.getWorksheet('LOT')
   if (!sheet) {
-    throw new Error('Aba "LOT" não encontrada')
+    throw new Error('formato inválido')
   }
 
   // Pega os títulos da linha 2 (cabeçalho)
