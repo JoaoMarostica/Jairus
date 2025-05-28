@@ -18,14 +18,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    tb_brand (brand_name) {
+    tb_brand (brand_name, sack_weight) {
         brand_name -> Text,
-    }
-}
-
-diesel::table! {
-    tb_brand_weights (brand, sack_weight) {
-        brand -> Text,
         sack_weight -> Integer,
     }
 }
@@ -53,23 +47,12 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    tb_weight (sack_weight) {
-        sack_weight -> Integer,
-    }
-}
-
 diesel::joinable!(tb_batch -> tb_seed (seed));
-diesel::joinable!(tb_batch -> tb_weight (sack_weight));
-diesel::joinable!(tb_brand_weights -> tb_brand (brand));
-diesel::joinable!(tb_brand_weights -> tb_weight (sack_weight));
 
 diesel::allow_tables_to_appear_in_same_query!(
     tb_batch,
     tb_brand,
-    tb_brand_weights,
     tb_coating,
     tb_outflow,
     tb_seed,
-    tb_weight,
 );

@@ -16,19 +16,9 @@ CREATE TABLE tb_coating (
 );
 
 CREATE TABLE tb_brand (
-    brand_name TEXT NOT NULL PRIMARY KEY
-);
-
-CREATE TABLE tb_weight (
-    sack_weight INTEGER NOT NULL PRIMARY KEY
-);
-
-CREATE TABLE tb_brand_weights (
-    brand TEXT NOT NULL,
+    brand_name TEXT NOT NULL,
     sack_weight INTEGER NOT NULL,
-    FOREIGN KEY (brand) REFERENCES tb_brand(brand_name),
-    FOREIGN KEY (sack_weight) REFERENCES tb_weight(sack_weight),
-    PRIMARY KEY (brand, sack_weight)
+    PRIMARY KEY (brand_name, sack_weight)
 );
 
 CREATE TABLE tb_batch (
