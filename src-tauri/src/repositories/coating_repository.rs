@@ -24,7 +24,7 @@ impl CoatingRepository {
         Self { connection: c }
     }
 
-    fn create(&mut self, object:&Coating) -> Coating {
+    pub fn create(&mut self, object:&Coating) -> Coating {
         diesel::insert_into(tb_coating)
         .values(object)
         .returning(Coating::as_returning())
@@ -32,31 +32,31 @@ impl CoatingRepository {
         .expect("Error creating a new record")
     }
 
-    fn read(&mut self, id:&str) -> Option<Coating> {
+    pub fn read(&mut self, id:&str) -> Option<Coating> {
         match tb_coating
         .find(id)
         .select(Coating::as_select())
-        .first(&mut self.connection)
+        .get_result(&mut self.connection)
         .optional() {
             Ok(option) => option,
             Err(e) => panic!("Error trying to read coating id={}\n{}", id, e)
         }
     }
 
-    fn read_all(&mut self) -> Vec<Coating> {
+    pub fn read_all(&mut self) -> Vec<Coating> {
         match tb_coating
         .select(Coating::as_select())
-        .load(&mut self.connection) {
+        .get_results(&mut self.connection) {
             Ok(result) => result,
             Err(e) => panic!("Error trying to read all coatings\n{}", e)
         }
     }
 
-    fn update(&mut self, id:&str, object:&Coating) -> Option<Coating> {
+    pub fn update(&mut self, id:&str, object:&Coating) -> Option<Coating> {
         match diesel::update(
             tb_coating
             .filter(coating_name.eq(id)))
-        .set(coating_name.eq(object.id()))
+        .set(object)
         .returning(Coating::as_returning())
         .get_result(&mut self.connection)
         .optional() {
@@ -65,9 +65,9 @@ impl CoatingRepository {
         }
     }
 
-    fn delete(&mut self, id:&str) {
+    pub fn delete(&mut self, id:&str) -> usize {
         diesel::delete(tb_coating.filter(coating_name.eq(id)))
         .execute(&mut self.connection)
-        .expect("Error deleting record");
+        .expect("Error deleting record")
     }
 }

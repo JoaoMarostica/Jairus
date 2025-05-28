@@ -4,16 +4,16 @@ diesel::table! {
     tb_batch (batch_number, batch_year) {
         batch_number -> Integer,
         batch_year -> Integer,
-        batch_month -> Nullable<Integer>,
+        batch_month -> Integer,
         seed -> Text,
         coating -> Text,
         brand -> Text,
-        sack_weight -> Nullable<Integer>,
-        sack_amount -> Nullable<Integer>,
-        total_weight -> Nullable<Integer>,
-        pureness_score -> Nullable<Float>,
-        total_pureness_score -> Nullable<Float>,
-        origin -> Nullable<Text>,
+        sack_weight -> Integer,
+        sack_amount -> Integer,
+        total_weight -> Integer,
+        pureness_score -> Float,
+        total_pureness_score -> Float,
+        origin -> Text,
     }
 }
 
@@ -37,19 +37,19 @@ diesel::table! {
 }
 
 diesel::table! {
-    tb_outflow (id) {
-        id -> Nullable<Integer>,
-        sack_amount -> Nullable<Integer>,
-        total_weight -> Nullable<Integer>,
-        total_pureness_score -> Nullable<Float>,
-        usage -> Nullable<Text>,
+    tb_outflow (outflow_id) {
+        outflow_id -> Integer,
+        sack_amount -> Integer,
+        total_weight -> Integer,
+        total_pureness_score -> Float,
+        usage -> Text,
     }
 }
 
 diesel::table! {
     tb_seed (scientific_name) {
         scientific_name -> Text,
-        popular_name -> Nullable<Text>,
+        popular_name -> Text,
     }
 }
 

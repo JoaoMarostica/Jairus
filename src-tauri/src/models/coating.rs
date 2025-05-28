@@ -1,6 +1,6 @@
-use diesel::{Insertable, Queryable, Selectable};
+use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
 
-#[derive(Queryable,Selectable,Insertable)]
+#[derive(Queryable,Selectable,Insertable,AsChangeset)]
 #[diesel(table_name = crate::schema::tb_coating)]
 pub struct Coating {
     coating_name:String
