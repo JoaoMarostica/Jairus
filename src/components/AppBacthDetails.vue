@@ -1,6 +1,6 @@
 <template>
   <n-modal
-    v-model:show="isModalOpen"
+    v-model:show="batchDetailsModal"
     :style="{
       top: '0px',
       left: '0px',
@@ -90,7 +90,7 @@ const props = defineProps<{
   selectedBatch: any
 }>()
 
-const isModalOpen = defineModel('model', {
+const batchDetailsModal = defineModel('modal', {
   type: Boolean,
   default: false
 })
@@ -105,8 +105,8 @@ const outflowData = ref<DataTableBatchOutflow[]>([])
 const outflowColumns = ref<TableColumn<RowData>[]>([]);
 const batchBalance = ref<BatchBalance[]>([])
 
-watch(isModalOpen, async () => {
-  if (isModalOpen) {
+watch(batchDetailsModal, async () => {
+  if (batchDetailsModal) {
     await nextTick()
     selectedBatch.value = props.selectedBatch
     modalTitle.value = `Detalhes do Lote ${selectedBatch.value.number}`

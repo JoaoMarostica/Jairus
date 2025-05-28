@@ -30,7 +30,7 @@
         </n-input-group>
       </n-grid-item>
       <n-grid-item>
-        <n-button strong secondary type="info" @click="createBatch">
+        <n-button strong secondary type="info" @click="openCreateBatchModal">
           <template #icon>
             <n-icon>
               <PlusOutlined />
@@ -56,7 +56,7 @@
                 Importar Planilha
               </n-button>
               ou
-              <n-button secondary type="info" size="small" @click="createBatch" class="empty-button">
+              <n-button secondary type="info" size="small" @click="openCreateBatchModal" class="empty-button">
                 <template #icon>
                   <n-icon>
                     <PlusOutlined />
@@ -79,8 +79,11 @@
       />
     </div>
     
-    <!-- Modal de detalhes -->
-    <AppBacthDetails v-model:model="isModalOpen" :selectedBatch="selectedBatch"/>
+    <!-- Modal de detalhes do lote -->
+    <AppBacthDetails v-model:modal="batchDetailsModal" :selectedBatch="selectedBatch"/>
+
+    <!-- Modal de criação de lote -->
+    <AppCreateBatch v-model:modal="createBatchModal"/>
   </n-card>
 </template>
 
@@ -105,6 +108,7 @@ import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import { ref, computed, h, Ref, reactive, watch } from 'vue';
 import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, PlusOutlined, MoreVertOutlined, UploadFileOutlined } from '@vicons/material'
 import AppBacthDetails from '@/components/AppBacthDetails.vue';
+import AppCreateBatch from '@/components/AppCreateBatch.vue';
 import { useBatchesStore } from '@/stores/batchesStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
@@ -132,7 +136,8 @@ type Sorter = {
   order: 'ascend' | 'descend' | false;
 };
 
-const isModalOpen = ref<boolean>(false);
+const batchDetailsModal = ref<boolean>(false);
+const createBatchModal = ref<boolean>(false);
 
 const globalStore = useGlobalStore()
 const { fileUploadModal } = storeToRefs(globalStore);
@@ -225,9 +230,8 @@ watch(dataTableBatches.value, async () => {
   await setYearFilterOptions();
 })
 
-function createBatch() {
-  console.log('Criar novo lote');
-  // Implementar lógica de criação de lote
+function openCreateBatchModal() {
+  createBatchModal.value = true
 }
 
 function handleCheck(rowKeys: DataTableRowKey[]) {
@@ -269,7 +273,7 @@ function handleUpdateSorter(sorter: Sorter[]) {
 // Ações
 function openBatchDetails(batch: any) {
   selectedBatch.value = batch;
-  isModalOpen.value = true;
+  batchDetailsModal.value = true;
 }
 
 function handleEdit(batch: any) {
