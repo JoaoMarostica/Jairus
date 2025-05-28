@@ -111,12 +111,14 @@ async function readExcelFile(file: File) {
     })
 
     const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100
-
+    
     // Pegando os dados do lote que realmente interessam
     const batch = {
       number: rowData['LOTE'],
       year: parseInt(rowData['ANO']),
-      expireDate: new Date(rowData['VCTO']).getMonth() + 1,
+      // ex1.: set/2024 --> 7 + 1 = 8 % 12 = 8 (setembro em um array de [0..11])
+      // ex2.: jan/2026 --> 11 + 1 = 12 % 12 = 0 (janeiro em um array de [0..11])
+      expireDate: (new Date(rowData['VCTO']).getMonth() + 1) % 12,
       seed: rowData['VARIEDADE'],
       coating: rowData['TIPO'],
       sackBrand: rowData['SC'],
