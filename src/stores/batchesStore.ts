@@ -65,7 +65,7 @@ export const useBatchesStore = defineStore('batches', {
                     key: batch.number,
                     number: batch.number,
                     year: batch.year,
-                    expireDate: parseExpireDate(batch.expireDate),
+                    expireDate: parseExpireDate(batch.expireDate, batch.year),
                     seed: batch.seed,
                     coating: batch.coating,
                     sackBrand: batch.sackBrand,
@@ -80,7 +80,7 @@ export const useBatchesStore = defineStore('batches', {
                         [
                             batch.number,
                             batch.year,
-                            parseExpireDate(batch.expireDate),
+                            parseExpireDate(batch.expireDate, batch.year),
                             batch.seed,
                             batch.coating,
                             batch.sackBrand,
@@ -190,11 +190,8 @@ function normalizeText(text: string | null): string {
     : '';
 }
 
-function parseExpireDate(expireDate: number): string {
-  const date = new Date(expireDate);
-  const monthNumber = date.getMonth() + 1;
-  const year = date.getFullYear();
+function parseExpireDate(expireDate: number, year: number): string {
   const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-  const month = monthNames[monthNumber - 1] || '--';
-  return `${month}/${year}`;
+  const month = monthNames[expireDate] || '--';
+  return `${month}/${year + 1}`;
 }
