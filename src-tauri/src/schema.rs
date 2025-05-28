@@ -33,6 +33,8 @@ diesel::table! {
 diesel::table! {
     tb_outflow (outflow_id) {
         outflow_id -> Integer,
+        batch_number -> Integer,
+        batch_year -> Integer,
         sack_amount -> Integer,
         total_weight -> Integer,
         total_pureness_score -> Float,
@@ -46,6 +48,9 @@ diesel::table! {
         scientific_name -> Text,
     }
 }
+
+diesel::joinable!(tb_batch -> tb_coating (coating));
+diesel::joinable!(tb_batch -> tb_seed (seed));
 
 diesel::allow_tables_to_appear_in_same_query!(
     tb_batch,

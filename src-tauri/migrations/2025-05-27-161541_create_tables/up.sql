@@ -1,9 +1,13 @@
 CREATE TABLE tb_outflow (
     outflow_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    batch_number INTEGER NOT NULL,
+    batch_year INTEGER NOT NULL,
     sack_amount INTEGER NOT NULL,
     total_weight INTEGER NOT NULL,
     total_pureness_score REAL NOT NULL,
-    usage TEXT NOT NULL
+    usage TEXT NOT NULL,
+    FOREIGN KEY (batch_number) REFERENCES tb_batch(batch_number),
+    FOREIGN KEY (batch_year) REFERENCES tb_batch(batch_year)
 );
 
 CREATE TABLE tb_seed (
@@ -34,9 +38,9 @@ CREATE TABLE tb_batch (
     pureness_score REAL NOT NULL,
     total_pureness_score REAL NOT NULL,
     origin TEXT NOT NULL,
-    FOREIGN KEY (seed) REFERENCES tb_seed(scientific_name),
-    FOREIGN KEY (coating) REFERENCES tb_coating(name),
-    FOREIGN KEY (brand) REFERENCES tb_brand(name),
-    FOREIGN KEY (sack_weight) REFERENCES tb_weight(sack_weight),
+    FOREIGN KEY (seed) REFERENCES tb_seed(popular_name),
+    FOREIGN KEY (coating) REFERENCES tb_coating(coating_name),
+    FOREIGN KEY (brand) REFERENCES tb_brand(brand_name),
+    FOREIGN KEY (sack_weight) REFERENCES tb_brand(sack_weight),
     PRIMARY KEY (batch_number, batch_year)
 );
