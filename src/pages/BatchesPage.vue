@@ -182,15 +182,14 @@ const filteredData: Ref<RowData[]> = computed(() => {
   const year = yearFilter.value || 'all';
 
   let filteredBatches = dataTableBatches.value.filter(batch => {
-    const matchesYear = year === 'all' || batch.year.toString() === year;
+    const matchesYear = year === 'all' || batch.batch_year.toString() === year;
 
     if (!matchesYear) return false;
 
     if (column === 'all') {
       return !term || batch._searchIndex.includes(term);
     } else {
-      const key = column as keyof DataTableBatch;
-      const value = batch[key];
+      const value = batch[column];
       const valueStr = value == null ? '' : String(value);
       const matchesColumn = !term || normalizeText(valueStr).includes(term);
 
@@ -308,7 +307,7 @@ async function setColumnFilterOptions() {
 
 async function setYearFilterOptions() {
   const uniqueYears = Array.from(new Set(dataTableBatches.value
-    .map(batch => batch.year)
+    .map(batch => batch.batch_year)
     .filter(year => year != null)));
 
   yearFilterOptions.value = [
@@ -391,30 +390,30 @@ function createColumns() {
     },
     { 
       title: 'Lote', 
-      key: 'number',
-      sortOrder: sortKeyMapOrder.value['number'] || false,
+      key: 'batch_number',
+      sortOrder: sortKeyMapOrder.value['batch_number'] || false,
       sorter: {
-        compare: (a, b) => a.number - b.number,
+        compare: (a, b) => a.batch_number - b.batch_number,
         multiple: 1
       }
     },
     { 
       title: 'Ano', 
-      key: 'year',
-      sortOrder: sortKeyMapOrder.value['year'] || false,
+      key: 'batch_year',
+      sortOrder: sortKeyMapOrder.value['batch_year'] || false,
       sorter: {
-        compare: (a, b) => a.year - b.year,
+        compare: (a, b) => a.batch_year - b.batch_year,
         multiple: 1
       }
     },
     {
       title: 'Vencimento',
-      key: 'expireDate',
-      sortOrder: sortKeyMapOrder.value['expireDate'] || false,
+      key: 'expire_date',
+      sortOrder: sortKeyMapOrder.value['expire_date'] || false,
       sorter: {
         compare: (a, b) => {
-          const dateA = parseExpireDate(a.expireDate);
-          const dateB = parseExpireDate(b.expireDate);
+          const dateA = parseExpireDate(a.expire_date);
+          const dateB = parseExpireDate(b.expire_date);
 
           if (!dateA && !dateB) return 0;
           if (!dateA) return -1;
@@ -433,26 +432,26 @@ function createColumns() {
       titleAlign: 'center',
       align: 'center',
       children: [
-        { title: 'Marca', key: 'sackBrand' },
+        { title: 'Marca', key: 'brand' },
         { 
           title: 'Quantidade', 
-          key: 'sackQuantity',
+          key: 'sack_amount',
           titleAlign: 'center',
           align: 'center',
-          sortOrder: sortKeyMapOrder.value['sackQuantity'] || false,
+          sortOrder: sortKeyMapOrder.value['sack_amount'] || false,
           sorter: {
-            compare: (a, b) => a.sackQuantity - b.sackQuantity,
+            compare: (a, b) => a.sack_amount - b.sack_amount,
             multiple: 1
           }
         },
         { 
           title: 'Peso', 
-          key: 'sackWeight',
+          key: 'sack_weight',
           titleAlign: 'center',
           align: 'center',
-          sortOrder: sortKeyMapOrder.value['sackWeight'] || false,
+          sortOrder: sortKeyMapOrder.value['sack_weight'] || false,
           sorter: {
-            compare: (a, b) => a.sackWeight - b.sackWeight,
+            compare: (a, b) => a.sack_weight - b.sack_weight,
             multiple: 1
           }
         }
@@ -460,46 +459,46 @@ function createColumns() {
     },
     { 
       title: 'Quantidade (kg)', 
-      key: 'availableQuantity',
+      key: 'total_weight',
       titleAlign: 'center',
       align: 'center',
-      sortOrder: sortKeyMapOrder.value['availableQuantity'] || false,
+      sortOrder: sortKeyMapOrder.value['total_weight'] || false,
       sorter: {
-        compare: (a, b) => a.availableQuantity - b.availableQuantity,
+        compare: (a, b) => a.total_weight - b.total_weight,
         multiple: 1
       }
     },
     { 
       title: 'PP/Kg', 
-      key: 'purenessScore',
-      sortOrder: sortKeyMapOrder.value['purenessScore'] || false,
+      key: 'pureness_score',
+      sortOrder: sortKeyMapOrder.value['pureness_score'] || false,
       sorter: {
-        compare: (a, b) => a.purenessScore - b.purenessScore,
+        compare: (a, b) => a.pureness_score - b.pureness_score,
         multiple: 1
       }
     },
     { 
       title: 'Total PP', 
-      key: 'totalPP',
-      sortOrder: sortKeyMapOrder.value['totalPP'] || false,
+      key: 'total_pureness_score',
+      sortOrder: sortKeyMapOrder.value['total_pureness_score'] || false,
       sorter: {
-        compare: (a, b) => a.totalPP - b.totalPP,
+        compare: (a, b) => a.total_pureness_score - b.total_pureness_score,
         multiple: 1
       }
     },
     { 
       title: 'Status', 
-      key: 'status',
+      key: 'batch_status',
       titleAlign: 'center',
       align: 'center',
       render(row) {
         return h(
           NTag,
           {
-            type: getStatusType(row.status),
+            type: getStatusType(row.batch_status),
             bordered: false
           },
-          { default: () => getStatusLabel(row.status) }
+          { default: () => getStatusLabel(row.batch_status) }
         )
       }
     },

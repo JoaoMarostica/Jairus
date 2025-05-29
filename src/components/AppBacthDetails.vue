@@ -73,9 +73,9 @@ import { storeToRefs } from 'pinia';
 
 type DataTableBatchOutflow = {
   outflowTotalPP: string;
-  outflowKg: string;
+  outflowTotalWeight: string;
   outflowPP: string;
-  outflowSack: number;
+  outflowSackAmount: number;
   usage: string;
 };
 
@@ -109,9 +109,9 @@ watch(batchDetailsModal, async () => {
   if (batchDetailsModal) {
     await nextTick()
     selectedBatch.value = props.selectedBatch
-    modalTitle.value = `Detalhes do Lote ${selectedBatch.value.number}`
+    modalTitle.value = `Detalhes do Lote ${selectedBatch.value.batch_number}`
     batchData.value = getbatchData()
-    outflowData.value = await batchesStore.getBatchOutflow(selectedBatch.value.number, selectedBatch.value.year)
+    outflowData.value = await batchesStore.getBatchOutflow(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
     batchBalance.value = await batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
     createColumns()
     renderCharts()
@@ -239,25 +239,25 @@ function closeModal(model: boolean) {
 
 function getbatchData() {
   return [
-    { titulo: 'Ano', valor: selectedBatch.value.year, unidade: '' },
-    { titulo: 'Data de validade', valor: selectedBatch.value.expireDate, unidade: '' },
+    { titulo: 'Ano', valor: selectedBatch.value.batch_year, unidade: '' },
+    { titulo: 'Vencimento', valor: selectedBatch.value.expire_date, unidade: '' },
     { titulo: 'Cultivar', valor: selectedBatch.value.seed, unidade: '' },
-    { titulo: 'Revestimento', valor: selectedBatch.value.coating, unidade: '' },
-    { titulo: 'Marca da Sacaria', valor: selectedBatch.value.sackBrand, unidade: '' },
-    { titulo: 'Sacos', valor: selectedBatch.value.sackQuantity, unidade: '' },
-    { titulo: 'Peso da Sacaria', valor: selectedBatch.value.sackWeight, unidade: 'Kg' },
-    { titulo: 'Quantidade (Kg)', valor: selectedBatch.value.availableQuantity, unidade: 'kg' },
-    { titulo: 'PP/Kg', valor: selectedBatch.value.purenessScore, unidade: '' },
-    { titulo: 'Total de PP', valor: selectedBatch.value.totalPP, unidade: '' },
+    { titulo: 'Tratamento', valor: selectedBatch.value.coating, unidade: '' },
+    { titulo: 'Marca da Sacaria', valor: selectedBatch.value.brand, unidade: '' },
+    { titulo: 'Sacos', valor: selectedBatch.value.sack_amount, unidade: '' },
+    { titulo: 'Peso da Sacaria', valor: selectedBatch.value.sack_weight, unidade: 'Kg' },
+    { titulo: 'Quantidade (Kg)', valor: selectedBatch.value.total_weight, unidade: 'kg' },
+    { titulo: 'PP/Kg', valor: selectedBatch.value.pureness_score, unidade: '' },
+    { titulo: 'Total de PP', valor: selectedBatch.value.total_pureness_score, unidade: '' },
   ]
 }
 
 function createColumns() {
   outflowColumns.value = [
     { title: 'Total de PP', key: 'outflowTotalPP' },
-    { title: 'Quantidade (kg)', key: 'outflowKg', titleAlign: 'center', align: 'center' },
+    { title: 'Quantidade (kg)', key: 'outflowTotalWeight', titleAlign: 'center', align: 'center' },
     { title: 'PP/Kg', key: 'outflowPP' },
-    { title: 'Sacos', key: 'outflowSack' },
+    { title: 'Sacos', key: 'outflowSackAmount' },
     { title: 'Pedido', key: 'usage' }
   ]
 }

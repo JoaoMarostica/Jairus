@@ -112,22 +112,25 @@ async function readExcelFile(file: File) {
     
     // Pegando os dados do lote que realmente interessam
     const batch = {
-      number: rowData['LOTE'],
-      year: parseInt(rowData['ANO']),
+      batch_number: rowData['LOTE'],
+      batch_year: parseInt(rowData['ANO']),
       // ex1.: set/2024 --> 7 + 1 = 8 % 12 = 8 (setembro em um array de [0..11])
       // ex2.: jan/2026 --> 11 + 1 = 12 % 12 = 0 (janeiro em um array de [0..11])
-      expireDate: (new Date(rowData['VCTO']).getMonth() + 1) % 12,
+      batch_month: (new Date(rowData['VCTO']).getMonth() + 1) % 12,
       seed: rowData['VARIEDADE'],
       coating: rowData['TIPO'],
-      sackBrand: rowData['SC'],
-      sackQuantity: parseInt(rowData['QT.SC.']),
-      sackWeight: toFloat2(rowData['P.SC.']),
-      purenessScore: toFloat2(rowData['PP']),
-      outflowTotalPP: toFloat2(rowData['SAÍDAS PP']),
-      outflowKg: toFloat2(rowData['SAÍDAS KG']),
+      brand: rowData['SC'],
+      sack_weight: toFloat2(rowData['P.SC.']),
+      sack_amount: parseInt(rowData['QT.SC.']),
+      total_weight: toFloat2(rowData['P.TOT.'].result),
+      pureness_score: toFloat2(rowData['PP']),
+      total_pureness_score: toFloat2(rowData['TOTAL PP'].result),
+      outflow_total_pureness_score: toFloat2(rowData['SAÍDAS PP']),
+      outflow_total_weight: toFloat2(rowData['SAÍDAS KG']),
       usage: rowData['USO'],
-      status: "active",
-      deletedAt: null,
+      batch_status: "active",
+      deleted_at: null,
+      origin: null
     }
     data.push(batch)
   }
