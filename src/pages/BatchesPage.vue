@@ -71,7 +71,7 @@
       <n-data-table
         v-else
         :columns="columns"
-        :data="filteredData"
+        :data="dataTableBatches"
         :pagination="pagination"
         @update:checked-row-keys="handleCheck"
         @update:sorter="handleUpdateSorter"
@@ -80,7 +80,7 @@
     </div>
     
     <!-- Modal de detalhes do lote -->
-    <AppBacthDetails v-model:modal="batchDetailsModal" :selectedBatch="selectedBatch"/>
+    <AppBatchDetails v-model:modal="batchDetailsModal" :selectedBatch="selectedBatch"/>
 
     <!-- Modal de criação de lote -->
     <AppCreateBatch v-model:modal="createBatchModal"/>
@@ -107,29 +107,11 @@ import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import { ref, computed, h, Ref, reactive, watch } from 'vue';
 import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, PlusOutlined, MoreVertOutlined, UploadFileOutlined } from '@vicons/material'
-import AppBacthDetails from '@/components/AppBacthDetails.vue';
+import AppBatchDetails from '@/components/AppBatchDetails.vue';
 import AppCreateBatch from '@/components/AppCreateBatch.vue';
 import { useBatchesStore } from '@/stores/batchesStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
-
-type DataTableBatch = {
-  key: number;
-  number: number;
-  year: number;
-  expireDate: string;
-  seed: string;
-  coating: string;
-  sackBrand: string;
-  sackQuantity: number;
-  sackWeight: number;
-  availableQuantity: string;
-  purenessScore: string;
-  totalPP: string;
-  status: string;
-  deletedAt: Date | null;
-  _searchIndex: string;
-};
 
 type Sorter = {
   columnKey: string;
@@ -176,31 +158,38 @@ const sortKeyMapOrder = computed<Record<string, 'ascend' | 'descend' | false>>((
   }, {})
 )
 
-const filteredData: Ref<RowData[]> = computed(() => {
+const filteredData = computed(() => {
   const term = normalizeText(search.value);
   const column = columnFilter.value || 'all';
   const year = yearFilter.value || 'all';
 
-  let filteredBatches = dataTableBatches.value.filter(batch => {
-    const matchesYear = year === 'all' || batch.batch_year.toString() === year;
+  // já evita processar se não tiver dados
+  if (!dataTableBatches.value.length) return [];
 
-    if (!matchesYear) return false;
+  let result = dataTableBatches.value;
 
-    if (column === 'all') {
-      return !term || batch._searchIndex.includes(term);
-    } else {
-      const value = batch[column];
-      const valueStr = value == null ? '' : String(value);
-      const matchesColumn = !term || normalizeText(valueStr).includes(term);
+  // Filtro por ano
+  if (year !== 'all') {
+    result = result.filter(batch => batch.batch_year?.toString() === year);
+  }
 
-      return matchesColumn;
-    }
-  });
+  // Filtro por coluna
+  if (term) {
+    result = result.filter(batch => {
+      if (column === 'all') {
+        return batch._searchIndex?.includes(term);
+      } else {
+        const val = batch[column];
+        return normalizeText((val as any)?.toString() ?? '').includes(term);
+      }
+    });
+  }
 
-  if (sortStates.value.length > 0) {
+  // Ordenação
+  if (sortStates.value.length) {
     const { columnKey, order } = sortStates.value[0];
 
-    filteredBatches.sort((a: any, b: any) => {
+    result = [...result].sort((a: any, b: any) => {
       const aVal = a[columnKey];
       const bVal = b[columnKey];
 
@@ -211,22 +200,21 @@ const filteredData: Ref<RowData[]> = computed(() => {
         return order === 'ascend' ? aVal - bVal : bVal - aVal;
       }
 
-      const aStr = String(aVal).toLowerCase();
-      const bStr = String(bVal).toLowerCase();
       return order === 'ascend'
-        ? aStr.localeCompare(bStr)
-        : bStr.localeCompare(aStr);
+        ? String(aVal).localeCompare(String(bVal))
+        : String(bVal).localeCompare(String(aVal));
     });
   }
 
+  // Paginação (evite mutar dados aqui!)
   const start = (pagination.page - 1) * pagination.pageSize;
-  return filteredBatches.slice(start, start + pagination.pageSize);
+  return result.slice(start, start + pagination.pageSize);
 });
 
-watch(dataTableBatches.value, async () => {
+watch(dataTableBatches.value, () => {
   createColumns();
-  await setColumnFilterOptions();
-  await setYearFilterOptions();
+  setColumnFilterOptions();
+  setYearFilterOptions();
 })
 
 function openCreateBatchModal() {
@@ -325,22 +313,22 @@ function normalizeText(text: string | null): string {
     : '';
 }
 
-function getStatusLabel(status: string) {
+function getStatusLabel(status: number) {
   switch (status) {
-    case 'active':
+    case 1:
       return 'Ativo'
-    case 'closed':
+    case 0:
       return 'Encerrado'
     default:
       return 'erro'
   }
 }
 
-function getStatusType(status: string) {
+function getStatusType(status: number) {
   switch (status) {
-    case 'active':
+    case 1:
       return 'primary'
-    case 'closed':
+    case 0:
       return 'warning'
     default:
       return 'error'

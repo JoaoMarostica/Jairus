@@ -35,7 +35,6 @@ import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import { useBatchesStore } from '@/stores/batchesStore';
 import { UploadFileInfo } from 'naive-ui'
-import ExcelJS from 'exceljs'
 import {
   NModal,
   NUpload,
@@ -53,20 +52,23 @@ const batchStore = useBatchesStore();
 
 const loading = ref(false)
 
-function handleFileChange({ file }: { file: UploadFileInfo }) {
+async function handleFileChange({ file }: { file: UploadFileInfo }) {
+  if (loading.value) return
   loading.value = true
-  const raw = file.file
-  if (!raw) return
 
-  readExcelFile(raw)
-    .then((data) => {
-      batchStore.setBatches(data)
+  const rawFile = file.file
+  if (!rawFile) {
+    loading.value = false
+    return
+  }
+
+  await batchStore.importBatchesFromExcel(rawFile)
+    .then(() => {
       globalStore.showMessage({
         content: 'Planilha lida com sucesso!',
         type: 'success',
       })
       fileUploadModal.value = false
-      loading.value = false
     })
     .catch((err) => {
       globalStore.showMessage({
@@ -74,67 +76,10 @@ function handleFileChange({ file }: { file: UploadFileInfo }) {
         type: 'error',
       })
       fileUploadModal.value = false
+    })
+    .finally(() => {
       loading.value = false
     })
-}
-
-async function readExcelFile(file: File) {
-  const buffer = await file.arrayBuffer()
-  const workbook = new ExcelJS.Workbook()
-  await workbook.xlsx.load(buffer)
-
-  const sheet = workbook.getWorksheet('LOT')
-  if (!sheet) {
-    throw new Error('formato inválido')
-  }
-
-  // Pega os títulos da linha 2 (cabeçalho)
-  const headers: string[] = []
-  sheet.getRow(2).eachCell((cell, colNumber) => {
-    headers[colNumber - 1] = (cell.value as string).trim()
-  })
-
-  const data = []
-  for (let i = 3; i <= sheet.rowCount; i++) {
-    const row = sheet.getRow(i)
-
-    if (row.getCell(1).value === null) continue
-    if (row.getCell(1).value === "RESUMO SEMENTES FISCALIZADAS") break
-
-    // Monta um objeto que mapeia header -> valor da célula
-    const rowData: Record<string, any> = {}
-    row.eachCell((cell, colNumber) => {
-      const header = headers[colNumber - 1]
-      rowData[header] = cell.value
-    })
-
-    const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100
-    
-    // Pegando os dados do lote que realmente interessam
-    const batch = {
-      batch_number: rowData['LOTE'],
-      batch_year: parseInt(rowData['ANO']),
-      // ex1.: set/2024 --> 7 + 1 = 8 % 12 = 8 (setembro em um array de [0..11])
-      // ex2.: jan/2026 --> 11 + 1 = 12 % 12 = 0 (janeiro em um array de [0..11])
-      batch_month: (new Date(rowData['VCTO']).getMonth() + 1) % 12,
-      seed: rowData['VARIEDADE'],
-      coating: rowData['TIPO'],
-      brand: rowData['SC'],
-      sack_weight: toFloat2(rowData['P.SC.']),
-      sack_amount: parseInt(rowData['QT.SC.']),
-      total_weight: toFloat2(rowData['P.TOT.'].result),
-      pureness_score: toFloat2(rowData['PP']),
-      total_pureness_score: toFloat2(rowData['TOTAL PP'].result),
-      outflow_total_pureness_score: toFloat2(rowData['SAÍDAS PP']),
-      outflow_total_weight: toFloat2(rowData['SAÍDAS KG']),
-      usage: rowData['USO'],
-      batch_status: "active",
-      deleted_at: null,
-      origin: null
-    }
-    data.push(batch)
-  }
-  return data
 }
 
 </script>

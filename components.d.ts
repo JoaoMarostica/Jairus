@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppBacthDetails: typeof import('./src/components/AppBacthDetails.vue')['default']
+    AppBatchDetails: typeof import('./src/components/AppBatchDetails.vue')['default']
     AppCreateBatch: typeof import('./src/components/AppCreateBatch.vue')['default']
     AppDataTable: typeof import('./src/components/AppDataTable.vue')['default']
     AppDrawer: typeof import('./src/components/AppDrawer.vue')['default']

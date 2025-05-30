@@ -13,6 +13,7 @@
 import { onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGlobalStore } from '@/stores/globalStore';
+import { useBatchesStore } from './stores/batchesStore';
 import { lightThemeOverrides, darkThemeOverrides } from '@/styles/naiveUI';
 import { NConfigProvider, NMessageProvider, darkTheme } from 'naive-ui';
 import MainView from '@/views/MainView.vue';
@@ -20,8 +21,28 @@ import MainView from '@/views/MainView.vue';
 const globalStore = useGlobalStore();
 const { theme, message } = storeToRefs(globalStore);
 
-onMounted(() => {
+const batchesStore = useBatchesStore();
+const { dataTableBatches } = storeToRefs(batchesStore)
+
+onMounted(async () => {
   globalStore.detectSystemTheme();
+  await batchesStore.fetchBatches().then(() => {
+    // globalStore.showMessage({
+    //   content: 'Lotes carregados com sucesso!',
+    //   type: 'success',
+    // })
+    // globalStore.showMessage({
+    //   content: JSON.stringify(dataTableBatches.value[0], null, 2),
+    //   type: 'info',
+    //   keepAliveOnHover: true
+    // })
+  })
+  .catch((err) => {
+    globalStore.showMessage({
+      content: `Erro ao carregar lotes: ${err.message}`,
+      type: 'error',
+    })
+  })
 });
 
 watch(theme, (newTheme) => {

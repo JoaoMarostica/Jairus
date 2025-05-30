@@ -1,5 +1,5 @@
 use crate::{
-    models::{batch::Batch, stats::*},
+    models::{batch::*, stats::*},
     services::batch_service::BatchService};
 
 #[tauri::command]
@@ -36,6 +36,12 @@ pub fn delete_batch(batch_number: i32, batch_year: i32) -> Result<Option<Batch>,
 pub fn get_batch_statistics() -> Result<BatchStatistics, String> {
     let mut service = BatchService::new();
     service.get_statistics()
+}
+
+#[tauri::command]
+pub fn get_filtered_batches(query: BatchQuery) -> Result<Vec<Batch>, String> {
+    let mut service = BatchService::new();
+    service.get_filtered_batches(query)
 }
 
 /*

@@ -52,3 +52,31 @@ impl Batch {
             }
         }
 }
+
+
+#[derive(Deserialize)]
+pub struct BatchQuery {
+    pub search: Option<String>,
+    pub column: Option<String>,
+    pub year: Option<i32>,
+    pub sort_by: Option<String>,
+    pub sort_order: Option<String>,
+    pub page: i64,
+    pub page_size: i64,
+}
+
+impl BatchQuery {
+    pub fn new(
+        page: i64,
+        page_size: i64) -> Self {
+            BatchQuery {
+                search:None,
+                column:None,
+                year:None,
+                sort_by:None,
+                sort_order:None,
+                page,
+                page_size
+            }
+        }
+}
