@@ -3,6 +3,26 @@ import type { DataTableRowKey } from 'naive-ui';
 import ExcelJS from 'exceljs';
 import { invoke } from '@tauri-apps/api/core';
 
+type RawBatch = {
+    batch_number: number;
+    batch_year: number;
+    batch_month: number;
+    seed: string;
+    coating: string;
+    brand: string;
+    sack_weight: number;
+    sack_amount: number;
+    total_weight: number;
+    pureness_score: number;
+    total_pureness_score: number;
+    outflow_total_pureness_score: number;
+    outflow_total_weight: number;
+    usage: string;
+    batch_status: number
+    deleted_at: number | null;
+    origin: string | null;
+};
+
 type BatchDB = {
     batch_number: number;
     batch_year: number;
@@ -69,154 +89,139 @@ export const useBatchesStore = defineStore('batches', {
   getters: {
   },
   actions: {
-    async importBatchesFromExcel(file: File) {
-        const batchesAux = []
-        const batchOutflowsAux = []
-        const dataTableBatchesAux = []
-        const dataTableBatchOutflowsAux = []
+    async importBatchesFromSheet(file: File) {
+        const buffer = await file.arrayBuffer()
+        const workbook = new ExcelJS.Workbook()
+        await workbook.xlsx.load(buffer)
 
-        const buffer = await file.arrayBuffer();
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(buffer);
-
-        const sheet = workbook.getWorksheet('LOT');
-        if (!sheet) throw new Error('formato inválido');
-
-        const headers: string[] = [];
-        sheet.getRow(2).eachCell((cell, colNumber) => {
-            headers[colNumber - 1] = (cell.value as string).trim();
-        });
-
-        const existingBatchNumbers = new Set(this.dataTableBatches.map(b => b.batch_number));
-        const toFloat2 = (v: any) => Math.round(parseFloat(v) * 100) / 100;
-
-        for (let i = 3; i <= sheet.rowCount; i++) {
-            const row = sheet.getRow(i);
-            if (!row.getCell(1).value) continue;
-            if (row.getCell(1).value === "RESUMO SEMENTES FISCALIZADAS") break;
-
-            const rowData: Record<string, any> = {};
-            row.eachCell((cell, colNumber) => {
-            const header = headers[colNumber - 1];
-            rowData[header] = cell.value;
-            });
-
-            const batch_number = rowData['LOTE'];
-            if (existingBatchNumbers.has(batch_number)) continue;
-
-            const batch_year = parseInt(rowData['ANO']);
-            const batch_month = (new Date(rowData['VCTO']).getMonth() + 1) % 12;
-
-            const sack_weight = toFloat2(rowData['P.SC.']);
-            const sack_amount = parseInt(rowData['QT.SC.']);
-            const total_weight = toFloat2(rowData['P.TOT.']?.result);
-            const pureness_score = toFloat2(rowData['PP']);
-            const total_pureness_score = toFloat2(rowData['TOTAL PP']?.result);
-            const outflow_total_pureness_score = toFloat2(rowData['SAÍDAS PP']);
-            const outflow_total_weight = toFloat2(rowData['SAÍDAS KG']);
-            const usage = rowData['USO'];
-
-            // --- DB Format ---
-            const batchForDB: BatchDB = {
-                batch_number,
-                batch_year,
-                batch_month,
-                seed: rowData['VARIEDADE'],
-                coating: rowData['TIPO'],
-                brand: rowData['SC'],
-                sack_weight,
-                sack_amount,
-                total_weight,
-                pureness_score,
-                total_pureness_score,
-                batch_status: 1,
-                deleted_at: null,
-                origin: null,
-            };
-            batchesAux.push(batchForDB);
-            invoke('create_batch', { batch: batchForDB }).catch(console.error);
-
-            const batchOutflowDB: BatchOutflowDB = {
-                batch_number,
-                batch_year,
-                sack_amount,
-                total_weight,
-                total_pureness_score,
-                usage
-            };
-            batchOutflowsAux.push(batchOutflowDB);
-
-            // --- DataTable Format ---
-            // const batchForTable: DataTableBatch = {
-            //     key: createDataTableBatchKey(batch_number, batch_year),
-            //     batch_number,
-            //     batch_year,
-            //     expire_date: parseExpireDate(batch_month, batch_year),
-            //     seed: batchForDB.seed,
-            //     coating: batchForDB.coating,
-            //     brand: batchForDB.brand,
-            //     sack_weight,
-            //     sack_amount,
-            //     total_weight: total_weight.toLocaleString("pt-BR"),
-            //     pureness_score: pureness_score.toLocaleString("pt-BR"),
-            //     total_pureness_score: total_pureness_score.toLocaleString("pt-BR"),
-            //     batch_status: 1,
-            //     deleted_at: null,
-            //     _searchIndex: normalizeText([
-            //         batch_number,
-            //         batch_year,
-            //         parseExpireDate(batch_month, batch_year),
-            //         batchForDB.seed,
-            //         batchForDB.coating,
-            //         batchForDB.brand,
-            //         sack_weight,
-            //         sack_amount,
-            //         total_weight.toLocaleString("pt-BR"),
-            //         pureness_score.toLocaleString("pt-BR"),
-            //         total_pureness_score.toLocaleString("pt-BR"),
-            //     ].join(' '))
-            // };
-            const batchForTable: DataTableBatch = formatBatchForTable(batchForDB)
-            dataTableBatchesAux.push(batchForTable);
-
-            // --- Outflow ---
-            const batchOutflow: DataTableBatchOutflow = {
-                batch_number,
-                batch_year,
-                sack_amount,
-                total_weight: outflow_total_weight.toLocaleString("pt-BR"),
-                total_pureness_score: outflow_total_pureness_score.toLocaleString("pt-BR"),
-                pureness_score: toFloat2(outflow_total_pureness_score / outflow_total_weight).toLocaleString("pt-BR"),
-                usage,
-                _searchIndex: normalizeText([
-                    batch_number,
-                    batch_year,
-                    sack_amount,
-                    outflow_total_weight.toLocaleString("pt-BR"),
-                    outflow_total_pureness_score.toLocaleString("pt-BR"),
-                    toFloat2(outflow_total_pureness_score / outflow_total_weight).toLocaleString("pt-BR"),
-                    usage
-                ].join(' '))
-            };
-            dataTableBatchOutflowsAux.push(batchOutflow);
-
-            existingBatchNumbers.add(batch_number);
+        const sheet = workbook.getWorksheet('LOT')
+        if (!sheet) {
+            throw new Error('formato inválido')
         }
 
-        this.batches = batchesAux;
-        this.batchOutflows = batchOutflowsAux;
-        this.dataTableBatches = dataTableBatchesAux;
-        this.dataTableBatchOutflows = dataTableBatchOutflowsAux;
+        // Pega os títulos da linha 2 (cabeçalho)
+        const headers: string[] = []
+        sheet.getRow(2).eachCell((cell, colNumber) => {
+            headers[colNumber - 1] = (cell.value as string).trim()
+        })
+
+        const data = []
+        for (let i = 3; i <= sheet.rowCount; i++) {
+            const row = sheet.getRow(i)
+
+            if (row.getCell(1).value === null) continue
+            if (row.getCell(1).value === "RESUMO SEMENTES FISCALIZADAS") break
+
+            // Monta um objeto que mapeia header -> valor da célula
+            const rowData: Record<string, any> = {}
+            row.eachCell((cell, colNumber) => {
+            const header = headers[colNumber - 1]
+            rowData[header] = cell.value
+            })
+
+            const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100
+            
+            // Pegando os dados do lote que realmente interessam
+            const batch = {
+            batch_number: rowData['LOTE'],
+            batch_year: parseInt(rowData['ANO']),
+            // ex1.: set/2024 --> 7 + 1 = 8 % 12 = 8 (setembro em um array de [0..11])
+            // ex2.: jan/2026 --> 11 + 1 = 12 % 12 = 0 (janeiro em um array de [0..11])
+            batch_month: (new Date(rowData['VCTO']).getMonth() + 1) % 12,
+            seed: rowData['VARIEDADE'],
+            coating: rowData['TIPO'],
+            brand: rowData['SC'],
+            sack_weight: toFloat2(rowData['P.SC.']),
+            sack_amount: parseInt(rowData['QT.SC.']),
+            total_weight: toFloat2(rowData['P.TOT.'].result),
+            pureness_score: toFloat2(rowData['PP']),
+            total_pureness_score: toFloat2(rowData['TOTAL PP'].result),
+            outflow_total_pureness_score: toFloat2(rowData['SAÍDAS PP']),
+            outflow_total_weight: toFloat2(rowData['SAÍDAS KG']),
+            usage: rowData['USO'],
+            batch_status: 1,
+            deleted_at: null,
+            origin: null
+            }
+            data.push(batch)
+        }
+        this.setBatchesFromSheetData(data)
+    },
+    setBatchesFromSheetData(data: RawBatch[]) {
+        const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100;
+
+        const existingBatchNumbers = new Set(this.dataTableBatches.map(b => b.batch_number));
+
+        data.forEach((batch) => {
+            if (!existingBatchNumbers.has(batch.batch_number)) {
+                // Lotes
+
+                // Para enviar para o DB
+                const batchForDB: BatchDB = formatBatchDB(batch)
+                this.batches.push(batchForDB);
+
+                const batchForDataTable: DataTableBatch = formatBatchForTable(batchForDB)
+                this.dataTableBatches.push(batchForDataTable);
+                existingBatchNumbers.add(batch.batch_number);
+
+                // Enviando para o DB
+                invoke('create_batch', {
+                    batch: batchForDB
+                }).then((res) => {
+                    console.log(res);
+                }).catch(console.error);
+            }
+
+            // Saídas
+
+            // Para enviar para o DB
+            const batchOutflowForDB: BatchOutflowDB = {
+                batch_number: batch.batch_number,
+                batch_year: batch.batch_year,
+                sack_amount: batch.sack_amount,
+                total_weight: batch.total_weight,
+                total_pureness_score: batch.total_pureness_score,
+                usage: batch.usage,
+            };
+            this.batchOutflows.push(batchOutflowForDB);
+
+            // Para enviar para a tela de detalhes do lote
+            const batchOutflowForDataTable: DataTableBatchOutflow = {
+                batch_number: batch.batch_number,
+                batch_year: batch.batch_year,
+                sack_amount: batch.sack_amount,
+                total_weight: batch.outflow_total_weight.toLocaleString("pt-BR"),
+                total_pureness_score: batch.outflow_total_pureness_score.toLocaleString("pt-BR"),
+                pureness_score: toFloat2(batch.outflow_total_pureness_score / batch.outflow_total_weight).toLocaleString("pt-BR"),
+                usage: batch.usage,
+                _searchIndex: normalizeText(
+                    [
+                        batch.batch_number,
+                        batch.batch_year,
+                        batch.sack_amount,
+                        batch.outflow_total_weight.toLocaleString("pt-BR"),
+                        batch.outflow_total_pureness_score.toLocaleString("pt-BR"),
+                        toFloat2(batch.outflow_total_pureness_score / batch.outflow_total_weight).toLocaleString("pt-BR"),
+                        batch.usage
+                    ].join(' ')
+                )
+            };
+            this.dataTableBatchOutflows.push(batchOutflowForDataTable);
+        });
     },
     async fetchBatches() {
         try {
             this.batches = await invoke('list_batches');
 
-            this.dataTableBatches = this.batches.map((batch: BatchDB) => 
+            const formatted = this.batches.map((batch: BatchDB) =>
                 formatBatchForTable(batch)
             );
+
+            this.dataTableBatches = []
+            this.dataTableBatches.splice(0, this.dataTableBatches.length, ...formatted);
         } catch (err) {
             console.error(err);
+            return [];
         }
     },
     async getBatchOutflow(batchNumber: number, batchYear: number) {
@@ -293,7 +298,7 @@ export const useBatchesStore = defineStore('batches', {
             })
         }
         console.log('Download data: ', downloadData);
-    }
+    },
   }
 });
 
@@ -311,6 +316,27 @@ function parseExpireDate(expireDate: number, year: number): string {
   const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   const month = monthNames[expireDate] || '--';
   return `${month}/${year + 1}`;
+}
+
+function formatBatchDB(batch: RawBatch): BatchDB {
+    const BatchForDB: BatchDB = {
+        batch_number: batch.batch_number,
+        batch_year: batch.batch_year,
+        batch_month: batch.batch_month,
+        seed: batch.seed,
+        coating: batch.coating,
+        brand: batch.brand,
+        sack_weight: batch.sack_weight,
+        sack_amount: batch.sack_amount,
+        total_weight: batch.total_weight,
+        pureness_score: batch.pureness_score,
+        total_pureness_score: batch.total_pureness_score,
+        batch_status: batch.batch_status,
+        deleted_at: batch.deleted_at,
+        origin: batch.origin,
+    };
+
+    return BatchForDB
 }
 
 function formatBatchForTable(batch: BatchDB): DataTableBatch {

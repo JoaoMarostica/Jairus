@@ -71,7 +71,7 @@
       <n-data-table
         v-else
         :columns="columns"
-        :data="dataTableBatches"
+        :data="filteredData"
         :pagination="pagination"
         @update:checked-row-keys="handleCheck"
         @update:sorter="handleUpdateSorter"
@@ -105,7 +105,7 @@ import {
 } from 'naive-ui';
 import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
-import { ref, computed, h, Ref, reactive, watch } from 'vue';
+import { ref, computed, h, reactive, watch } from 'vue';
 import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, PlusOutlined, MoreVertOutlined, UploadFileOutlined } from '@vicons/material'
 import AppBatchDetails from '@/components/AppBatchDetails.vue';
 import AppCreateBatch from '@/components/AppCreateBatch.vue';

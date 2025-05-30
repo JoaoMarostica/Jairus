@@ -57,12 +57,13 @@ async function handleFileChange({ file }: { file: UploadFileInfo }) {
   loading.value = true
 
   const rawFile = file.file
+  
   if (!rawFile) {
     loading.value = false
     return
   }
 
-  await batchStore.importBatchesFromExcel(rawFile)
+  batchStore.importBatchesFromSheet(rawFile)
     .then(() => {
       globalStore.showMessage({
         content: 'Planilha lida com sucesso!',

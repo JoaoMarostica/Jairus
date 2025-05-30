@@ -22,31 +22,30 @@ const globalStore = useGlobalStore();
 const { theme, message } = storeToRefs(globalStore);
 
 const batchesStore = useBatchesStore();
-const { dataTableBatches } = storeToRefs(batchesStore)
 
 onMounted(async () => {
-  globalStore.detectSystemTheme();
-  await batchesStore.fetchBatches().then(() => {
-    // globalStore.showMessage({
-    //   content: 'Lotes carregados com sucesso!',
-    //   type: 'success',
-    // })
-    // globalStore.showMessage({
-    //   content: JSON.stringify(dataTableBatches.value[0], null, 2),
-    //   type: 'info',
-    //   keepAliveOnHover: true
-    // })
-  })
-  .catch((err) => {
-    globalStore.showMessage({
-      content: `Erro ao carregar lotes: ${err.message}`,
-      type: 'error',
-    })
-  })
+  // initializeApp();
 });
 
 watch(theme, (newTheme) => {
   localStorage.setItem('theme', newTheme);
 });
+
+async function initializeApp() {
+  globalStore.detectSystemTheme();
+
+  try {
+    await batchesStore.fetchBatches();
+    globalStore.showMessage({
+      content: 'Lotes carregados com sucesso!',
+      type: 'success',
+    });
+  } catch (err) {
+    globalStore.showMessage({
+      content: `Erro ao carregar lotes: ${err instanceof Error ? err.message : String(err)}`,
+      type: 'error',
+    });
+  }
+}
 
 </script>

@@ -42,7 +42,7 @@ impl BatchRepository {
     }
 
     pub fn read_all(&mut self) -> Result<Vec<Batch>, diesel::result::Error> {
-        tb_batch .select(Batch::as_select())
+        tb_batch.select(Batch::as_select())
         .get_results(&mut self.connection)
     }
 
