@@ -1,6 +1,18 @@
 <template>
-  <n-card title="Lotes">
-    <!-- Filtro -->
+  <!-- Loading Batches -->
+  <n-card v-if="loading">
+    <n-empty description="Carregando Lotes..." size="large">
+      <template #icon>
+        <n-icon>
+          <HourglassBottomRound />
+        </n-icon>
+      </template>
+    </n-empty>
+  </n-card>
+
+  <!-- Batches -->
+  <n-card title="Lotes" v-else>
+    <!-- Filter -->
     <n-grid cols="1 m:6" responsive="screen" x-gap="16" y-gap="16" v-if="dataTableBatches.length !== 0">
       <n-grid-item span="m:3">
         <n-input-group>
@@ -41,7 +53,7 @@
       </n-grid-item>
     </n-grid>
 
-    <!-- Tabela -->
+    <!-- Data Table -->
     <div class="table-wrapper">
       <n-card v-if="dataTableBatches.length === 0">
         <n-empty description="Nenhum Lote Encontrado" size="large">
@@ -78,11 +90,11 @@
         :max-height="550"
       />
     </div>
-    
-    <!-- Modal de detalhes do lote -->
+
+    <!-- Batch Details Modal -->
     <AppBatchDetails v-model:modal="batchDetailsModal" :selectedBatch="selectedBatch"/>
 
-    <!-- Modal de criação de lote -->
+    <!-- Batch Create Modal -->
     <AppCreateBatch v-model:modal="createBatchModal"/>
   </n-card>
 </template>
@@ -95,23 +107,26 @@ import {
   NInput,
   NDataTable,
   NButton,
-  NTag,
   NIcon,
   NSelect,
   NInputGroup,
+  NEmpty,
+  NSpace,
+  NTag,
   NTooltip,
   NDropdown,
-  NEmpty
 } from 'naive-ui';
 import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
-import { ref, computed, h, reactive, watch } from 'vue';
-import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, PlusOutlined, MoreVertOutlined, UploadFileOutlined } from '@vicons/material'
+import * as batchesUtils from '@/utils/batches'
+import { ref, computed, reactive, watch, onMounted, h } from 'vue';
+import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound } from '@vicons/material'
 import AppBatchDetails from '@/components/AppBatchDetails.vue';
 import AppCreateBatch from '@/components/AppCreateBatch.vue';
 import { useBatchesStore } from '@/stores/batchesStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
+import type { DataTableBatch } from '@/types/batches';
 
 type Sorter = {
   columnKey: string;
@@ -129,6 +144,13 @@ const { dataTableBatches, batchesForDownload } = storeToRefs(batchesStore);
 
 const selectedBatch = ref<any>(null);
 const search = ref('');
+
+const sortKeyMapOrder = computed<Record<string, 'ascend' | 'descend' | false>>(() =>
+  sortStates.value.reduce<Record<string, 'ascend' | 'descend' | false>>((result, { columnKey, order }) => {
+    result[columnKey] = order || false
+    return result
+  }, {})
+)
 const sortStates = ref<Sorter[]>([]);
 
 const columns = ref<TableColumn<RowData>[]>([]);
@@ -137,29 +159,24 @@ const columnFilterOptions = ref<{label: string, value: string}[]>([]);
 const yearFilter = ref<string>(new Date().getFullYear().toString());
 const yearFilterOptions = ref<{label: string, value: string}[]>([]);
 
+const loading = ref(true)
+
 const pagination = reactive({
   page: 1,
   pageSize: 25,
   pageSizes: [10, 25, 50, 100],
   showSizePicker: true,
-  onchange: (newPage: number) => {
+  onUpdatePage: (newPage: number) => {
     pagination.page = newPage
   },
-  onUpdatePageSize: (newSize: number) => {
-    pagination.pageSize = newSize
+  onUpdatePageSize: (newPageSize: number) => {
+    pagination.pageSize = newPageSize
     pagination.page = 1
   }
 })
 
-const sortKeyMapOrder = computed<Record<string, 'ascend' | 'descend' | false>>(() =>
-  sortStates.value.reduce<Record<string, 'ascend' | 'descend' | false>>((result, { columnKey, order }) => {
-    result[columnKey] = order || false
-    return result
-  }, {})
-)
-
 const filteredData = computed(() => {
-  const term = normalizeText(search.value);
+  const term = batchesUtils.normalizeText(search.value);
   const column = columnFilter.value || 'all';
   const year = yearFilter.value || 'all';
 
@@ -180,36 +197,30 @@ const filteredData = computed(() => {
         return batch._searchIndex?.includes(term);
       } else {
         const val = batch[column];
-        return normalizeText((val as any)?.toString() ?? '').includes(term);
+        return batchesUtils.normalizeText((val as any)?.toString() ?? '').includes(term);
       }
     });
   }
 
-  // Ordenação
-  if (sortStates.value.length) {
-    const { columnKey, order } = sortStates.value[0];
-
-    result = [...result].sort((a: any, b: any) => {
-      const aVal = a[columnKey];
-      const bVal = b[columnKey];
-
-      if (aVal == null) return -1;
-      if (bVal == null) return 1;
-
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return order === 'ascend' ? aVal - bVal : bVal - aVal;
-      }
-
-      return order === 'ascend'
-        ? String(aVal).localeCompare(String(bVal))
-        : String(bVal).localeCompare(String(aVal));
-    });
-  }
-
-  // Paginação (evite mutar dados aqui!)
-  const start = (pagination.page - 1) * pagination.pageSize;
-  return result.slice(start, start + pagination.pageSize);
+  return result
 });
+
+onMounted(async () => {
+  try {
+    loading.value = true
+    await batchesStore.fetchBatches();
+    globalStore.showMessage({
+      content: 'Lotes carregados com sucesso!',
+      type: 'success',
+    });
+  } catch (err) {
+    globalStore.showMessage({
+      content: `Erro ao carregar lotes: ${err instanceof Error ? err.message : String(err)}`,
+      type: 'error',
+    });
+  }
+  loading.value = false
+})
 
 watch(dataTableBatches.value, () => {
   createColumns();
@@ -306,64 +317,6 @@ async function setYearFilterOptions() {
   ];
 }
 
-// Normalização de texto para busca
-function normalizeText(text: string | null): string {
-  return text
-    ? text.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    : '';
-}
-
-function getStatusLabel(status: number) {
-  switch (status) {
-    case 1:
-      return 'Ativo'
-    case 0:
-      return 'Encerrado'
-    default:
-      return 'erro'
-  }
-}
-
-function getStatusType(status: number) {
-  switch (status) {
-    case 1:
-      return 'primary'
-    case 0:
-      return 'warning'
-    default:
-      return 'error'
-  }
-}
-
-function parseExpireDate(dateStr: string): Date | null {
-  if (!dateStr) return null;
-
-  const parts = dateStr.toLowerCase().split('/');
-  if (parts.length !== 2) return null;
-
-  const month = monthMap[parts[0]];
-  const year = Number(parts[1]);
-
-  if (month === undefined || isNaN(year)) return null;
-
-  return new Date(year, month, 1);
-}
-
-const monthMap: Record<string, number> = {
-  jan: 0,
-  fev: 1,
-  mar: 2,
-  abr: 3,
-  mai: 4,
-  jun: 5,
-  jul: 6,
-  ago: 7,
-  set: 8,
-  out: 9,
-  nov: 10,
-  dez: 11,
-}
-
 watch(sortStates, () => {
   createColumns();
 });
@@ -381,7 +334,7 @@ function createColumns() {
       key: 'batch_number',
       sortOrder: sortKeyMapOrder.value['batch_number'] || false,
       sorter: {
-        compare: (a, b) => a.batch_number - b.batch_number,
+        compare: (a: RowData, b: RowData) => (a as DataTableBatch).batch_number - (b as DataTableBatch).batch_number,
         multiple: 1
       }
     },
@@ -390,7 +343,7 @@ function createColumns() {
       key: 'batch_year',
       sortOrder: sortKeyMapOrder.value['batch_year'] || false,
       sorter: {
-        compare: (a, b) => a.batch_year - b.batch_year,
+        compare: (a: RowData, b: RowData) => (a as DataTableBatch).batch_year - (b as DataTableBatch).batch_year,
         multiple: 1
       }
     },
@@ -399,9 +352,9 @@ function createColumns() {
       key: 'expire_date',
       sortOrder: sortKeyMapOrder.value['expire_date'] || false,
       sorter: {
-        compare: (a, b) => {
-          const dateA = parseExpireDate(a.expire_date);
-          const dateB = parseExpireDate(b.expire_date);
+        compare: (a: RowData, b: RowData) => {
+          const dateA = batchesUtils.parseExpireDate((a as DataTableBatch).expire_date);
+          const dateB = batchesUtils.parseExpireDate((b as DataTableBatch).expire_date);
 
           if (!dateA && !dateB) return 0;
           if (!dateA) return -1;
@@ -428,7 +381,7 @@ function createColumns() {
           align: 'center',
           sortOrder: sortKeyMapOrder.value['sack_amount'] || false,
           sorter: {
-            compare: (a, b) => a.sack_amount - b.sack_amount,
+            compare: (a: RowData, b: RowData) => (a as DataTableBatch).sack_amount - (b as DataTableBatch).sack_amount,
             multiple: 1
           }
         },
@@ -439,7 +392,7 @@ function createColumns() {
           align: 'center',
           sortOrder: sortKeyMapOrder.value['sack_weight'] || false,
           sorter: {
-            compare: (a, b) => a.sack_weight - b.sack_weight,
+            compare: (a: RowData, b: RowData) => (a as DataTableBatch).sack_weight - (b as DataTableBatch).sack_weight,
             multiple: 1
           }
         }
@@ -452,7 +405,7 @@ function createColumns() {
       align: 'center',
       sortOrder: sortKeyMapOrder.value['total_weight'] || false,
       sorter: {
-        compare: (a, b) => a.total_weight - b.total_weight,
+        compare: (a: any, b: any) => a.total_weight - b.total_weight,
         multiple: 1
       }
     },
@@ -461,7 +414,7 @@ function createColumns() {
       key: 'pureness_score',
       sortOrder: sortKeyMapOrder.value['pureness_score'] || false,
       sorter: {
-        compare: (a, b) => a.pureness_score - b.pureness_score,
+        compare: (a: RowData, b: RowData) => batchesUtils.parseBrazilianNumber(a.pureness_score) - batchesUtils.parseBrazilianNumber(b.pureness_score),
         multiple: 1
       }
     },
@@ -470,7 +423,7 @@ function createColumns() {
       key: 'total_pureness_score',
       sortOrder: sortKeyMapOrder.value['total_pureness_score'] || false,
       sorter: {
-        compare: (a, b) => a.total_pureness_score - b.total_pureness_score,
+        compare: (a: RowData, b: RowData) => batchesUtils.parseBrazilianNumber(a.total_pureness_score) - batchesUtils.parseBrazilianNumber(b.total_pureness_score),
         multiple: 1
       }
     },
@@ -479,16 +432,16 @@ function createColumns() {
       key: 'batch_status',
       titleAlign: 'center',
       align: 'center',
-      render(row) {
+        render(row: RowData): ReturnType<typeof h> {
         return h(
-          NTag,
-          {
-            type: getStatusType(row.batch_status),
+            NTag,
+            {
+            type: batchesUtils.getStatusType(row.batch_status),
             bordered: false
-          },
-          { default: () => getStatusLabel(row.batch_status) }
+            },
+            { default: () => batchesUtils.getStatusLabel(row.batch_status) }
         )
-      }
+        }
     },
     {
       title: 'Ações',
@@ -496,7 +449,7 @@ function createColumns() {
       titleAlign: 'center',
       align: 'center',
       width: '100px',
-      render(batch: any) {
+      render(batch: RowData): ReturnType<typeof h>[]  {
         return [
           h(
             NTooltip,
@@ -587,6 +540,5 @@ function createColumns() {
 .empty-button{
   margin: 0;
 }
-
 </style>
 

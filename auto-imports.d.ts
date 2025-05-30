@@ -8,6 +8,7 @@ export {}
 declare global {
   const NButton: typeof import('naive-ui')['NButton']
   const NDropdown: typeof import('naive-ui')['NDropdown']
+  const NIcon: typeof import('naive-ui')['NIcon']
   const NTag: typeof import('naive-ui')['NTag']
   const NTooltip: typeof import('naive-ui')['NTooltip']
 }
