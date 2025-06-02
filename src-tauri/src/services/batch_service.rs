@@ -59,32 +59,6 @@ impl BatchService {
             .map_err(|e| format!("Erro ao filtrar lotes: {}", e))
     }
 
-/*
-    /// Filtra lotes por ano
-    pub fn filter_by_year(&mut self, year_value: i32) -> Vec<Batch> {
-        let all_batches = self.list_batches();
-        all_batches.into_iter()
-            .filter(|batch| batch.batch_year == year_value)
-            .collect()
-    }
-    
-    /// Filtra lotes por mês
-    pub fn filter_by_month(&mut self, month_value: i32) -> Vec<Batch> {
-        let all_batches = self.list_batches();
-        all_batches.into_iter()
-            .filter(|batch| batch.batch_month == month_value)
-            .collect()
-    }
-    
-    /// Filtra lotes por semente
-    pub fn filter_by_seed(&mut self, seed_name: &str) -> Vec<Batch> {
-        let all_batches = self.list_batches();
-        all_batches.into_iter()
-            .filter(|batch| batch.seed == seed_name)
-            .collect()
-    }
-*/
-
     pub fn get_statistics(&mut self) -> Result<BatchStatistics, String> {
         if let Ok(all_batches) = self.list_batches() {
 
