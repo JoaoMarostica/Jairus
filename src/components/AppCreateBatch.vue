@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { computed, ref, reactive, watchEffect, watch } from 'vue'
-import { NModal, NSpace, NInput, NInputGroup, NInputNumber, NSelect, NButton } from 'naive-ui'
+import { NModal, NSpace, NInput, NInputGroup, NSelect, NButton } from 'naive-ui'
 import { BatchDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
 import { useSettingsStore } from '@/stores/settingsStore'
