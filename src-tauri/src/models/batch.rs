@@ -1,7 +1,7 @@
 use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::{Deserialize, Serialize};
 
-#[derive(Queryable,Selectable,Insertable,AsChangeset,Deserialize,Serialize)]
+#[derive(Queryable,Selectable,Insertable,AsChangeset,Deserialize,Serialize,Debug)]
 #[diesel(table_name = crate::schema::tb_batch)]
 pub struct Batch {
     pub batch_number:i32,
@@ -15,7 +15,7 @@ pub struct Batch {
     pub total_weight:i32,
     pub pureness_score:f32,
     pub total_pureness_score:f32,
-    pub batch_status:String,
+    pub batch_status:i32,
     pub deleted_at:Option<String>,
     pub origin:Option<String>
 }
@@ -33,7 +33,7 @@ impl Batch {
         total_weight: i32,
         pureness_score: f32,
         total_pureness_score: f32,
-        batch_status:String) -> Self {
+        batch_status:i32) -> Self {
             Batch {
                 batch_number,
                 batch_year,

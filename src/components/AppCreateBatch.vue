@@ -6,31 +6,30 @@
     preset="card"
     :closable="true"
     :title="modalTitle"
-    v-on:update-show="createBatchModal = false"
   >
     <div style="width: 100%; height: 100%; overflow: auto;" class="bg-white dark:bg-black p-4">
       <n-space vertical>
         <n-input-group>
-            <n-input v-model:value="newBatch.number" :style="{ width: '33%' }" placeholder="Número do Lote" />
-            <n-input :style="{ width: '33%' }" :placeholder="year.toString()" disabled />
-            <n-input :style="{ width: '33%' }" :placeholder="parsedExpireDate" disabled />
+          <n-input v-model:value="newBatch.number" :style="{ width: '33%' }" placeholder="Número do Lote" />
+          <n-input :style="{ width: '33%' }" :placeholder="year.toString()" disabled />
+          <n-input :style="{ width: '33%' }" :placeholder="parsedExpireDate" disabled />
         </n-input-group>
 
         <n-input-group>
-            <n-input v-model:value="newBatch.seed" :style="{ width: '33%' }" placeholder="Cultivar" />
-            <n-input v-model:value="newBatch.coating" :style="{ width: '33%' }" placeholder="Tratamento" />
+          <n-select v-model:value="newBatch.seed" :options="seedsOptions" :style="{ width: '50%' }" placeholder="Cultivar" />
+          <n-select v-model:value="newBatch.coating" :options="coatingsOptions" :style="{ width: '50%' }" placeholder="Tratamento" />
         </n-input-group>
 
         <n-input-group>
-            <n-input-number v-model:value="newBatch.purenessScore" :style="{ width: '33%' }" placeholder="PP/Kg" />
-            <n-input-number v-model:value="totalPP" :style="{ width: '33%' }" placeholder="Total PP" />
-            <n-input-number v-model:value="availableQuantity" :style="{ width: '33%' }" placeholder="Quantidade (Kg)" />
+          <n-input v-model:value="newBatch.purenessScore" :style="{ width: '33%' }" placeholder="PP/Kg" />
+          <n-input v-model:value="totalWeight" :style="{ width: '33%' }" placeholder="Quantidade (Kg)" disabled />
+          <n-input v-model:value="totalPP" :style="{ width: '33%' }" placeholder="Total PP" disabled />
         </n-input-group>
 
         <n-input-group>
-            <n-input v-model:value="newBatch.sackBrand" :style="{ width: '33%' }" placeholder="Marca do Saco" style="min-width: 45%"/>
-            <n-input-number v-model:value="newBatch.sackQuantity" :style="{ width: '50%' }" placeholder="Qtd. de Sacos" />
-            <n-select v-model:value="newBatch.sackWeight" :options="sackWeights" :style="{ width: '50%' }" placeholder="Peso por Saco (kg)" />
+          <n-select v-model:value="newBatch.sackBrand" :options="brandsOptions" :style="{ width: '33%' }" placeholder="Marca do Saco" />
+          <n-input v-model:value="newBatch.sackAmount" :style="{ width: '33%' }" placeholder="Qtd. de Sacos" />
+          <n-select v-model:value="newBatch.sackWeight" :options="sackWeightsOptions" :style="{ width: '33%' }" placeholder="Peso por Saco (kg)" />
         </n-input-group>
 
         <!-- Botão de criar -->
@@ -43,66 +42,69 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, reactive } from 'vue'
-import { NModal, NSpace, NInput, NInputGroup, NInputNumber, NSelect, NButton } from 'naive-ui'
+import { computed, ref, reactive, watchEffect, watch } from 'vue'
+import { NModal, NSpace, NInput, NInputGroup, NSelect, NButton } from 'naive-ui'
+import { BatchDB } from '@/types/batches'
+import { useBatchesStore } from '@/stores/batchesStore'
+import { useSettingsStore } from '@/stores/settingsStore'
+import { useGlobalStore } from '@/stores/globalStore'
+import { storeToRefs } from 'pinia'
 
 const createBatchModal = defineModel('modal', {
   type: Boolean,
   default: false
 })
 
+const globalStore = useGlobalStore()
+const batchesStore = useBatchesStore()
+
+const settingsStore = useSettingsStore()
+const { seeds, coatings, brands } = storeToRefs(settingsStore)
+
 const modalTitle = ref('Lote')
 
 const year = ref(new Date().getFullYear())
 const expireDate = ref(new Date().getMonth())
-const sackWeights = ref([
-    {
-        label: '10',
-        value: 10,
-    },
-    {
-        label: '15',
-        value: 15,
-    },
-    {
-        label: '25',
-        value: 25,
-    },
-    {
-        label: '30',
-        value: 30,
-    },
-])
 
 // Estado do formulário
 const newBatch = reactive({
-    number: null,
-    seed: '',
-    coating: '',
-    sackBrand: '',
-    sackQuantity: null,
-    sackWeight: null,
-    purenessScore: null,
-    status: '',
-    deletedAt: null
+  number: '',
+  seed: null,
+  coating: null,
+  sackBrand: null,
+  sackAmount: '',
+  sackWeight: null,
+  purenessScore: '',
 })
 
-const availableQuantity = computed(() => {
-    const quantity = newBatch.sackQuantity ?? 0
-    const weight = newBatch.sackWeight ?? 0
-    const availableQuantity = quantity * weight
+const seedsOptions = computed(() => {
+  return seeds.value.map(seed => {return ({ label: seed.popularName, value: seed.popularName })})
+})
 
-    return availableQuantity === 0 ? null : availableQuantity
+const coatingsOptions = computed(() => {
+  return coatings.value.map(coating => {return ({ label: coating.name, value: coating.name })})
+})
+
+const brandsOptions = computed(() => {
+  return brands.value.map(brand => {return ({ label: brand.name, value: brand.name })})
+})
+
+const sackWeightsOptions = computed(() => {
+  const brand = brands.value.find(brand => brand.name === newBatch.sackBrand)
+  return brand?.sackWeights ?? []
+})
+
+const totalWeight = computed(() => {
+  const amount = Number(newBatch.sackAmount)
+  const weight = Number(newBatch.sackWeight)
+  const totalWeight = amount * weight
+
+  return totalWeight === 0 ? null : totalWeight.toString()
 })
 
 const totalPP = computed(() => {
-    const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100;
-    const sackQuantity = newBatch.sackQuantity ?? 0;
-    const sackWeight = newBatch.sackWeight ?? 0;
-    const purenessScore = newBatch.purenessScore ?? 0;
-    const totalPP = toFloat2(sackQuantity * sackWeight * purenessScore)
-
-    return totalPP === 0 ? null : totalPP
+  const totalPP = Number(totalWeight.value) * Number(newBatch.purenessScore)
+  return totalPP === 0 ? null : (Math.round(totalPP * 100) / 100).toString()
 })
 
 const parsedExpireDate = computed(() => {
@@ -111,16 +113,90 @@ const parsedExpireDate = computed(() => {
   return `${month}/${year.value + 1}`;
 })
 
-watch(newBatch, () => {
-    if (newBatch.number !== null) {
-        modalTitle.value = `Lote ${newBatch.number}`
-    }
+watch(createBatchModal, () => {
+  if (createBatchModal.value) {
+    newBatch.number = getNextBatchNumber()
+  } else {
+    resetForm()
+  }
 })
 
+watchEffect(() => {
+  if (newBatch.number) {
+    modalTitle.value = `Lote ${newBatch.number}/${String(year.value).slice(-2)}`
+  } else {
+    modalTitle.value = 'Lote'
+  }
+})
+
+function getNextBatchNumber() {
+  const lastBatchNumber = batchesStore.getLastBatch()
+  if (lastBatchNumber) {
+    return (lastBatchNumber + 1).toString()
+  }
+  return '1'
+}
+
 // Função para submeter
-function createBatch() {
-  console.log('Dados do lote:', newBatch)
-  // Aqui você pode emitir para o backend, resetar o newBatch, fechar o modal, etc.
+async function createBatch() {
+  if (
+    !newBatch.number ||
+    !newBatch.seed ||
+    !newBatch.coating ||
+    !newBatch.sackBrand ||
+    !newBatch.sackAmount ||
+    !newBatch.sackWeight ||
+    !newBatch.purenessScore
+  ) {
+    globalStore.showMessage({
+      content: 'Preencha todos os campos obrigatórios.',
+      type: 'error',
+    })
+    return
+  }
+  
+  const batch: BatchDB = {
+    batch_number: Number(newBatch.number),
+    batch_year: Number(year.value),
+    batch_month: Number(expireDate.value),
+    seed: newBatch.seed,
+    coating: newBatch.coating,
+    brand: newBatch.sackBrand,
+    sack_weight: Number(newBatch.sackWeight),
+    sack_amount: Number(newBatch.sackAmount),
+    total_weight: Number(totalWeight.value),
+    pureness_score: Number(newBatch.purenessScore),
+    total_pureness_score: Number(totalPP.value),
+    batch_status: 1,
+    deleted_at: null,
+    origin: null
+  }
+
+  try {
+    await batchesStore.createBatch(batch)
+
+    globalStore.showMessage({
+      content: 'Lote criado com successo!',
+      type: 'success',
+    })
+    resetForm()
+    createBatchModal.value = false
+  } catch (error: any) {
+    globalStore.showMessage({
+      content: `Erro ao criar lote: ${error?.message || error}`,
+      type: 'error',
+    })
+  }
+}
+
+function resetForm() {
+  newBatch.number = ''
+  newBatch.seed = null
+  newBatch.coating = null
+  newBatch.sackBrand = null
+  newBatch.sackAmount = ''
+  newBatch.sackWeight = null
+  newBatch.purenessScore = ''
 }
 
 </script>

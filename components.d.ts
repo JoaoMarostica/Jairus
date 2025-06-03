@@ -16,6 +16,11 @@ declare module 'vue' {
     AppFileUpload: typeof import('./src/components/AppFileUpload.vue')['default']
     AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     AppToolbar: typeof import('./src/components/AppToolbar.vue')['default']
+<<<<<<< HEAD
+    NGrid: typeof import('naive-ui')['NGrid']
+    NGridItem: typeof import('naive-ui')['NGridItem']
+    NSpace: typeof import('naive-ui')['NSpace']
+=======
     BacthDetails: typeof import('./src/components/BacthDetails.vue')['default']
     BacthDetailsPage: typeof import('./src/components/BacthDetailsPage.vue')['default']
     copy: typeof import('./src/components/AppToolbar copy.vue')['default']
@@ -63,6 +68,7 @@ declare module 'vue' {
     NTooltip: typeof import('naive-ui')['NTooltip']
     NUpload: typeof import('naive-ui')['NUpload']
     NUploadDragger: typeof import('naive-ui')['NUploadDragger']
+>>>>>>> f519ed466ea41494b28dde6fddb15e4c9a261f1f
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
