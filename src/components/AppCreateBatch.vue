@@ -22,8 +22,8 @@
 
         <n-input-group>
           <n-input v-model:value="newBatch.purenessScore" :style="{ width: '33%' }" placeholder="PP/Kg" />
-          <n-input-number v-model:value="totalWeight" :style="{ width: '33%' }" placeholder="Quantidade (Kg)" disabled />
-          <n-input-number v-model:value="totalPP" :style="{ width: '33%' }" placeholder="Total PP" disabled />
+          <n-input v-model:value="totalWeight" :style="{ width: '33%' }" placeholder="Quantidade (Kg)" disabled />
+          <n-input v-model:value="totalPP" :style="{ width: '33%' }" placeholder="Total PP" disabled />
         </n-input-group>
 
         <n-input-group>
@@ -99,13 +99,12 @@ const totalWeight = computed(() => {
   const weight = Number(newBatch.sackWeight)
   const totalWeight = amount * weight
 
-  return totalWeight === 0 ? null : totalWeight
+  return totalWeight === 0 ? null : totalWeight.toString()
 })
 
 const totalPP = computed(() => {
-  const purenessScore = Number(newBatch.purenessScore)
-  const total = (totalWeight.value || 0) * purenessScore
-  return total === 0 ? null : Math.round(total * 100) / 100
+  const totalPP = Number(totalWeight.value) * Number(newBatch.purenessScore)
+  return totalPP === 0 ? null : (Math.round(totalPP * 100) / 100).toString()
 })
 
 const parsedExpireDate = computed(() => {
@@ -115,18 +114,28 @@ const parsedExpireDate = computed(() => {
 })
 
 watch(createBatchModal, () => {
-  if (!createBatchModal.value) {
+  if (createBatchModal.value) {
+    newBatch.number = getNextBatchNumber()
+  } else {
     resetForm()
   }
 })
 
 watchEffect(() => {
   if (newBatch.number) {
-    modalTitle.value = `Lote ${newBatch.number}`
+    modalTitle.value = `Lote ${newBatch.number}/${String(year.value).slice(-2)}`
   } else {
     modalTitle.value = 'Lote'
   }
 })
+
+function getNextBatchNumber() {
+  const lastBatchNumber = batchesStore.getLastBatch()
+  if (lastBatchNumber) {
+    return (lastBatchNumber + 1).toString()
+  }
+  return '1'
+}
 
 // Função para submeter
 async function createBatch() {
@@ -157,7 +166,7 @@ async function createBatch() {
     sack_amount: Number(newBatch.sackAmount),
     total_weight: Number(totalWeight.value),
     pureness_score: Number(newBatch.purenessScore),
-    total_pureness_score: (Number(newBatch.purenessScore) * Number(totalWeight.value)),
+    total_pureness_score: Number(totalPP.value),
     batch_status: 1,
     deleted_at: null,
     origin: null

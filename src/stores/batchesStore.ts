@@ -161,6 +161,15 @@ export const useBatchesStore = defineStore('batches', {
             console.error('Erro ao criar batch:', err);
         }
     },
+    getLastBatch() {
+        const batchesNumber = this.dataTableBatches
+            .filter(batch => batch.batch_status === 1)
+            .map(batch => batch.batch_number);
+
+        const lastBatchNumber = Math.max(...batchesNumber);
+
+        return lastBatchNumber;
+    },
     async getBatchOutflow(batchNumber: number, batchYear: number) {
         return this.dataTableBatchOutflows
             .filter(batch => batch.batch_number === batchNumber && batch.batch_year === batchYear)
