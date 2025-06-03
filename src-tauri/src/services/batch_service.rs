@@ -13,16 +13,9 @@ impl BatchService {
     }
     
     pub fn create_batch(&mut self, batch: &Batch) -> Result<Batch,String> {
-        println!("Criando lote: {:?}", batch);
         match self.repo.create(batch) {
-            Ok(result) => Ok({
-                println!("resultado: {:?}", result);
-                result
-            }),
-            Err(e) => {
-                println!("Erro ao criar lote: {:?}", e);
-                Err(format!("Erro ao criar lote\n{}", e))
-            }
+            Ok(result) => Ok(result),
+            Err(e) => Err(format!("Erro ao criar lote\n{}", e))
         }
     }
     
