@@ -53,7 +53,11 @@
 
         <!-- Tabela de saídas -->
         <n-grid-item>
-          <n-card title="Saídas do lote">
+          <n-card v-if="outflowData.length === 0">
+            <n-empty description="Nenhuma Saída Encontrado" size="large">
+            </n-empty>
+          </n-card>
+          <n-card title="Saídas do lote" v-else>
             <n-data-table :columns="outflowColumns" :data="outflowData" :pagination="false" :max-height="250" />
           </n-card>
         </n-grid-item>
@@ -63,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptionsItem } from 'naive-ui'
+import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptionsItem, NEmpty } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import { nextTick, ref, watch } from 'vue'
 import * as echarts from 'echarts'

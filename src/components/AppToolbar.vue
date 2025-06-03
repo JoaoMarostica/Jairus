@@ -16,7 +16,7 @@
         </n-tooltip>
         <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
           <template #trigger>
-            <n-button @click="batchesStore.downloadPdf" :disabled="batches.length === 0">
+            <n-button @click="batchesStore.downloadPdf" :disabled="true">
               <template #icon>
                 <n-icon><PictureAsPdfOutlined /></n-icon>
               </template>

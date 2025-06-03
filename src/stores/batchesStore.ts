@@ -49,25 +49,25 @@ export const useBatchesStore = defineStore('batches', {
             
             // Pegando os dados do lote que realmente interessam
             const batch = {
-            batch_number: rowData['LOTE'],
-            batch_year: parseInt(rowData['ANO']),
-            // ex1.: set/2024 --> 7 + 1 = 8 % 12 = 8 (setembro em um array de [0..11])
-            // ex2.: jan/2026 --> 11 + 1 = 12 % 12 = 0 (janeiro em um array de [0..11])
-            batch_month: (new Date(rowData['VCTO']).getMonth() + 1) % 12,
-            seed: rowData['VARIEDADE'],
-            coating: rowData['TIPO'],
-            brand: rowData['SC'],
-            sack_weight: toFloat2(rowData['P.SC.']),
-            sack_amount: parseInt(rowData['QT.SC.']),
-            total_weight: toFloat2(rowData['P.TOT.'].result),
-            pureness_score: toFloat2(rowData['PP']),
-            total_pureness_score: toFloat2(rowData['TOTAL PP'].result),
-            outflow_total_pureness_score: toFloat2(rowData['SAÍDAS PP']),
-            outflow_total_weight: toFloat2(rowData['SAÍDAS KG']),
-            usage: rowData['USO'],
-            batch_status: 1,
-            deleted_at: null,
-            origin: null
+                batch_number: rowData['LOTE'],
+                batch_year: parseInt(rowData['ANO']),
+                // ex1.: set/2024 --> 7 + 1 = 8 % 12 = 8 (setembro em um array de [0..11])
+                // ex2.: jan/2026 --> 11 + 1 = 12 % 12 = 0 (janeiro em um array de [0..11])
+                batch_month: (new Date(rowData['VCTO']).getMonth() + 1) % 12,
+                seed: rowData['VARIEDADE'],
+                coating: rowData['TIPO'],
+                brand: rowData['SC'],
+                sack_weight: toFloat2(rowData['P.SC.']),
+                sack_amount: parseInt(rowData['QT.SC.']),
+                total_weight: toFloat2(rowData['P.TOT.'].result),
+                pureness_score: toFloat2(rowData['PP']),
+                total_pureness_score: toFloat2(rowData['TOTAL PP'].result),
+                outflow_total_pureness_score: toFloat2(rowData['SAÍDAS PP']),
+                outflow_total_weight: toFloat2(rowData['SAÍDAS KG']),
+                usage: rowData['USO'],
+                batch_status: 1, // 1 = ativo
+                deleted_at: null,
+                origin: null
             }
             data.push(batch)
         }
@@ -148,6 +148,17 @@ export const useBatchesStore = defineStore('batches', {
             );
         } catch (err) {
             console.error(err);
+        }
+    },
+    async createBatch(newBatch: BatchDB) {
+        try {
+            const createdBatch = await invoke<BatchDB>('create_batch', {
+                batch: newBatch
+            });
+
+            this.dataTableBatches.push(formatBatchForTable(createdBatch));
+        } catch (err) {
+            console.error('Erro ao criar batch:', err);
         }
     },
     async getBatchOutflow(batchNumber: number, batchYear: number) {

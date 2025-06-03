@@ -13,7 +13,7 @@ export type RawBatch = {
     outflow_total_pureness_score: number;
     outflow_total_weight: number;
     usage: string;
-    batch_status: number
+    batch_status: number;
     deleted_at: number | null;
     origin: string | null;
 };
