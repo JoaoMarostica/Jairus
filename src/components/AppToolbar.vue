@@ -4,24 +4,49 @@
       <div>Jairus</div>
 
       <n-flex>
-        <n-button @click="fileUploadModal = true">
-          <template #icon>
-            <n-icon><FileUploadOutlined /></n-icon>
+        <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
+          <template #trigger>
+            <n-button @click="fileUploadModal = true" :disabled="batches.length === 0">
+              <template #icon>
+                <n-icon><UploadFileOutlined /></n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
-        <n-button @click="globalStore.toggleTheme">
-          <template #icon v-if="theme === 'light'">
-            <n-icon><NightlightOutlined /></n-icon>
+          Importar planilha excel
+        </n-tooltip>
+        <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
+          <template #trigger>
+            <n-button @click="batchesStore.downloadPdf" :disabled="true">
+              <template #icon>
+                <n-icon><PictureAsPdfOutlined /></n-icon>
+              </template>
+            </n-button>
           </template>
-          <template #icon v-else>
-            <n-icon><WbSunnyOutlined /></n-icon>
+          Baixar PDF
+        </n-tooltip>
+        <n-tooltip placement="bottom" trigger="hover">
+          <template #trigger>
+            <n-button @click="globalStore.toggleTheme">
+              <template #icon v-if="theme === 'light'">
+                <n-icon><WbSunnyOutlined /></n-icon>
+              </template>
+              <template #icon v-else>
+                <n-icon><NightlightOutlined /></n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
-        <n-button @click="settingsModal = true">
-          <template #icon>
-            <n-icon><SettingsOutlined /></n-icon>
+          Tema {{ theme === 'light' ? 'Claro' : 'Escuro' }}
+        </n-tooltip>
+        <n-tooltip placement="bottom-end" trigger="hover">
+          <template #trigger>
+            <n-button @click="settingsModal = true">
+              <template #icon>
+                <n-icon><SettingsOutlined /></n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
+          Configurações
+        </n-tooltip>
       </n-flex>
     </n-flex>
     <AppFileUpload />
@@ -30,17 +55,19 @@
 </template>
 
 <script setup lang="ts">
-import { FileUploadOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined } from '@vicons/material';
+import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined, PictureAsPdfOutlined } from '@vicons/material';
 import AppFileUpload from './AppFileUpload.vue';
 import AppSettings from './AppSettings.vue';
 import { useGlobalStore } from '@/stores/globalStore';
 import { useSettingsStore } from '@/stores/settingsStore'
+import { useBatchesStore } from '@/stores/batchesStore';
 import { storeToRefs } from 'pinia';
 import {
   NLayoutHeader,
   NButton,
   NIcon,
   NFlex,
+  NTooltip
 } from 'naive-ui'
 
 defineEmits(['toggle-sidebar']);
@@ -50,6 +77,9 @@ const { theme, fileUploadModal } = storeToRefs(globalStore);
 
 const settingsStore = useSettingsStore()
 const { settingsModal } = storeToRefs(settingsStore)
+
+const batchesStore = useBatchesStore()
+const { batches } = storeToRefs(batchesStore);
 
 </script>
 

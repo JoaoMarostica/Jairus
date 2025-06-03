@@ -17,7 +17,6 @@
     <n-data-table
       :columns="columns"
       :data="filteredData"
-      :pagination="{ pageSize }"
       scroll-x="max-content"
     />
   </div>
@@ -34,8 +33,6 @@ const props = defineProps<{
   pageSize?: number
 }>()
 
-const pageSize = ref(props.pageSize ?? 12)
-
 const search = ref('')
 const selectedCategory = ref<string | null>(null)
 
@@ -45,7 +42,7 @@ const categoryOptions = computed(() => {
   return unique.map(c => ({ label: c, value: c }))
 })
 
-const normalizeText = (text: string | null) => {
+function normalizeText(text: string | null) {
   if (!text) return ''
 
   // Normaliza o texto: remove espaços extras, converte para minúsculas, remove acentos

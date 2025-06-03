@@ -1,32 +1,55 @@
 <template>
-    <n-modal v-model:show="settingsModal" preset="card" title="Configurações do Sistema" style="width: 500px; min-height: 500px">
+    <n-modal v-model:show="settingsModal" preset="card" title="Configurações" style="width: 600px; min-height: 600px">
         <n-tabs type="segment" animated>
-            <n-tab-pane name="geral" tab="Geral">
-                <n-form label-placement="top">
-                <n-form-item label="Safra atual">
-                    <n-input v-model:value="settings.safraAtual.value" placeholder="Ex: 2024/2025" />
-                </n-form-item>
-                <n-form-item label="Unidade padrão">
-                    <n-select v-model:value="settings.unidade.value" :options="unidadeOptions" />
-                </n-form-item>
-                <n-form-item label="Preço padrão por ponto de pureza (R$/PP)">
-                    <n-input-number v-model:value="settings.precoPP.value" :min="0" :precision="2" />
-                </n-form-item>
-                </n-form>
+            <n-tab-pane name="seeds" tab="Cultivares">
+                <n-data-table
+                    :columns="seedColumns"
+                    :data="seeds"
+                />
+                <div style="text-align: center; margin-top: 24px;">
+                    <n-button strong secondary type="info">
+                        <template #icon>
+                            <n-icon>
+                                <PlusOutlined />
+                            </n-icon>
+                        </template>
+                        Nova Cultivar
+                    </n-button>
+                </div>
             </n-tab-pane>
 
-            <n-tab-pane name="tratamentos" tab="Tipos de Tratamento">
-                <n-dynamic-input
-                v-model:value="settings.tratamentos.value"
-                placeholder="Digite um tipo de tratamento"
+            <n-tab-pane name="coatings" tab="Tratamentos">
+                <n-data-table
+                    :columns="coatingColumns"
+                    :data="coatings"
                 />
+                <div style="text-align: center; margin-top: 24px;">
+                    <n-button strong secondary type="info">
+                        <template #icon>
+                            <n-icon>
+                                <PlusOutlined />
+                            </n-icon>
+                        </template>
+                        Novo Revestimento
+                    </n-button>
+                </div>
             </n-tab-pane>
 
-            <n-tab-pane name="cultivares" tab="Cultivares">
-                <n-dynamic-input
-                v-model:value="settings.cultivares.value"
-                placeholder="Digite uma cultivar"
+            <n-tab-pane name="brands" tab="Marcas">
+                <n-data-table
+                    :columns="brandColumns"
+                    :data="brands"
                 />
+                <div style="text-align: center; margin-top: 24px;">
+                    <n-button strong secondary type="info">
+                        <template #icon>
+                            <n-icon>
+                                <PlusOutlined />
+                            </n-icon>
+                        </template>
+                        Nova Marca
+                    </n-button>
+                </div>
             </n-tab-pane>
         </n-tabs>
   
@@ -40,49 +63,148 @@
   </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, h } from 'vue'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { storeToRefs } from 'pinia';
+import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@vicons/material'
 import {
   NModal,
   NTabs,
   NTabPane,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NDynamicInput,
-  NButton
+  NButton,
+  NDataTable,
+  NSpace,
+  NIcon,
 } from 'naive-ui'
 
 const settingsStore = useSettingsStore()
-const { settingsModal, safraAtual, unidade, precoPP, tratamentos, cultivares } = storeToRefs(settingsStore)
+const { settingsModal, seeds, coatings, brands } = storeToRefs(settingsStore)
 
-const settings = {
-  safraAtual,
-  unidade,
-  precoPP,
-  tratamentos,
-  cultivares
-}
+const seedColumns = ref<TableColumn<RowData>[]>([]);
+const coatingColumns = ref<TableColumn<RowData>[]>([]);
+const brandColumns = ref<TableColumn<RowData>[]>([]);
 
-const unidadeOptions = [
-  { label: 'kg', value: 'kg' },
-  { label: 'sacas', value: 'sacas' },
-  { label: 'toneladas', value: 'toneladas' }
-]
-
-const show = ref(false) // controle local — substitua pelo global se quiser
+watch(settingsModal, async () => {
+  createSeedColumns();
+  createCoatingColumns();
+  createbrandColumns();
+})
 
 function handleSave() {
-  settingsStore.atualizarTratamentos(settings.tratamentos.value)
-  settingsStore.atualizarCultivares(settings.cultivares.value)
-  show.value = false
+    settingsModal.value = false
 }
 
 // Função para cancelar (fechar o modal sem salvar)
 const handleCancel = () => {
     settingsModal.value = false
 }
+
+function createSeedColumns() {
+  seedColumns.value = [
+    { title: 'Nome Científico', key: 'scientificName' },
+    { title: 'Nome Popular', key: 'popularName' },
+    {
+        title: 'Ações',
+        key: 'actions',
+        titleAlign: 'center',
+        align: 'center',
+        width: '100px',
+        render() {
+            return [
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    renderIcon: () => h(EditOutlined)
+                    }
+                ),
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    type: 'error',
+                    renderIcon: () => h(DeleteOutlined)
+                    }
+                )
+            ];
+        }
+    }
+  ]
+}
+
+function createCoatingColumns() {
+  coatingColumns.value = [
+    { 
+        title: 'Tipo', 
+        key: 'name',
+    },
+    {
+        title: 'Ações',
+        key: 'actions',
+        titleAlign: 'center',
+        align: 'center',
+        width: '100px',
+        render() {
+            return [
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    renderIcon: () => h(EditOutlined)
+                    }
+                ),
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    type: 'error',
+                    renderIcon: () => h(DeleteOutlined)
+                    }
+                )
+            ];
+        }
+    }
+  ]
+}
+
+function createbrandColumns() {
+  brandColumns.value = [
+    { title: 'Nome', key: 'name' },
+    { title: 'Sacos', key: 'sackWeights'},
+    {
+        title: 'Ações',
+        key: 'actions',
+        titleAlign: 'center',
+        align: 'center',
+        width: '100px',
+        render() {
+            return [
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    renderIcon: () => h(EditOutlined)
+                    }
+                ),
+                h(
+                    NButton,
+                    {
+                    quaternary: true,
+                    size: 'small',
+                    type: 'error',
+                    renderIcon: () => h(DeleteOutlined)
+                    }
+                )
+            ];
+        }
+    }
+  ]
+}
+
 </script>
