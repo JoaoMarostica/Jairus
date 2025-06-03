@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import type { SeedDB, DataTableSeed } from '@/types/seeds';
 import { invoke } from '@tauri-apps/api/core';
+import cultivarsInfo from '@/assets/cultivarsInfo.json';
 
 export const useSeedsStore = defineStore('seeds', {
   state: () => ({
@@ -21,6 +22,11 @@ export const useSeedsStore = defineStore('seeds', {
             console.error(err);
         }
     },
+    fetchSeedsFromJsonFile() {
+      for (const seed of cultivarsInfo) {
+            this.seeds.push(formatSeedforDB(seed));
+      }
+    },
     async createSeed(newSeed: SeedDB) {
         try {
             const createdSeed: SeedDB = await invoke('create_seed', {
@@ -39,6 +45,16 @@ function normalizeText(text: string | null): string {
   return text
     ? text.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     : '';
+}
+
+function formatSeedForDB(seed: RawSeed): SeedDB {
+    const seedForDB: SeedDB = {
+        popular_name: seed.popular_name;
+        scientific_name: seed.scientific_name;
+        deleted_at: null;
+    };
+
+    return seedForDB
 }
 
 function formatSeedForTable(seed: SeedDB): DataTableSeed {
