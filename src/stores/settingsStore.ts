@@ -12,18 +12,57 @@ export const useSettingsStore = defineStore('settings', {
         popularName: 'Piatã',
       },
     ],
-    coatings: [{
+    coatings: [
+      {
         name: 'Golden',
-      },{
+      },
+      {
         name: 'Podium',
+      },
+      {
+        name: 'Convencional',
       },
     ],
     brands: [{
         name: 'Ponto Alto',
-        sackWeights: '10, 15, 25, 30',
+        sackWeights: [
+          {
+            label: '10',
+            value: '10',
+          },
+          {
+            label: '15',
+            value: '15',
+          },
+          {
+            label: '25',
+            value: '25',
+          },
+          {
+            label: '30',
+            value: '30',
+          },
+        ],
       },{
         name: 'Nova Safra',
-        sackWeights: '10, 15, 25, 30',
+        sackWeights: [
+          {
+            label: '10',
+            value: '10',
+          },
+          {
+            label: '15',
+            value: '15',
+          },
+          {
+            label: '25',
+            value: '25',
+          },
+          {
+            label: '30',
+            value: '30',
+          },
+        ],
       },
     ],
   }),

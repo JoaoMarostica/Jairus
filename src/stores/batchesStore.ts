@@ -152,7 +152,7 @@ export const useBatchesStore = defineStore('batches', {
     },
     async createBatch(newBatch: BatchDB) {
         try {
-            const createdBatch = await invoke<BatchDB>('create_batch', {
+            const createdBatch: BatchDB = await invoke('create_batch', {
                 batch: newBatch
             });
 

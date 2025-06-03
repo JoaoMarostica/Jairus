@@ -1,9 +1,8 @@
 use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
 use serde::{Deserialize, Serialize};
 
-#[derive(Queryable,Selectable,Insertable,AsChangeset,Deserialize,Serialize)]
+#[derive(Queryable,Selectable,Insertable,AsChangeset,Deserialize,Serialize,Debug)]
 #[diesel(table_name = crate::schema::tb_batch)]
-#[derive(Debug)]
 pub struct Batch {
     pub batch_number:i32,
     pub batch_year:i32,

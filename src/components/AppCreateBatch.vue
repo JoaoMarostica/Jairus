@@ -10,26 +10,26 @@
     <div style="width: 100%; height: 100%; overflow: auto;" class="bg-white dark:bg-black p-4">
       <n-space vertical>
         <n-input-group>
-            <n-input v-model:value="newBatch.number" :style="{ width: '33%' }" placeholder="Número do Lote *" />
-            <n-input :style="{ width: '33%' }" :placeholder="year.toString()" disabled />
-            <n-input :style="{ width: '33%' }" :placeholder="parsedExpireDate" disabled />
+          <n-input v-model:value="newBatch.number" :style="{ width: '33%' }" placeholder="Número do Lote" />
+          <n-input :style="{ width: '33%' }" :placeholder="year.toString()" disabled />
+          <n-input :style="{ width: '33%' }" :placeholder="parsedExpireDate" disabled />
         </n-input-group>
 
         <n-input-group>
-            <n-input v-model:value="newBatch.seed" :style="{ width: '33%' }" placeholder="Cultivar *" />
-            <n-input v-model:value="newBatch.coating" :style="{ width: '33%' }" placeholder="Tratamento *" />
+          <n-select v-model:value="newBatch.seed" :options="seedsOptions" :style="{ width: '50%' }" placeholder="Cultivar" />
+          <n-select v-model:value="newBatch.coating" :options="coatingsOptions" :style="{ width: '50%' }" placeholder="Tratamento" />
         </n-input-group>
 
         <n-input-group>
-            <n-input v-model:value="newBatch.purenessScore" :style="{ width: '33%' }" placeholder="PP/Kg *" />
-            <n-input-number v-model:value="totalWeight" :style="{ width: '33%' }" placeholder="Quantidade (Kg)" disabled />
-            <n-input-number v-model:value="totalPP" :style="{ width: '33%' }" placeholder="Total PP" disabled />
+          <n-input v-model:value="newBatch.purenessScore" :style="{ width: '33%' }" placeholder="PP/Kg" />
+          <n-input-number v-model:value="totalWeight" :style="{ width: '33%' }" placeholder="Quantidade (Kg)" disabled />
+          <n-input-number v-model:value="totalPP" :style="{ width: '33%' }" placeholder="Total PP" disabled />
         </n-input-group>
 
         <n-input-group>
-            <n-input v-model:value="newBatch.sackBrand" :style="{ width: '33%' }" placeholder="Marca do Saco *" style="min-width: 45%"/>
-            <n-input v-model:value="newBatch.sackAmount" :style="{ width: '50%' }" placeholder="Qtd. de Sacos *" />
-            <n-select v-model:value="newBatch.sackWeight" :options="sackWeights" :style="{ width: '50%' }" placeholder="Peso por Saco (kg) *" />
+          <n-select v-model:value="newBatch.sackBrand" :options="brandsOptions" :style="{ width: '33%' }" placeholder="Marca do Saco" />
+          <n-input v-model:value="newBatch.sackAmount" :style="{ width: '33%' }" placeholder="Qtd. de Sacos" />
+          <n-select v-model:value="newBatch.sackWeight" :options="sackWeightsOptions" :style="{ width: '33%' }" placeholder="Peso por Saco (kg)" />
         </n-input-group>
 
         <!-- Botão de criar -->
@@ -46,7 +46,9 @@ import { computed, ref, reactive, watchEffect, watch } from 'vue'
 import { NModal, NSpace, NInput, NInputGroup, NInputNumber, NSelect, NButton } from 'naive-ui'
 import { BatchDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
+import { useSettingsStore } from '@/stores/settingsStore'
 import { useGlobalStore } from '@/stores/globalStore'
+import { storeToRefs } from 'pinia'
 
 const createBatchModal = defineModel('modal', {
   type: Boolean,
@@ -56,38 +58,40 @@ const createBatchModal = defineModel('modal', {
 const globalStore = useGlobalStore()
 const batchesStore = useBatchesStore()
 
+const settingsStore = useSettingsStore()
+const { seeds, coatings, brands } = storeToRefs(settingsStore)
+
 const modalTitle = ref('Lote')
 
 const year = ref(new Date().getFullYear())
 const expireDate = ref(new Date().getMonth())
-const sackWeights = ref([
-  {
-    label: '10',
-    value: 10,
-  },
-  {
-    label: '15',
-    value: 15,
-  },
-  {
-    label: '25',
-    value: 25,
-  },
-  {
-    label: '30',
-    value: 30,
-  },
-])
 
 // Estado do formulário
 const newBatch = reactive({
   number: '',
-  seed: '',
-  coating: '',
-  sackBrand: '',
+  seed: null,
+  coating: null,
+  sackBrand: null,
   sackAmount: '',
-  sackWeight: '',
+  sackWeight: null,
   purenessScore: '',
+})
+
+const seedsOptions = computed(() => {
+  return seeds.value.map(seed => {return ({ label: seed.popularName, value: seed.popularName })})
+})
+
+const coatingsOptions = computed(() => {
+  return coatings.value.map(coating => {return ({ label: coating.name, value: coating.name })})
+})
+
+const brandsOptions = computed(() => {
+  return brands.value.map(brand => {return ({ label: brand.name, value: brand.name })})
+})
+
+const sackWeightsOptions = computed(() => {
+  const brand = brands.value.find(brand => brand.name === newBatch.sackBrand)
+  return brand?.sackWeights ?? []
 })
 
 const totalWeight = computed(() => {
@@ -178,11 +182,11 @@ async function createBatch() {
 
 function resetForm() {
   newBatch.number = ''
-  newBatch.seed = ''
-  newBatch.coating = ''
-  newBatch.sackBrand = ''
+  newBatch.seed = null
+  newBatch.coating = null
+  newBatch.sackBrand = null
   newBatch.sackAmount = ''
-  newBatch.sackWeight = ''
+  newBatch.sackWeight = null
   newBatch.purenessScore = ''
 }
 
