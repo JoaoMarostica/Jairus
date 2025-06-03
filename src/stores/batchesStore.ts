@@ -158,7 +158,7 @@ export const useBatchesStore = defineStore('batches', {
 
             this.dataTableBatches.push(formatBatchForTable(createdBatch));
         } catch (err) {
-            console.error('Erro ao criar batch:', err);
+            console.error(err);
         }
     },
     getLastBatch() {
