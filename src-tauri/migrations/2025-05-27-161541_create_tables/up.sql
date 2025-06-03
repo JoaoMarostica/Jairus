@@ -37,7 +37,7 @@ CREATE TABLE tb_batch (
     total_weight INTEGER NOT NULL,
     pureness_score REAL NOT NULL,
     total_pureness_score REAL NOT NULL,
-    batch_status TEXT NOT NULL,
+    batch_status INTEGER NOT NULL,
     deleted_at TEXT,
     origin TEXT,
     FOREIGN KEY (seed) REFERENCES tb_seed(popular_name),
