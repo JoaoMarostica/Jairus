@@ -2,127 +2,127 @@
     {
         "id": 1,
         "name": "Paiaguás",
-        "scientific_name": "",
+        "scientific_name": "Brachiaria Brizantha cv BRS Paiaguás",
         "pmsPodium": 19.027,
         "pmsGolden": 25.613,
         "pmsConventional": 0
     },
     {
         "id": 2,
-        "name": "Marandú",,
-        "scientific_name": "",
+        "name": "Marandú",
+        "scientific_name": "Brachiaria Brizantha cv Marandú",
         "pmsPodium": 20.093,
         "pmsGolden": 29.302,
         "pmsConventional": 0
     },
     {
         "id": 3,
-        "name": "Xaraés",,
-        "scientific_name": "",
+        "name": "Xaraés",
+        "scientific_name": "Brachiaria Brizantha cv Xaraés",
         "pmsPodium": 19.480,
         "pmsGolden": 29.220,
         "pmsConventional": 0
     },
     {
         "id": 4,
-        "name": "Piatã",,
-        "scientific_name": "",
+        "name": "Piatã",
+        "scientific_name": "Brachiaria Brizantha cv BRS Piatã",
         "pmsPodium": 20.030,
         "pmsGolden": 30.045,
         "pmsConventional": 0
     },
     {
         "id": 5,
-        "name": "Ipyporã",,
-        "scientific_name": "",
+        "name": "Ipyporã",
+        "scientific_name": "Brachiaria Brizantha cv BRS Ipyporã",
         "pmsPodium": 19.507,
         "pmsGolden": 28.448,
         "pmsConventional": 0
     },
     {
         "id": 6,
-        "name": "Humidicola",,
-        "scientific_name": "",
+        "name": "Humidícola",
+        "scientific_name": "Brachiaria Humidícola cv Humidícola",
         "pmsPodium": 13.990,
         "pmsGolden": 19.985,
         "pmsConventional": 0
     },
     {
         "id": 7,
-        "name": "LLanero",,
-        "scientific_name": "",
+        "name": "LLanero",
+        "scientific_name": "Brachiaria Humidícola cv Llanero",
         "pmsPodium": 18.568,
         "pmsGolden": 26.525,
         "pmsConventional": 0
     },
     {
         "id": 8,
-        "name": "Decumbens",,
-        "scientific_name": "",
+        "name": "Decumbens",
+        "scientific_name": "Brachiaria Decumbens cv Basilisk",
         "pmsPodium": 14.030,
         "pmsGolden": 19.642,
         "pmsConventional": 0
     },
     {
         "id": 9,
-        "name": "Integra",,
-        "scientific_name": "",
+        "name": "Integra",
+        "scientific_name": "Brachiaria Brizantha cv BRS Integra",
         "pmsPodium": 14.930,
         "pmsGolden": 22.232,
         "pmsConventional": 0
     },
     {
         "id": 10,
-        "name": "Ruziziensis",,
-        "scientific_name": "",
+        "name": "Ruziziensis",
+        "scientific_name": "Brachiaria Ruziziensis cv Ruziziensis",
         "pmsPodium": 14.927,
         "pmsGolden": 22.232,
         "pmsConventional": 0
     },
     {
         "id": 11,
-        "name": "Mombaça",,
-        "scientific_name": "",
+        "name": "Mombaça",
+        "scientific_name": "Panicum Maximum cv Mombaça",
         "pmsPodium": 3.168,
         "pmsGolden": 5.280,
         "pmsConventional": 0
     },
     {
         "id": 12,
-        "name": "Zuri",,
-        "scientific_name": "",
+        "name": "Zuri",
+        "scientific_name": "Panicum Maximum cv BRS Zuri",
         "pmsPodium": 3.314,
         "pmsGolden": 5.524,
         "pmsConventional": 0
     },
     {
         "id": 13,
-        "name": "Tamani",,
-        "scientific_name": "",
+        "name": "Tamani",
+        "scientific_name": "Panicum Maximum cv BRS Tamani",
         "pmsPodium": 2.942,
         "pmsGolden": 4.904,
         "pmsConventional": 0
     },
     {
         "id": 14,
-        "name": "Aruana",,
-        "scientific_name": "",
+        "name": "Aruana",
+        "scientific_name": "Panicum Maximum cv Aruana",
         "pmsPodium": 2.664,
         "pmsGolden": 3.552,
         "pmsConventional": 0
     },
     {
         "id": 15,
-        "name": "Massai",,
-        "scientific_name": "",
+        "name": "Massai",
+        "scientific_name": "Panicum Maximum cv Massai",
         "pmsPodium": 2.916,
         "pmsGolden": 4.860,
         "pmsConventional": 0
     },
     {
         "id": 16,
-        "name": "Quênia",,
-        "scientific_name": "",
+        "name": "Quênia",
+        "scientific_name": "Panicum Maximum cv BRS Quênia",
         "pmsPodium": 2.726,
         "pmsGolden": 4.544,
         "pmsConventional": 0

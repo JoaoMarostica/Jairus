@@ -3,6 +3,15 @@ export type SeedDB = {
     scientific_name: string;
 };
 
+export type RawSeed = {
+    id: number;
+    name: string;   
+    scientific_name: string;
+    pmsPodium: number;
+    pmsGolden: number;
+    pmsConventional: number;
+};
+
 export type DataTableSeed = {
     key: string;
     popular_name: string;
