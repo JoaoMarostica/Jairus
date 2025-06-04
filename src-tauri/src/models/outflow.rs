@@ -1,4 +1,5 @@
 use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
+use super::balance::Balance;
 
 #[derive(Queryable,Selectable,AsChangeset)]
 #[diesel(table_name = crate::schema::tb_outflow)]
@@ -34,9 +35,13 @@ impl Outflow {
     pub fn id(&self) -> &i32 {
         &self.outflow_id
     }
+
+    pub fn get_balance(&self) -> Balance {
+        Balance::new(self.sack_amount, self.total_weight, self.total_pureness_score)
+    }
 }
 
-#[derive(Insertable)]
+#[derive(Insertable,AsChangeset)]
 #[diesel(table_name = crate::schema::tb_outflow)]
 pub struct NewOutflow {
     batch_number:i32,

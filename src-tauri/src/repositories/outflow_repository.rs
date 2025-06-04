@@ -24,48 +24,46 @@ impl OutflowRepository {
         Self { connection }
     }
 
-    pub fn create(&mut self, object:&NewOutflow) -> Outflow {
+    pub fn create(&mut self, object:&NewOutflow) -> Result<Outflow, diesel::result::Error> {
         diesel::insert_into(tb_outflow)
         .values(object)
         .returning(Outflow::as_returning())
         .get_result(&mut self.connection)
-        .expect("Error creating a new record in outflow table")
     }
 
-    pub fn read(&mut self, id:&i32) -> Option<Outflow> {
-        match tb_outflow
+    pub fn read(&mut self, id:&i32) -> Result<Option<Outflow>, diesel::result::Error> {
+        tb_outflow
         .find(id)
         .select(Outflow::as_select())
         .get_result(&mut self.connection)
-        .optional() {
-            Ok(option) => option,
-            Err(e) => panic!("Error trying to read outflow id={}\n{}", id, e)
-        }
+        .optional()
     }
 
-    pub fn read_all(&mut self) -> Vec<Outflow> {
-        match tb_outflow
+    pub fn read_all(&mut self) -> Result<Vec<Outflow>, diesel::result::Error> {
+        tb_outflow
         .select(Outflow::as_select())
-        .get_results(&mut self.connection) {
-            Ok(result) => result,
-            Err(e) => panic!("Error trying to read all outflows\n{}", e)
-        }
+        .get_results(&mut self.connection)
     }
 
-    pub fn update(&mut self, id:&i32, object:&Outflow) -> Option<Outflow> {
-        match diesel::update(tb_outflow.filter(outflow_id.eq(id)))
+    pub fn read_from(&mut self, batch:&(i32, i32)) -> Result<Vec<Outflow>, diesel::result::Error> {
+        tb_outflow
+        .select(Outflow::as_select())
+        .filter(batch_number.eq(batch.0))
+        .filter(batch_year.eq(batch.1))
+        .get_results(&mut self.connection)
+    }
+
+    pub fn update(&mut self, id:&i32, object:&NewOutflow) -> Result<Option<Outflow>, diesel::result::Error> {
+        diesel::update(tb_outflow.filter(outflow_id.eq(id)))
         .set(object)
         .returning(Outflow::as_returning())
         .get_result(&mut self.connection)
-        .optional() {
-            Ok(option) => option,
-            Err(e) => panic!("Error trying to update outflow id={}\n{}", id, e)
-        }
+        .optional()
     }
 
-    pub fn delete(&mut self, id:&i32) -> usize {
+    pub fn delete(&mut self, id:&i32) -> Result<Option<Outflow>, diesel::result::Error>{
         diesel::delete(tb_outflow.find(id))
-        .execute(&mut self.connection)
-        .expect("Error deleting record in outflow table")
+        .get_result(&mut self.connection)
+        .optional()
     }
 }
