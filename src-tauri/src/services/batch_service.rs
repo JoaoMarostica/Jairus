@@ -1,7 +1,7 @@
 use crate::{
     models::{batch::*,stats::*},
     repositories::batch_repository::BatchRepository};
-use std::collections::HashMap;
+use std::{collections::HashMap};
 
 pub struct BatchService {
     repo: BatchRepository
@@ -12,55 +12,47 @@ impl BatchService {
         Self { repo: BatchRepository::new() }
     }
     
-    pub fn create_batch(&mut self, batch: &Batch) -> Result<Batch,String> {
+    pub fn add(&mut self, batch: &Batch) -> Result<Batch,String> {
         match self.repo.create(batch) {
             Ok(result) => Ok(result),
-            Err(e) => Err(format!("Erro ao criar lote\n{}", e))
+            Err(e) => Err(e.to_string())
         }
     }
     
-    pub fn get_batch(&mut self, id: &(i32, i32)) -> Result<Option<Batch>,String> {
+    pub fn get(&mut self, id: &(i32, i32)) -> Result<Batch,String> {
         match self.repo.read(&id) {
-            Ok(result) => Ok(result),
-            Err(e) => Err(format!("Erro ao buscar lote {:?}\n{}", id, e))
+            Ok(Some(result)) => Ok(result),
+            Ok(None) => Err(format!("No batch with id {}/{} found", id.0, id.1)),
+            Err(e) => Err(e.to_string())
         }
     }
     
-    pub fn list_batches(&mut self) -> Result<Vec<Batch>,String> {
+    pub fn list(&mut self) -> Result<Vec<Batch>,String> {
         match self.repo.read_all() {
             Ok(result) => Ok(result),
-            Err(e) => Err(format!("Erro ao listar lotes\n{}",e))
+            Err(e) => Err(e.to_string())
         }
     }
     
-    pub fn update_batch(&mut self, id: &(i32, i32), batch: &Batch) -> Result<Option<Batch>,String> {
-        match self.repo.update(id, batch) {
-            Ok(result) => Ok(result),
-            Err(e) => Err(format!("Erro ao atualizar lote {}-{}\n{}",
-            batch.batch_number, batch.batch_year, e)
-            )
+    pub fn save(&mut self, id: &(i32, i32), changes: &Batch) -> Result<Batch,String> {
+        match self.repo.update(id, changes) {
+            Ok(Some(result)) => Ok(result),
+            Ok(None) => Err(format!("No batch with id {}/{} found", id.0, id.1)),
+            Err(e) => Err(e.to_string())
         }
         
     }
     
-    pub fn delete_batch(&mut self, id: &(i32, i32)) -> Result<Option<Batch>, String> {
+    pub fn remove(&mut self, id: &(i32, i32)) -> Result<Batch, String> {
         match self.repo.delete(id) {
-            Ok(result) => Ok(result),
-            Err(e) => Err(format!("Erro ao excluir lote {:?}\n{}", id, e))
+            Ok(Some(result)) => Ok(result),
+            Ok(None) => Err(format!("No batch with id {}/{} found", id.0, id.1)),
+            Err(e) => Err(e.to_string())
         }
     }
 
-    pub fn get_filtered_batches(
-        &mut self,
-        query: BatchQuery,
-    ) -> Result<Vec<Batch>, String> {
-        self.repo
-            .filter_batches(&query)
-            .map_err(|e| format!("Erro ao filtrar lotes: {}", e))
-    }
-
     pub fn get_statistics(&mut self) -> Result<BatchStatistics, String> {
-        if let Ok(all_batches) = self.list_batches() {
+        if let Ok(all_batches) = self.list() {
 
             let total_batches = all_batches.len();
             
@@ -111,15 +103,4 @@ impl BatchService {
             return Err("Erro ao obter estatísticas de lotes".to_string())
         }
     }
-}
-
-// Valida se o nome da coluna é permitido (para evitar injeção de SQL)
-fn is_valid_column(col: &str) -> bool {
-    matches!(
-        col,
-        "id" | "batch_number" | "batch_year" | "batch_month" |
-        "seed" | "coating" | "brand" | "sack_weight" | "sack_amount" |
-        "total_weight" | "pureness_score" | "total_pureness_score" |
-        "batch_status" | "deleted_at" | "origin"
-    )
 }
