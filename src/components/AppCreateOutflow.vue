@@ -1,6 +1,6 @@
 <template>
   <n-modal
-    v-model:show="createBatchModal"
+    v-model:show="createOutflowModal"
     style="width: 600px;"
     :mask-closable="false"
     preset="card"
@@ -34,7 +34,7 @@
 
         <!-- Botão de criar -->
         <n-button type="primary" block @click="createBatch" :disabled="batchNumberInputStatus === 'error'">
-          Criar Lote
+          Adicionar Saída
         </n-button>
       </n-space>
     </div>
@@ -51,7 +51,7 @@ import { useGlobalStore } from '@/stores/globalStore'
 import { storeToRefs } from 'pinia'
 import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
-const createBatchModal = defineModel('modal', {
+const createOutflowModal = defineModel('modal', {
   type: Boolean,
   default: false
 })
@@ -115,8 +115,8 @@ const parsedExpireDate = computed(() => {
   return `${month}/${year.value + 1}`;
 })
 
-watch(createBatchModal, () => {
-  if (createBatchModal.value) {
+watch(createOutflowModal, () => {
+  if (createOutflowModal.value) {
     newBatch.number = getNextBatchNumber()
   } else {
     resetForm()
@@ -124,7 +124,7 @@ watch(createBatchModal, () => {
 })
 
 watchEffect(() => {
-  if (createBatchModal.value) {
+  if (createOutflowModal.value) {
     batchNumberInputStatus.value = undefined
     if (newBatch.number) {
       const batchKey = `${newBatch.number}${String(year.value)}`
@@ -187,7 +187,7 @@ async function createBatch() {
   }
 
   try {
-    createBatchModal.value = false
+    createOutflowModal.value = false
     await batchesStore.createBatch(batch)
 
     globalStore.showMessage({

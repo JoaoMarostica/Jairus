@@ -3,17 +3,16 @@ import type { RawBatch, BatchDB, BatchOutflowDB, DataTableBatch, DataTableBatchO
 import type { DataTableRowKey } from 'naive-ui';
 import ExcelJS from 'exceljs';
 import { invoke } from '@tauri-apps/api/core';
+import { ref } from 'vue';
 
 export const useBatchesStore = defineStore('batches', {
   state: () => ({
-    batches: [] as BatchDB[],
-    batchOutflows: [] as BatchOutflowDB[],
-    dataTableBatches: [] as DataTableBatch[],
-    dataTableBatchOutflows: [] as DataTableBatchOutflow[],
+    batches: ref<BatchDB[]>([]),
+    batchOutflows: ref<BatchOutflowDB[]>([]),
+    dataTableBatches: ref<DataTableBatch[]>([]),
+    dataTableBatchOutflows: ref<DataTableBatchOutflow[]>([]),
     batchesForDownload: [] as DataTableRowKey[],
   }),
-  getters: {
-  },
   actions: {
     async importBatchesFromSheet(file: File) {
         const buffer = await file.arrayBuffer()
@@ -74,7 +73,7 @@ export const useBatchesStore = defineStore('batches', {
         this.setBatchesFromSheetData(data)
     },
     setBatchesFromSheetData(data: RawBatch[]) {
-        this.$reset;
+        this.$reset();
 
         const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100;
 
@@ -139,13 +138,9 @@ export const useBatchesStore = defineStore('batches', {
     },
     async fetchBatches() {
         try {
-            this.$reset;
-
             this.batches = await invoke('list_batches');
-
-            this.batches.forEach((batch: BatchDB) =>
-                this.dataTableBatches.push(formatBatchForTable(batch))
-            );
+            
+            this.dataTableBatches = this.batches.map(formatBatchForTable);
         } catch (err) {
             console.error(err);
         }
@@ -159,6 +154,38 @@ export const useBatchesStore = defineStore('batches', {
             this.dataTableBatches.push(formatBatchForTable(createdBatch));
         } catch (err) {
             console.error(err);
+        }
+    },
+    async editBatch(batch: DataTableBatch) {
+        try {
+            const editedBatch: BatchDB = await invoke('update_batch', {
+                batchNumber: batch.batch_number,
+                batchYear: batch.batch_year,
+                batch: batch
+            });
+
+            const index = this.dataTableBatches.findIndex(b => b.key === batch.key);
+
+            if (index !== -1) {
+                this.dataTableBatches[index] = formatBatchForTable(editedBatch);
+            }
+
+            this.batches = await invoke('list_batches');
+        } catch (err) {
+            console.error(err);
+        }
+    },
+    async removeBatch(batch: DataTableBatch) {
+        try {
+            await invoke('delete_batch', {
+                batchNumber: batch.batch_number,
+                batchYear: batch.batch_year
+            });
+
+            await this.fetchBatches();
+        } catch (err) {
+            console.error(err);
+            throw err;
         }
     },
     getLastBatch() {
@@ -245,7 +272,14 @@ export const useBatchesStore = defineStore('batches', {
         }
         console.log('Download data: ', downloadData);
     },
-  }
+  },
+  getters: {
+    getBatchKeys: (state) => {
+        return state.dataTableBatches
+            .filter(batch => batch.batch_status === 1)
+            .map(batch => batch.key)
+    }
+  },
 });
 
 function createDataTableBatchKey(batchNumber: number, batchYear: number): string {

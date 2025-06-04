@@ -8,11 +8,21 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    2: typeof import('./src/components/AppCreateBatch copy 2.vue')['default']
+    3: typeof import('./src/components/AppCreateBatch copy 3.vue')['default']
     AppBatchDetails: typeof import('./src/components/AppBatchDetails.vue')['default']
     AppCreateBatch: typeof import('./src/components/AppCreateBatch.vue')['default']
+    AppCreateOutflow: typeof import('./src/components/AppCreateOutflow.vue')['default']
+    AppEditBatch: typeof import('./src/components/AppEditBatch.vue')['default']
     AppFileUpload: typeof import('./src/components/AppFileUpload.vue')['default']
+    AppRemoveBatch: typeof import('./src/components/AppRemoveBatch.vue')['default']
     AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     AppToolbar: typeof import('./src/components/AppToolbar.vue')['default']
+    copy: typeof import('./src/components/AppCreateBatch copy.vue')['default']
+    NButton: typeof import('naive-ui')['NButton']
+    NDialog: typeof import('naive-ui')['NDialog']
+    NDialogProvider: typeof import('naive-ui')['NDialogProvider']
+    NModal: typeof import('naive-ui')['NModal']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

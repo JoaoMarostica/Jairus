@@ -87,15 +87,20 @@
         :pagination="pagination"
         @update:checked-row-keys="handleCheck"
         @update:sorter="handleUpdateSorter"
-        :max-height="550"
+        :max-height="640"
       />
     </div>
 
     <!-- Batch Details Modal -->
     <AppBatchDetails v-model:modal="batchDetailsModal" :selectedBatch="selectedBatch"/>
 
-    <!-- Batch Create Modal -->
+    <!-- Create Outflow Modal -->
+    <AppCreateOutflow v-model:modal="createOutflowModal"/>
+
+    <!-- Batch CRUD -->
     <AppCreateBatch v-model:modal="createBatchModal"/>
+    <AppEditBatch v-model:modal="editBatchModal" :selectedBatch="selectedBatch" />
+    <AppRemoveBatch v-model:modal="removeBatchModal" :selectedBatch="selectedBatch" />
   </n-card>
 </template>
 
@@ -120,9 +125,12 @@ import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import * as batchesUtils from '@/utils/batches'
 import { ref, computed, reactive, watch, onMounted, h } from 'vue';
-import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound } from '@vicons/material'
+import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound, PostAddOutlined } from '@vicons/material'
 import AppBatchDetails from '@/components/AppBatchDetails.vue';
+import AppCreateOutflow from '@/components/AppCreateOutflow.vue';
 import AppCreateBatch from '@/components/AppCreateBatch.vue';
+import AppEditBatch from '@/components/AppEditBatch.vue';
+import AppRemoveBatch from '@/components/AppRemoveBatch.vue';
 import { useBatchesStore } from '@/stores/batchesStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
@@ -134,7 +142,10 @@ type Sorter = {
 };
 
 const batchDetailsModal = ref<boolean>(false);
+const createOutflowModal = ref<boolean>(false);
 const createBatchModal = ref<boolean>(false);
+const editBatchModal = ref<boolean>(false);
+const removeBatchModal = ref<boolean>(false);
 
 const globalStore = useGlobalStore()
 const { fileUploadModal } = storeToRefs(globalStore);
@@ -195,9 +206,11 @@ const filteredData = computed(() => {
     result = result.filter(batch => {
       if (column === 'all') {
         return batch._searchIndex?.includes(term);
-      } else {
-        const val = batch[column];
+      } else if (column in batch) {
+        const val = batch[column as keyof DataTableBatch];
         return batchesUtils.normalizeText((val as any)?.toString() ?? '').includes(term);
+      } else {
+        return false;
       }
     });
   }
@@ -209,6 +222,9 @@ onMounted(async () => {
   try {
     loading.value = true
     await batchesStore.fetchBatches();
+    createColumns();
+    setColumnFilterOptions();
+    setYearFilterOptions();
     globalStore.showMessage({
       content: 'Lotes carregados com sucesso!',
       type: 'success',
@@ -223,10 +239,11 @@ onMounted(async () => {
 })
 
 watch(dataTableBatches.value, () => {
-  createColumns();
-  setColumnFilterOptions();
-  setYearFilterOptions();
-})
+  globalStore.showMessage({
+    content: 'Lotes atualizados com sucesso!',
+    type: 'success',
+  });
+});
 
 function openCreateBatchModal() {
   createBatchModal.value = true
@@ -274,14 +291,19 @@ function openBatchDetails(batch: any) {
   batchDetailsModal.value = true;
 }
 
-function handleEdit(batch: any) {
-  console.log('Editar', batch);
-  // Implementar redirecionamento ou modal de edição
+function createOutflow(batch: any) {
+  selectedBatch.value = batch;
+  createOutflowModal.value = true;
 }
 
-function handleDelete(batch: any) {
-  console.log('Deletar', batch);
-  // Implementar redirecionamento ou modal de remoção
+function handleEdit(batch: any) {
+  selectedBatch.value = batch;
+  editBatchModal.value = true;
+}
+
+function handleRemove(batch: any) {
+  selectedBatch.value = batch;
+  removeBatchModal.value = true;
 }
 
 async function setColumnFilterOptions() {
@@ -448,7 +470,7 @@ function createColumns() {
       key: 'actions',
       titleAlign: 'center',
       align: 'center',
-      width: '100px',
+      width: '150px',
       render(batch: RowData): ReturnType<typeof h>[]  {
         return [
           h(
@@ -475,6 +497,29 @@ function createColumns() {
             }
           ),
           h(
+            NTooltip,
+            { placement: 'bottom' },
+            {
+              trigger: () =>
+                h(
+                  NButton,
+                  {
+                    quaternary: true,
+                    type: 'primary',
+                    size: 'small',
+                    onClick: () => createOutflow(batch),
+                    renderIcon: () =>h(NIcon, null, 
+                      { default: () => 
+                        h(PostAddOutlined, {
+                          style: { color: '#04853a' }
+                        }) 
+                      })
+                  }
+                ),
+              default: () => 'Adicionar Saída'
+            }
+          ),
+          h(
             NDropdown,
             {
               trigger: "click",
@@ -496,7 +541,7 @@ function createColumns() {
                 if (key === 'edit') {
                   handleEdit(batch)
                 } else if (key === 'delete') {
-                  handleDelete(batch)
+                  handleRemove(batch)
                 }
               },
               placement: 'bottom'
