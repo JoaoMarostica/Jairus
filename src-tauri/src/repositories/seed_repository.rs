@@ -24,49 +24,38 @@ impl SeedRepository {
         Self { connection }
     }
 
-    pub fn create(&mut self, object:&Seed) -> Seed {
+    pub fn create(&mut self, object:&Seed) -> Result<Seed, diesel::result::Error> {
         diesel::insert_into(tb_seed)
         .values(object)
         .returning(Seed::as_returning())
         .get_result(&mut self.connection)
-        .expect("Error creating a new record in seed table")
     }
 
-    pub fn read(&mut self, id:&str) -> Option<Seed> {
-        match tb_seed
+    pub fn read(&mut self, id:&str) -> Result<Option<Seed>, diesel::result::Error> {
+        tb_seed
         .find(id)
         .select(Seed::as_select())
         .get_result(&mut self.connection)
-        .optional() {
-            Ok(option) => option,
-            Err(e) => panic!("Error trying to read seed id={}\n{}", id, e)
-        }
- 
+        .optional() 
     }
 
-    pub fn read_all(&mut self) -> Vec<Seed> {
-        match tb_seed
+    pub fn read_all(&mut self) -> Result<Vec<Seed>, diesel::result::Error> {
+        tb_seed
         .select(Seed::as_select())
-        .get_results(&mut self.connection) {
-            Ok(result) => result,
-            Err(e) => panic!("Error trying to read all seeds\n{}", e)
-        }
+        .get_results(&mut self.connection)
     }
 
-    pub fn update(&mut self, id:&str, object:&Seed) -> Option<Seed> {
-        match diesel::update(tb_seed.filter(scientific_name.eq(id)))
+    pub fn update(&mut self, id:&str, object:&Seed) -> Result<Option<Seed>, diesel::result::Error> {
+        diesel::update(tb_seed.filter(scientific_name.eq(id)))
         .set(object)
         .returning(Seed::as_returning())
         .get_result(&mut self.connection)
-        .optional() {
-            Ok(option) => option,
-            Err(e) => panic!("Error trying to update seed id={}\n{}", id, e)
-        }
+        .optional()
     }
 
-    pub fn delete(&mut self, id:&str) -> usize {
+    pub fn delete(&mut self, id:&str) -> Result<Option<Seed>, diesel::result::Error> {
         diesel::delete(tb_seed.find(id))
-        .execute(&mut self.connection)
-        .expect("Error deleting record in seed table")
+        .get_result(&mut self.connection)
+        .optional()
     }
 }
