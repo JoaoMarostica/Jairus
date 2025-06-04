@@ -24,48 +24,38 @@ impl CoatingRepository {
         Self { connection }
     }
 
-    pub fn create(&mut self, object:&Coating) -> Coating {
+    pub fn create(&mut self, object:&Coating) -> Result<Coating, diesel::result::Error> {
         diesel::insert_into(tb_coating)
         .values(object)
         .returning(Coating::as_returning())
         .get_result(&mut self.connection)
-        .expect("Error creating a new record in coating table")
     }
 
-    pub fn read(&mut self, id:&str) -> Option<Coating> {
-        match tb_coating
+    pub fn read(&mut self, id:&str) -> Result<Option<Coating>, diesel::result::Error> {
+        tb_coating
         .find(id)
         .select(Coating::as_select())
         .get_result(&mut self.connection)
-        .optional() {
-            Ok(option) => option,
-            Err(e) => panic!("Error trying to read coating id={}\n{}", id, e)
-        }
+        .optional()
     }
 
-    pub fn read_all(&mut self) -> Vec<Coating> {
-        match tb_coating
+    pub fn read_all(&mut self) -> Result<Vec<Coating>, diesel::result::Error> {
+        tb_coating
         .select(Coating::as_select())
-        .get_results(&mut self.connection) {
-            Ok(result) => result,
-            Err(e) => panic!("Error trying to read all coatings\n{}", e)
-        }
+        .get_results(&mut self.connection)
     }
 
-    pub fn update(&mut self, id:&str, object:&Coating) -> Option<Coating> {
-        match diesel::update(tb_coating.filter(coating_name.eq(id)))
+    pub fn update(&mut self, id:&str, object:&Coating) -> Result<Option<Coating>, diesel::result::Error> {
+        diesel::update(tb_coating.filter(coating_name.eq(id)))
         .set(object)
         .returning(Coating::as_returning())
         .get_result(&mut self.connection)
-        .optional() {
-            Ok(option) => option,
-            Err(e) => panic!("Error trying to update coating id={}\n{}", id, e)
-        }
+        .optional()
     }
 
-    pub fn delete(&mut self, id:&str) -> usize {
+    pub fn delete(&mut self, id:&str) -> Result<Option<Coating>, diesel::result::Error> {
         diesel::delete(tb_coating.find(id))
-        .execute(&mut self.connection)
-        .expect("Error deleting record in coating table")
+        .get_result(&mut self.connection)
+        .optional()
     }
 }
