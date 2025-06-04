@@ -20,9 +20,6 @@ pub fn run() {
             batch_commands::delete_batch,
             batch_commands::get_batch_statistics,
             batch_commands::get_filtered_batches,
-//            batch_commands::filter_batches_by_year,
-//            batch_commands::filter_batches_by_month,
-//            batch_commands::filter_batches_by_seed,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
