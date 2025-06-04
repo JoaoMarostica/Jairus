@@ -1,49 +1,125 @@
 <template>
   <n-modal
     v-model:show="editBatchModal"
-    style="width: 600px;"
+    style="width: 1000px;"
     :mask-closable="false"
     preset="card"
     :closable="true"
     :title="modalTitle"
   >
-    <div style="width: 100%; height: 100%; overflow: auto;" class="bg-white dark:bg-black p-4">
-      <n-space vertical>
-        <n-input-group>
-          <n-input v-model:value="newBatch.number" :style="{ width: '33%' }" :status="batchNumberInputStatus" placeholder="Número do Lote" />
-          <n-input :style="{ width: '33%' }" :placeholder="year.toString()" disabled />
-          <n-input :style="{ width: '33%' }" :placeholder="expireDate" disabled />
-        </n-input-group>
+    <n-grid :cols="3" x-gap="24px">
+      <!-- Coluna do formulário -->
+      <n-gi :span="1">
+        <n-form
+          ref="formRef"
+          :model="newBatch"
+          :rules="rules"
+          :size="size"
+          label-placement="top"
+        >
+        <n-form-item
+          :span="12"
+          label="Número do Lote"
+          path="batch_number"
+          :validation-status="batchNumberInputStatus"
+          :feedback="batchNumberInputFeedback"
+        >
+          <n-input v-model:value="newBatch.batch_number" placeholder="Digite o número do lote" />
+        </n-form-item>
+        <n-form-item :span="12" label="Cultivar" path="seed">
+          <n-select
+            v-model:value="newBatch.seed"
+            placeholder="Selecione a cultivar"
+            :options="seedsOptions"
+          />
+        </n-form-item>
+        <n-form-item :span="12" label="Tratamento" path="coating">
+          <n-select
+            v-model:value="newBatch.coating"
+            placeholder="Selecione o tratamento"
+            :options="coatingsOptions"
+          />
+        </n-form-item>
+        <n-form-item :span="12" label="PP/Kg" path="purenessScore">
+          <n-input v-model:value="newBatch.purenessScore" placeholder="Digite o ponto de pureza por Kg" />
+        </n-form-item>
+        <n-form-item :span="12" label="Marca do Saco" path="sackBrand">
+          <n-select
+            v-model:value="newBatch.sackBrand"
+            placeholder="Selecione a marca do saco"
+            :options="brandsOptions"
+          />
+        </n-form-item>
+        <n-form-item :span="12" label="Quantidade de Sacos" path="sackAmount">
+          <n-input v-model:value="newBatch.sackAmount" placeholder="Digite a quantidade de sacos" />
+        </n-form-item>
+        <n-form-item :span="12" label="Peso da Sacaria" path="sackWeight">
+          <n-select
+            v-model:value="newBatch.sackWeight"
+            placeholder="Selecione o peso da sacaria"
+            :options="sackWeightsOptions"
+          />
+        </n-form-item>
+        
 
-        <n-input-group>
-          <n-select v-model:value="newBatch.seed" :options="seedsOptions" :style="{ width: '50%' }" placeholder="Cultivar" />
-          <n-select v-model:value="newBatch.coating" :options="coatingsOptions" :style="{ width: '50%' }" placeholder="Tratamento" />
-        </n-input-group>
+        <div style="display: flex; justify-content: flex-end; margin-top: 16px">
+            <n-button round type="primary" @click="editBatch">
+              Editar Lote
+            </n-button>
+          </div>
+        </n-form>
+      </n-gi>
 
-        <n-input-group>
-          <n-input v-model:value="newBatch.purenessScore" :style="{ width: '33%' }" placeholder="PP/Kg" />
-          <n-input v-model:value="totalWeight" :style="{ width: '33%' }" placeholder="Quantidade (Kg)" disabled />
-          <n-input v-model:value="totalPP" :style="{ width: '33%' }" placeholder="Total PP" disabled />
-        </n-input-group>
+      <!-- Divider vertical (coluna 2) -->
+      <n-gi :span="1" style="display: flex; justify-content: center;">
+        <n-divider vertical style="height: 100%; margin: 0;" />
+      </n-gi>
 
-        <n-input-group>
-          <n-select v-model:value="newBatch.sackBrand" :options="brandsOptions" :style="{ width: '33%' }" placeholder="Marca do Saco" />
-          <n-input v-model:value="newBatch.sackAmount" :style="{ width: '33%' }" placeholder="Qtd. de Sacos" />
-          <n-select v-model:value="newBatch.sackWeight" :options="sackWeightsOptions" :style="{ width: '33%' }" placeholder="Peso por Saco (kg)" />
-        </n-input-group>
-
-        <!-- Botão de criar -->
-        <n-button type="primary" block @click="editBatch" :disabled="batchNumberInputStatus === 'error'">
-          Editar Lote
-        </n-button>
-      </n-space>
-    </div>
+      <!-- Coluna das descrições -->
+      <n-gi :span="1">
+        <n-descriptions
+          bordered
+          label-placement="top"
+          :column="1"
+          title="Resumo do Lote"
+          size="small"
+        >
+          <n-descriptions-item label="Número do Lote">
+            {{ newBatch.batch_number }}
+          </n-descriptions-item>
+          <n-descriptions-item label="Cultivar">
+            {{ newBatch.seed }}
+          </n-descriptions-item>
+          <n-descriptions-item label="Tratamento">
+            {{ newBatch.coating }}
+          </n-descriptions-item>
+          <n-descriptions-item label="Marca do Saco">
+            {{ newBatch.sackBrand }}
+          </n-descriptions-item>
+          <n-descriptions-item label="Peso por Saco (Kg)">
+            {{ newBatch.sackWeight }}
+          </n-descriptions-item>
+          <n-descriptions-item label="Quantidade de Sacos">
+            {{ newBatch.sackAmount }}
+          </n-descriptions-item>
+          <n-descriptions-item label="Peso Total (Kg)">
+            {{ totalWeight }}
+          </n-descriptions-item>
+          <n-descriptions-item label="PP/Kg">
+            {{ newBatch.purenessScore }}
+          </n-descriptions-item>
+          <n-descriptions-item label="PP Total">
+            {{ totalPP }}
+          </n-descriptions-item>
+        </n-descriptions>
+      </n-gi>
+    </n-grid>
   </n-modal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, reactive, watchEffect, onMounted } from 'vue'
-import { NModal, NSpace, NInput, NInputGroup, NSelect, NButton } from 'naive-ui'
+import { NModal, NInput, FormInst, NSelect, NButton, NForm, NFormItem, NDivider, NDescriptions, NDescriptionsItem, NGi, NGrid } from 'naive-ui'
 import { BatchDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
 import { useSettingsStore } from '@/stores/settingsStore'
@@ -70,7 +146,20 @@ const modalTitle = computed(() =>
 
 const year = ref(0)
 const expireDate = ref('')
+
 const batchNumberInputStatus = ref<FormValidationStatus | undefined>(undefined)
+const batchNumberInputFeedback = computed(() => {
+  return batchNumberInputStatus.value === 'error'
+    ? 'Lote já existe'
+    : undefined
+})
+
+const batchTotalWeightInputStatus = ref<FormValidationStatus | undefined>(undefined)
+const batchTotalWeightInputFeedback = computed(() => {
+  return batchTotalWeightInputStatus.value === 'error'
+    ? 'Acima do limite de 10.000 Kg'
+    : undefined
+})
 
 const props = defineProps<{
   selectedBatch: any
@@ -78,15 +167,16 @@ const props = defineProps<{
 
 const selectedBatch = computed(() => props.selectedBatch)
 
-// Estado do formulário
+const formRef = ref<FormInst | null>(null)
+const size = ref<'small' | 'medium' | 'large'>('medium')
 const newBatch = reactive({
-  number: '',
+  batch_number: null,
   seed: null,
   coating: null,
   sackBrand: null,
-  sackAmount: '',
+  sackAmount: null,
   sackWeight: null,
-  purenessScore: '',
+  purenessScore: null,
 })
 
 const seedsOptions = computed(() => {
@@ -121,18 +211,18 @@ const totalPP = computed(() => {
 
 watchEffect(() => {
   batchNumberInputStatus.value = undefined
-  if (newBatch.number) {
-    const batchKey = `${newBatch.number}${String(year.value)}`
+  batchTotalWeightInputStatus.value = undefined
+
+  if (newBatch.batch_number) {
+    const batchKey = `${newBatch.batch_number}${String(year.value)}`
 
     if (batchKey !== `${selectedBatch.value.batch_number}${selectedBatch.value.batch_year.toString()}` &&
       batchesStore.getBatchKeys.includes(batchKey)) {
-
-      globalStore.showMessage({
-        content: `Lote ${newBatch.number}/${String(year.value).slice(-2)} já existe!`,
-        type: 'error',
-      })
       batchNumberInputStatus.value = 'error'
     }
+  }
+  if (totalWeight.value !== null && parsePtBrNumber(totalWeight.value) > 10000) {
+    batchTotalWeightInputStatus.value = 'error'
   }
 })
 
@@ -143,7 +233,7 @@ onMounted(() => {
 })
 
 function prefillForm() {
-  newBatch.number = selectedBatch.value.batch_number?.toString() || ''
+  newBatch.batch_number = selectedBatch.value.batch_number?.toString() || ''
   newBatch.seed = selectedBatch.value.seed || null
   newBatch.coating = selectedBatch.value.coating || null
   newBatch.sackBrand = selectedBatch.value.brand || null
@@ -160,57 +250,6 @@ function parsePtBrNumber(value: string | null): number {
   return Number(value.replace(/\./g, '').replace(',', '.'))
 }
 
-async function editBatch() {
-  if (
-    !newBatch.number ||
-    !newBatch.seed ||
-    !newBatch.coating ||
-    !newBatch.sackBrand ||
-    !newBatch.sackAmount ||
-    !newBatch.sackWeight ||
-    !newBatch.purenessScore
-  ) {
-    globalStore.showMessage({
-      content: 'Preencha todos os campos obrigatórios.',
-      type: 'error',
-    })
-    return
-  }
-  
-  const batch: BatchDB = {
-    batch_number: Number(newBatch.number),
-    batch_year: Number(year.value),
-    batch_month: monthMap[expireDate.value.split('/')[0].toLowerCase()],
-    seed: newBatch.seed,
-    coating: newBatch.coating,
-    brand: newBatch.sackBrand,
-    sack_weight: Number(newBatch.sackWeight),
-    sack_amount: Number(newBatch.sackAmount),
-    total_weight: parsePtBrNumber(totalWeight.value),
-    pureness_score: parsePtBrNumber(newBatch.purenessScore),
-    total_pureness_score: parsePtBrNumber(totalPP.value),
-    batch_status: 1,
-    deleted_at: null,
-    origin: null
-  }
-
-  try {
-    await batchesStore.editBatch(batch)
-    
-    globalStore.showMessage({
-      content: 'Lote editado com successo!',
-      type: 'success',
-    })
-    editBatchModal.value = false
-  } catch (error: any) {
-    globalStore.showMessage({
-      content: `Erro ao editar lote: ${error?.message || error}`,
-      type: 'error',
-      keepAliveOnHover: true,
-    })
-  }
-}
-
 const monthMap: Record<string, number> = {
   jan: 0,
   fev: 1,
@@ -224,6 +263,91 @@ const monthMap: Record<string, number> = {
   out: 9,
   nov: 10,
   dez: 11
+}
+
+const rules = {
+  batch_number: {
+    required: true,
+    trigger: ['blur', 'input'],
+    message: 'Campo obrigatório',
+  },
+  seed: {
+    required: true,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+  coating: {
+    required: true,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+  purenessScore: {
+    required: true,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+  sackBrand: {
+    required: true,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+  sackAmount: {
+    required: true,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+  sackWeight: {
+    required: true,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+}
+
+function editBatch(e: MouseEvent) {
+  e.preventDefault()
+  formRef.value?.validate(async (errors) => {
+    if (!errors) {
+      const batch: BatchDB = {
+      batch_number: Number(newBatch.batch_number),
+      batch_year: Number(year.value),
+      batch_month: monthMap[expireDate.value.split('/')[0].toLowerCase()],
+      seed: newBatch.seed || '',
+      coating: newBatch.coating || '',
+      brand: newBatch.sackBrand || '',
+      sack_weight: Number(newBatch.sackWeight),
+      sack_amount: Number(newBatch.sackAmount),
+      total_weight: parsePtBrNumber(totalWeight.value),
+      pureness_score: parsePtBrNumber(newBatch.purenessScore),
+      total_pureness_score: parsePtBrNumber(totalPP.value),
+      batch_status: 1,
+      deleted_at: null,
+      origin: null
+    }
+
+    try {
+      await batchesStore.editBatch(batch)
+      
+      globalStore.showMessage({
+        content: 'Lote editado com successo!',
+        type: 'success',
+      })
+      editBatchModal.value = false
+    } catch (error: any) {
+      globalStore.showMessage({
+        content: `Erro ao editar lote: ${error?.message || error}`,
+        type: 'error',
+        keepAliveOnHover: true,
+      })
+    }
+    }
+    else {
+      globalStore.showMessage({
+        content: 'Preencha todos os campos obrigatórios.',
+        type: 'error',
+      })
+      return
+    }
+  })
 }
 
 </script>
