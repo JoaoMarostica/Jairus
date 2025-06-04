@@ -10,7 +10,7 @@
     <div style="width: 100%; height: 100%; overflow: auto;" class="bg-white dark:bg-black p-4">
       <n-space vertical>
         <n-input-group>
-          <n-input v-model:value="newBatch.number" :style="{ width: '33%' }" :status="batchNumberInputStatus" placeholder="Número do Lote" />
+          <n-input v-model:value="newBatch.batch_number" :style="{ width: '33%' }" :status="batchNumberInputStatus" placeholder="Número do Lote" />
           <n-input :style="{ width: '33%' }" :placeholder="year.toString()" disabled />
           <n-input :style="{ width: '33%' }" :placeholder="parsedExpireDate" disabled />
         </n-input-group>
@@ -62,7 +62,11 @@ const batchesStore = useBatchesStore()
 const settingsStore = useSettingsStore()
 const { seeds, coatings, brands } = storeToRefs(settingsStore)
 
-const modalTitle = ref('Lote')
+const modalTitle = computed(() =>
+  newBatch?.batch_number
+    ? `Novo Lote ${newBatch.batch_number}/${String(year.value).slice(-2)}`
+    : 'Novo Lote'
+)
 
 const year = ref(new Date().getFullYear())
 const expireDate = ref(new Date().getMonth())
@@ -70,7 +74,7 @@ const batchNumberInputStatus = ref<FormValidationStatus | undefined>(undefined)
 
 // Estado do formulário
 const newBatch = reactive({
-  number: '',
+  batch_number: '',
   seed: null,
   coating: null,
   sackBrand: null,
@@ -117,28 +121,23 @@ const parsedExpireDate = computed(() => {
 
 watch(createBatchModal, () => {
   if (createBatchModal.value) {
-    newBatch.number = getNextBatchNumber()
+    newBatch.batch_number = getNextBatchNumber()
   } else {
     resetForm()
   }
 })
 
 watchEffect(() => {
-  if (createBatchModal.value) {
-    batchNumberInputStatus.value = undefined
-    if (newBatch.number) {
-      const batchKey = `${newBatch.number}${String(year.value)}`
-  
-      if (batchesStore.getBatchKeys.some(key => key === batchKey)) {
-        globalStore.showMessage({
-          content: `Lote ${newBatch.number}/${String(year.value).slice(-2)} já existe!`,
-          type: 'error',
-        })
-        batchNumberInputStatus.value = 'error'
-      }
-      modalTitle.value = `Lote ${newBatch.number}/${String(year.value).slice(-2)}`
-    } else {
-      modalTitle.value = 'Lote'
+  batchNumberInputStatus.value = undefined
+  if (newBatch.batch_number) {
+    const batchKey = `${newBatch.batch_number}${String(year.value)}`
+
+    if (batchesStore.getBatchKeys.some(key => key === batchKey)) {
+      globalStore.showMessage({
+        content: `Lote ${newBatch.batch_number}/${String(year.value).slice(-2)} já existe!`,
+        type: 'error',
+      })
+      batchNumberInputStatus.value = 'error'
     }
   }
 })
@@ -151,10 +150,9 @@ function getNextBatchNumber() {
   return '1'
 }
 
-// Função para submeter
 async function createBatch() {
   if (
-    !newBatch.number ||
+    !newBatch.batch_number ||
     !newBatch.seed ||
     !newBatch.coating ||
     !newBatch.sackBrand ||
@@ -170,7 +168,7 @@ async function createBatch() {
   }
   
   const batch: BatchDB = {
-    batch_number: Number(newBatch.number),
+    batch_number: Number(newBatch.batch_number),
     batch_year: Number(year.value),
     batch_month: Number(expireDate.value),
     seed: newBatch.seed,
@@ -203,7 +201,7 @@ async function createBatch() {
 }
 
 function resetForm() {
-  newBatch.number = ''
+  newBatch.batch_number = ''
   newBatch.seed = null
   newBatch.coating = null
   newBatch.sackBrand = null

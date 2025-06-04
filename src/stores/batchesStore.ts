@@ -156,7 +156,7 @@ export const useBatchesStore = defineStore('batches', {
             console.error(err);
         }
     },
-    async editBatch(batch: DataTableBatch) {
+    async editBatch(batch: BatchDB) {
         try {
             const editedBatch: BatchDB = await invoke('update_batch', {
                 batchNumber: batch.batch_number,
@@ -164,7 +164,7 @@ export const useBatchesStore = defineStore('batches', {
                 batch: batch
             });
 
-            const index = this.dataTableBatches.findIndex(b => b.key === batch.key);
+            const index = this.dataTableBatches.findIndex(b => b.batch_number === batch.batch_number && b.batch_year === batch.batch_year);
 
             if (index !== -1) {
                 this.dataTableBatches[index] = formatBatchForTable(editedBatch);
@@ -173,6 +173,7 @@ export const useBatchesStore = defineStore('batches', {
             this.batches = await invoke('list_batches');
         } catch (err) {
             console.error(err);
+            throw err;
         }
     },
     async removeBatch(batch: DataTableBatch) {

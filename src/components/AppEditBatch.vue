@@ -12,7 +12,7 @@
         <n-input-group>
           <n-input v-model:value="newBatch.number" :style="{ width: '33%' }" :status="batchNumberInputStatus" placeholder="Número do Lote" />
           <n-input :style="{ width: '33%' }" :placeholder="year.toString()" disabled />
-          <n-input :style="{ width: '33%' }" :placeholder="parsedExpireDate" disabled />
+          <n-input :style="{ width: '33%' }" :placeholder="expireDate" disabled />
         </n-input-group>
 
         <n-input-group>
@@ -33,8 +33,8 @@
         </n-input-group>
 
         <!-- Botão de criar -->
-        <n-button type="primary" block @click="createBatch" :disabled="batchNumberInputStatus === 'error'">
-          Criar Lote
+        <n-button type="primary" block @click="editBatch" :disabled="batchNumberInputStatus === 'error'">
+          Editar Lote
         </n-button>
       </n-space>
     </div>
@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, watchEffect, watch } from 'vue'
+import { computed, ref, reactive, watchEffect, onMounted } from 'vue'
 import { NModal, NSpace, NInput, NInputGroup, NSelect, NButton } from 'naive-ui'
 import { BatchDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
@@ -62,11 +62,21 @@ const batchesStore = useBatchesStore()
 const settingsStore = useSettingsStore()
 const { seeds, coatings, brands } = storeToRefs(settingsStore)
 
-const modalTitle = ref('Lote')
+const modalTitle = computed(() =>
+  props.selectedBatch?.batch_number
+    ? `Edição do Lote ${props.selectedBatch.batch_number}/${String(props.selectedBatch.batch_year).slice(-2)}`
+    : 'Edição de Lote'
+)
 
-const year = ref(new Date().getFullYear())
-const expireDate = ref(new Date().getMonth())
+const year = ref(0)
+const expireDate = ref('')
 const batchNumberInputStatus = ref<FormValidationStatus | undefined>(undefined)
+
+const props = defineProps<{
+  selectedBatch: any
+}>()
+
+const selectedBatch = computed(() => props.selectedBatch)
 
 // Estado do formulário
 const newBatch = reactive({
@@ -101,58 +111,56 @@ const totalWeight = computed(() => {
   const weight = Number(newBatch.sackWeight)
   const totalWeight = amount * weight
 
-  return totalWeight === 0 ? null : totalWeight.toString()
+  return totalWeight === 0 ? null : totalWeight.toLocaleString("pt-BR")
 })
 
 const totalPP = computed(() => {
-  const totalPP = Number(totalWeight.value) * Number(newBatch.purenessScore)
-  return totalPP === 0 ? null : (Math.round(totalPP * 100) / 100).toString()
-})
-
-const parsedExpireDate = computed(() => {
-  const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-  const month = monthNames[expireDate.value] || '--';
-  return `${month}/${year.value + 1}`;
-})
-
-watch(editBatchModal, () => {
-  if (editBatchModal.value) {
-    newBatch.number = getNextBatchNumber()
-  } else {
-    resetForm()
-  }
+  const totalPP = parsePtBrNumber(totalWeight.value) * parsePtBrNumber(newBatch.purenessScore)
+  return totalPP === 0 ? null : (Math.round(totalPP * 100) / 100).toLocaleString("pt-BR")
 })
 
 watchEffect(() => {
-  if (editBatchModal.value) {
-    batchNumberInputStatus.value = undefined
-    if (newBatch.number) {
-      const batchKey = `${newBatch.number}${String(year.value)}`
-  
-      if (batchesStore.getBatchKeys.some(key => key === batchKey)) {
-        globalStore.showMessage({
-          content: `Lote ${newBatch.number}/${String(year.value).slice(-2)} já existe!`,
-          type: 'error',
-        })
-        batchNumberInputStatus.value = 'error'
-      }
-      modalTitle.value = `Lote ${newBatch.number}/${String(year.value).slice(-2)}`
-    } else {
-      modalTitle.value = 'Lote'
+  batchNumberInputStatus.value = undefined
+  if (newBatch.number) {
+    const batchKey = `${newBatch.number}${String(year.value)}`
+
+    if (batchKey !== `${selectedBatch.value.batch_number}${selectedBatch.value.batch_year.toString()}` &&
+      batchesStore.getBatchKeys.includes(batchKey)) {
+
+      globalStore.showMessage({
+        content: `Lote ${newBatch.number}/${String(year.value).slice(-2)} já existe!`,
+        type: 'error',
+      })
+      batchNumberInputStatus.value = 'error'
     }
   }
 })
 
-function getNextBatchNumber() {
-  const lastBatchNumber = batchesStore.getLastBatch()
-  if (lastBatchNumber) {
-    return (lastBatchNumber + 1).toString()
+onMounted(() => {
+  if (selectedBatch.value) {
+    prefillForm()
   }
-  return '1'
+})
+
+function prefillForm() {
+  newBatch.number = selectedBatch.value.batch_number?.toString() || ''
+  newBatch.seed = selectedBatch.value.seed || null
+  newBatch.coating = selectedBatch.value.coating || null
+  newBatch.sackBrand = selectedBatch.value.brand || null
+  newBatch.sackAmount = selectedBatch.value.sack_amount?.toString() || ''
+  newBatch.sackWeight = selectedBatch.value.sack_weight?.toString() || null
+  newBatch.purenessScore = selectedBatch.value.pureness_score || ''
+
+  year.value = selectedBatch.value.batch_year
+  expireDate.value = selectedBatch.value.expire_date
 }
 
-// Função para submeter
-async function createBatch() {
+function parsePtBrNumber(value: string | null): number {
+  if (!value) return 0
+  return Number(value.replace(/\./g, '').replace(',', '.'))
+}
+
+async function editBatch() {
   if (
     !newBatch.number ||
     !newBatch.seed ||
@@ -172,44 +180,50 @@ async function createBatch() {
   const batch: BatchDB = {
     batch_number: Number(newBatch.number),
     batch_year: Number(year.value),
-    batch_month: Number(expireDate.value),
+    batch_month: monthMap[expireDate.value.split('/')[0].toLowerCase()],
     seed: newBatch.seed,
     coating: newBatch.coating,
     brand: newBatch.sackBrand,
     sack_weight: Number(newBatch.sackWeight),
     sack_amount: Number(newBatch.sackAmount),
-    total_weight: Number(totalWeight.value),
-    pureness_score: Number(newBatch.purenessScore),
-    total_pureness_score: Number(totalPP.value),
+    total_weight: parsePtBrNumber(totalWeight.value),
+    pureness_score: parsePtBrNumber(newBatch.purenessScore),
+    total_pureness_score: parsePtBrNumber(totalPP.value),
     batch_status: 1,
     deleted_at: null,
     origin: null
   }
 
   try {
-    editBatchModal.value = false
-    await batchesStore.createBatch(batch)
-
+    await batchesStore.editBatch(batch)
+    
     globalStore.showMessage({
-      content: 'Lote criado com successo!',
+      content: 'Lote editado com successo!',
       type: 'success',
     })
+    editBatchModal.value = false
   } catch (error: any) {
     globalStore.showMessage({
-      content: `Erro ao criar lote: ${error?.message || error}`,
+      content: `Erro ao editar lote: ${error?.message || error}`,
       type: 'error',
+      keepAliveOnHover: true,
     })
   }
 }
 
-function resetForm() {
-  newBatch.number = ''
-  newBatch.seed = null
-  newBatch.coating = null
-  newBatch.sackBrand = null
-  newBatch.sackAmount = ''
-  newBatch.sackWeight = null
-  newBatch.purenessScore = ''
+const monthMap: Record<string, number> = {
+  jan: 0,
+  fev: 1,
+  mar: 2,
+  abr: 3,
+  mai: 4,
+  jun: 5,
+  jul: 6,
+  ago: 7,
+  set: 8,
+  out: 9,
+  nov: 10,
+  dez: 11
 }
 
 </script>

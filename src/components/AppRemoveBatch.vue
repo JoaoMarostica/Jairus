@@ -19,7 +19,6 @@ import { computed } from 'vue'
 import { useBatchesStore } from '@/stores/batchesStore'
 import { useGlobalStore } from '@/stores/globalStore'
 
-// Props
 const removeBatchModal = defineModel('modal', {
   type: Boolean,
   default: false,
@@ -36,7 +35,7 @@ const selectedBatch = computed(() => props.selectedBatch)
 
 const modalTitle = computed(() =>
   props.selectedBatch?.batch_number
-    ? `Remoção do Lote ${props.selectedBatch.batch_number}`
+    ? `Remoção do Lote ${props.selectedBatch.batch_number}/${String(props.selectedBatch.batch_year).slice(-2)}`
     : 'Remoção de Lote'
 )
 
