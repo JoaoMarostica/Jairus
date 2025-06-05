@@ -16,6 +16,17 @@ impl Brand {
     pub fn weights(&mut self) -> &mut Vec<i32> {
         &mut self.weights
     }
+
+    pub fn to_vbrand(&self) -> Vec<VBrand> {
+        let mut vbrands:Vec<VBrand> = vec![];
+        for weight in &self.weights {
+            vbrands.push(VBrand {
+                brand_name: self.brand_name.to_string(),
+                sack_weight: weight.clone()
+            })
+        }
+        vbrands
+    }
 }
 
 #[derive(Queryable,Selectable,Insertable,AsChangeset)]
