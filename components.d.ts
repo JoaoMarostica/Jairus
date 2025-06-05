@@ -41,6 +41,7 @@ declare module 'vue' {
     NRadioButton: typeof import('naive-ui')['NRadioButton']
     NRadioGroup: typeof import('naive-ui')['NRadioGroup']
     NSlider: typeof import('naive-ui')['NSlider']
+    NSpacer: typeof import('naive-ui')['NSpacer']
     NSwitch: typeof import('naive-ui')['NSwitch']
     NTimePicker: typeof import('naive-ui')['NTimePicker']
     NTransfer: typeof import('naive-ui')['NTransfer']

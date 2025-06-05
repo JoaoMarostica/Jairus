@@ -41,25 +41,25 @@
           />
         </n-input-group>
       </n-grid-item>
-      <n-grid-item>
-        <n-button strong secondary type="info" @click="openCreateBatchModal">
-          <template #icon>
-            <n-icon>
-              <PlusOutlined />
-            </n-icon>
-          </template>
-          Novo Lote
-        </n-button>
-      </n-grid-item>
-      <n-grid-item>
-        <n-button strong secondary type="error" @click="handleRemoveSelected" v-if="selectedBatches.length !== 0">
-          <template #icon>
-            <n-icon>
-              <DeleteForeverOutlined />
-            </n-icon>
-          </template>
-          Remover Lotes Selecionados
-        </n-button>
+      <n-grid-item :span="2">
+        <n-space>
+          <n-button strong secondary type="info" @click="openCreateBatchModal">
+            <template #icon>
+              <n-icon>
+                <PlusOutlined />
+              </n-icon>
+            </template>
+            Novo Lote
+          </n-button>
+          <n-button strong secondary type="error" @click="handleRemoveSelected" v-if="selectedBatches.length !== 0">
+            <template #icon>
+              <n-icon>
+                <DeleteForeverOutlined />
+              </n-icon>
+            </template>
+            Remover Lotes Selecionados
+          </n-button>
+        </n-space>
       </n-grid-item>
     </n-grid>
 
