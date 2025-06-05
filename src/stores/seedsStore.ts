@@ -9,7 +9,7 @@ export const useSeedsStore = defineStore('seeds', {
     dataTableSeeds: [] as DataTableSeed[],
   }),
   actions: {
-    async fetchSeed() {
+    async fetchSeeds() {
         try {
             this.$reset;
 
@@ -29,7 +29,7 @@ export const useSeedsStore = defineStore('seeds', {
     },
     async createSeed(newSeed: SeedDB) {
         try {
-            const createdSeed: SeedDB = await invoke('create_seed', {
+            const createdSeed: SeedDB = await invoke('add_seed', {
                 seed: newSeed
             });
 
@@ -38,6 +38,39 @@ export const useSeedsStore = defineStore('seeds', {
             console.error('Erro ao criar Cultivar:', err);
         }
     },
+
+    async editSeed(seed: SeedDB) {
+            try {
+                const editedSeed: SeedDB = await invoke('change_seed', {
+                    seedName: seed.popular_name,
+                    scientificName: seed.scientific_name
+                });
+    
+                const index = this.dataTableSeeds.findIndex(s => s.key === seed.popular_name);
+    
+                if (index !== -1) {
+                    this.dataTableSeeds[index] = formatSeedForTable(editedSeed);
+                }
+    
+                this.seeds = await invoke('list_seeds');
+            } catch (err) {
+                console.error(err);
+                throw err;
+            }
+        },
+        async removeSeed(seed: DataTableSeed) {
+            try {
+                await invoke('remove_seed', {
+                    seedName: seed.popular_name
+                });
+    
+                await this.fetchSeeds();
+            } catch (err) {
+                console.error(err);
+                throw err;
+            }
+        },
+    
     
 }});
 
