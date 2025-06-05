@@ -14,6 +14,7 @@ export const useCoatingsStore = defineStore('coatings', {
             this.$reset;
 
             this.coatings = await invoke('list_coatings');
+            this.dataTableCoatings = [];
 
             this.coatings.forEach((coating: CoatingDB) =>
                 this.dataTableCoatings.push(formatCoatingForTable(coating))

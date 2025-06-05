@@ -7,35 +7,101 @@ export const useSeedsStore = defineStore('seeds', {
   state: () => ({
     seeds: [] as SeedDB[],
     dataTableSeeds: [] as DataTableSeed[],
+    jsonMigration: false,
   }),
   actions: {
     async fetchSeeds() {
         try {
-            this.$reset;
-
+            
+            
+            this.seeds = [];
+            this.dataTableSeeds = [];
+              
             this.seeds = await invoke('list_seeds');
-
+            
             this.seeds.forEach((seed: SeedDB) =>
                 this.dataTableSeeds.push(formatSeedForTable(seed))
             );
+
+            // Migração automática na primeira carga
+            if (!this.jsonMigration && this.seeds.length === 0) {
+                await this.migrateJsonToDatabase();
+                this.jsonMigration= true;
+                this.seeds = await invoke('list_seeds');
+                this.dataTableSeeds = [];
+                this.seeds.forEach((seed: SeedDB) =>
+                this.dataTableSeeds.push(formatSeedForTable(seed))
+                );
+            }
+
         } catch (err) {
             console.error(err);
         }
     },
-    fetchSeedsFromJsonFile() {
-      for (const seed of cultivarsInfo) {
-            this.seeds.push(formatSeedForDB(seed));
-      }
+    async migrateJsonToDatabase() {
+        try {
+            console.log('Iniciando migração dos seeds do JSON para o banco...');
+            
+            let migratedCount = 0;
+            let skippedCount = 0;
+            
+            for (const jsonSeed of cultivarsInfo) {
+                const seedForDB = formatSeedForDB(jsonSeed);
+                
+                // Verifica se já existe no banco
+                const existsInDB = this.seeds.find(
+                    s => s.popular_name.toLowerCase() === seedForDB.popular_name.toLowerCase()
+                );
+                
+                if (!existsInDB) {
+                    try {
+                        await invoke('add_seed', {
+                            new: seedForDB
+                        });
+                        migratedCount++;
+                        console.log(`✅ Migrado: ${seedForDB.popular_name}`);
+                    } catch (error) {
+                        console.error(`❌ Erro ao migrar ${seedForDB.popular_name}:`, error);
+                    }
+                } else {
+                    skippedCount++;
+                    console.log(`⏭️ Já existe: ${seedForDB.popular_name}`);
+                }
+            }
+            
+            // Atualiza a lista após migração
+            await this.fetchSeeds();
+            
+            console.log(`🎉 Migração concluída: ${migratedCount} adicionados, ${skippedCount} já existiam`);
+            return { migratedCount, skippedCount };
+            
+        } catch (err) {
+            console.error('Erro na migração:', err);
+            throw err;
+        }
     },
+
+
     async createSeed(newSeed: SeedDB) {
         try {
-            const createdSeed: SeedDB = await invoke('add_seed', {
-                seed: newSeed
-            });
+            const existingSeed = this.seeds.find(
+            s => s.popular_name.toLowerCase() === newSeed.popular_name.toLowerCase()
+            );
+            if (existingSeed) {
+                throw new Error('Cultivar já existe');
+            }
 
-           this.dataTableSeeds.push(formatSeedForTable(createdSeed));
+            const createdSeed: SeedDB = await invoke('add_seed', {
+                new: newSeed
+            });
+            
+
+            await this.fetchSeeds();
+
+            return createdSeed;
         } catch (err) {
             console.error('Erro ao criar Cultivar:', err);
+            throw err;
         }
     },
 

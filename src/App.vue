@@ -15,15 +15,17 @@
 import { onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGlobalStore } from '@/stores/globalStore';
+import { useSeedsStore } from '@/stores/seedsStore';
 import { lightThemeOverrides, darkThemeOverrides } from '@/styles/naiveUI';
 import { NConfigProvider, NMessageProvider, NDialogProvider, darkTheme } from 'naive-ui';
 import MainView from '@/views/MainView.vue';
 
 const globalStore = useGlobalStore();
 const { theme, message } = storeToRefs(globalStore);
-
+const seedsStore = useSeedsStore();
 onMounted(async () => {
   globalStore.detectSystemTheme();
+  await seedsStore.fetchSeeds();
 });
 
 watch(theme, (newTheme) => {

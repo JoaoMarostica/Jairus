@@ -168,6 +168,7 @@ import { BatchDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useGlobalStore } from '@/stores/globalStore'
+import { useSeedsStore } from '@/stores/seedsStore';
 import { storeToRefs } from 'pinia'
 import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
@@ -178,9 +179,11 @@ const createBatchModal = defineModel('modal', {
 
 const globalStore = useGlobalStore()
 const batchesStore = useBatchesStore()
+const seedsStore = useSeedsStore()
 
 const settingsStore = useSettingsStore()
-const { seeds, coatings, brands } = storeToRefs(settingsStore)
+const { coatings, brands } = storeToRefs(settingsStore)
+const { seeds } = storeToRefs(seedsStore)
 
 const modalTitle = computed(() =>
   form?.batch_number
@@ -219,7 +222,7 @@ const form = reactive({
 })
 
 const seedsOptions = computed(() => {
-  return seeds.value.map(seed => {return ({ label: seed.popularName, value: seed.popularName })})
+  return seeds.value.map(seed => {return ({ label: seed.popular_name, value: seed.popular_name })})
 })
 
 const coatingsOptions = computed(() => {
