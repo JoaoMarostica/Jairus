@@ -1,13 +1,12 @@
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 
-use crate::commands::*;
-
 mod commands;
 mod services;
 mod repositories;
 mod models;
 mod schema;
 
+use crate::commands::*;
 
 pub fn run() {
     tauri::Builder::default()

@@ -1,7 +1,11 @@
 use crate::{
-    models::{batch::*,stats::*},
-    repositories::batch_repository::BatchRepository};
-use std::{collections::HashMap};
+    models::{
+        batch::*,
+        stats::*
+    },
+    repositories::batch_repository::BatchRepository
+};
+use std::collections::HashMap;
 
 pub struct BatchService {
     repo: BatchRepository
@@ -12,51 +16,34 @@ impl BatchService {
         Self { repo: BatchRepository::new() }
     }
     
-    pub fn add(&mut self, batch: &Batch) -> Result<Batch,String> {
+    pub fn create(&mut self, batch: &Batch) -> Result<Batch,String> {
         if batch.total_weight > 10000 {
             return Err("Total weight cannot be above 10,000".to_string())
         }
         
-        match self.repo.create(batch) {
+        match self.repo.insert(batch) {
             Ok(result) => Ok(result),
             Err(e) => Err(e.to_string())
         }
     }
     
-    pub fn get(&mut self, id: &(i32, i32)) -> Result<Batch,String> {
-        match self.repo.read(&id) {
+    pub fn read_id(&mut self, id: &(i32, i32)) -> Result<Batch,String> {
+        match self.repo.select_id(&id) {
             Ok(Some(result)) => Ok(result),
             Ok(None) => Err(format!("No batch with id {}/{} found", id.0, id.1)),
             Err(e) => Err(e.to_string())
         }
     }
     
-    pub fn list(&mut self) -> Result<Vec<Batch>,String> {
-        match self.repo.read_all() {
+    pub fn read_all(&mut self) -> Result<Vec<Batch>,String> {
+        match self.repo.select_all() {
             Ok(result) => Ok(result),
             Err(e) => Err(e.to_string())
         }
     }
-    
-    pub fn save(&mut self, id: &(i32, i32), changes: &Batch) -> Result<Batch,String> {
-        match self.repo.update(id, changes) {
-            Ok(Some(result)) => Ok(result),
-            Ok(None) => Err(format!("No batch with id {}/{} found", id.0, id.1)),
-            Err(e) => Err(e.to_string())
-        }
-        
-    }
-    
-    pub fn remove(&mut self, id: &(i32, i32)) -> Result<Batch, String> {
-        match self.repo.delete(id) {
-            Ok(Some(result)) => Ok(result),
-            Ok(None) => Err(format!("No batch with id {}/{} found", id.0, id.1)),
-            Err(e) => Err(e.to_string())
-        }
-    }
-
-    pub fn get_statistics(&mut self) -> Result<BatchStatistics, String> {
-        if let Ok(all_batches) = self.list() {
+ 
+    pub fn read_statistics(&mut self) -> Result<BatchStatistics, String> {
+        if let Ok(all_batches) = self.read_all() {
 
             let total_batches = all_batches.len();
             
@@ -105,6 +92,23 @@ impl BatchService {
             })
         } else {
             return Err("Erro ao obter estatísticas de lotes".to_string())
+        }
+    }   
+
+    pub fn update(&mut self, id: &(i32, i32), changes: &Batch) -> Result<Batch,String> {
+        match self.repo.update(id, changes) {
+            Ok(Some(result)) => Ok(result),
+            Ok(None) => Err(format!("No batch with id {}/{} found", id.0, id.1)),
+            Err(e) => Err(e.to_string())
+        }
+        
+    }
+    
+    pub fn delete(&mut self, id: &(i32, i32)) -> Result<Batch, String> {
+        match self.repo.drop(id) {
+            Ok(Some(result)) => Ok(result),
+            Ok(None) => Err(format!("No batch with id {}/{} found", id.0, id.1)),
+            Err(e) => Err(e.to_string())
         }
     }
 }

@@ -1,11 +1,17 @@
-use diesel::{prelude::*, SqliteConnection};
+use diesel::{
+    prelude::*,
+    SqliteConnection
+};
 use dotenvy::dotenv;
 
 use core::panic;
 use std::env;
 
 use crate::schema::tb_outflow::dsl::*;
-use crate::models::outflow::{NewOutflow, Outflow};
+use crate::models::outflow::{
+    NewOutflow,
+    Outflow
+};
 
 pub struct OutflowRepository {
     connection: SqliteConnection
@@ -24,14 +30,14 @@ impl OutflowRepository {
         Self { connection }
     }
 
-    pub fn create(&mut self, object:&NewOutflow) -> Result<Outflow, diesel::result::Error> {
+    pub fn insert(&mut self, object:&NewOutflow) -> Result<Outflow, diesel::result::Error> {
         diesel::insert_into(tb_outflow)
         .values(object)
         .returning(Outflow::as_returning())
         .get_result(&mut self.connection)
     }
 
-    pub fn read(&mut self, id:&i32) -> Result<Option<Outflow>, diesel::result::Error> {
+    pub fn select_id(&mut self, id:&i32) -> Result<Option<Outflow>, diesel::result::Error> {
         tb_outflow
         .find(id)
         .select(Outflow::as_select())
@@ -39,17 +45,17 @@ impl OutflowRepository {
         .optional()
     }
 
-    pub fn read_all(&mut self) -> Result<Vec<Outflow>, diesel::result::Error> {
-        tb_outflow
-        .select(Outflow::as_select())
-        .get_results(&mut self.connection)
-    }
-
-    pub fn read_from(&mut self, batch:&(i32, i32)) -> Result<Vec<Outflow>, diesel::result::Error> {
+    pub fn select_batch(&mut self, batch:&(i32, i32)) -> Result<Vec<Outflow>, diesel::result::Error> {
         tb_outflow
         .select(Outflow::as_select())
         .filter(batch_number.eq(batch.0))
         .filter(batch_year.eq(batch.1))
+        .get_results(&mut self.connection)
+    }
+
+    pub fn select_all(&mut self) -> Result<Vec<Outflow>, diesel::result::Error> {
+        tb_outflow
+        .select(Outflow::as_select())
         .get_results(&mut self.connection)
     }
 
@@ -61,7 +67,7 @@ impl OutflowRepository {
         .optional()
     }
 
-    pub fn delete(&mut self, id:&i32) -> Result<Option<Outflow>, diesel::result::Error>{
+    pub fn drop(&mut self, id:&i32) -> Result<Option<Outflow>, diesel::result::Error>{
         diesel::delete(tb_outflow.find(id))
         .get_result(&mut self.connection)
         .optional()

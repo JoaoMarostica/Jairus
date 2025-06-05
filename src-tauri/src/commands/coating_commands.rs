@@ -1,31 +1,34 @@
-use crate::{ models::coating::Coating, services::coating_service::CoatingService};
+use crate::{
+    models::coating::Coating,
+    services::coating_service::CoatingService
+};
 
 #[tauri::command]
 pub fn new_coating(new:Coating) -> Result<Coating, String> {
     let mut serv = CoatingService::new();
-    serv.add(&new)
+    serv.create(&new)
 }
 
 #[tauri::command]
 pub fn get_coating(id:String) -> Result<Coating, String> {
     let mut serv = CoatingService::new();
-    serv.get(&id)
+    serv.read_id(&id)
 }
 
 #[tauri::command]
 pub fn list_coating() -> Result<Vec<Coating>, String> {
     let mut serv = CoatingService::new();
-    serv.list()
+    serv.read_all()
 }
 
 #[tauri::command]
 pub fn change_coating(id:String, changes:Coating) -> Result<Coating, String> {
     let mut serv = CoatingService::new();
-    serv.save(&id, &changes)
+    serv.update(&id, &changes)
 }
 
 #[tauri::command]
 pub fn delete_coating(id:String) -> Result<Coating, String> {
     let mut serv = CoatingService::new();
-    serv.remove(&id)
+    serv.delete(&id)
 }

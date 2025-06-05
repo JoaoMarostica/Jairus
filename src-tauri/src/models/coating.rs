@@ -1,5 +1,13 @@
-use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
-use serde::{Deserialize, Serialize};
+use diesel::prelude::{
+    AsChangeset,
+    Insertable,
+    Queryable,
+    Selectable
+};
+use serde::{
+    Deserialize,
+    Serialize
+};
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize, Deserialize)]
 #[diesel(table_name = crate::schema::tb_coating)]

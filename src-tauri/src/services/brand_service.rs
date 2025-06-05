@@ -12,10 +12,10 @@ impl BrandService {
         BrandService { repo: BrandRepository::new() }
     }
 
-    pub fn add(&mut self, new:&Brand) -> Vec<String> {
+    pub fn create(&mut self, new:&Brand) -> Vec<String> {
         let mut response:Vec<String> = vec![];
         for vb in new.to_vbrand() {
-            match self.repo.create(&vb) {
+            match self.repo.insert(&vb) {
                 Ok(result) => response.push(
                     format!("Added {}-{} to database\n",result.brand_name, result.sack_weight)),
                 Err(e) => response.push(e.to_string())
@@ -24,8 +24,8 @@ impl BrandService {
         response
     }
 
-    pub fn get(&mut self, id:&str) -> Result<Brand, String> {
-        match self.repo.read(id) {
+    pub fn read_id(&mut self, id:&str) -> Result<Brand, String> {
+        match self.repo.select_id(id) {
             Ok(Some(result)) => {
                 let mut weights:Vec<i32> = vec![];
                 for vb in result {
@@ -38,8 +38,8 @@ impl BrandService {
         }
     }
 
-    pub fn list(&mut self) -> Result<Vec<Brand>, String> {
-        match self.repo.read_all() {
+    pub fn read_all(&mut self) -> Result<Vec<Brand>, String> {
+        match self.repo.select_all() {
             Ok(Some(result)) => {
                 let mut brands:Vec<Brand> = vec![];
                 for vb in result {
@@ -60,7 +60,7 @@ impl BrandService {
         }
     }
 
-    pub fn save(&mut self, id:&str, new_name:&str) -> Result<Brand, String> {
+    pub fn update(&mut self, id:&str, new_name:&str) -> Result<Brand, String> {
         match self.repo.update(id, new_name) {
             Ok(Some(result)) => {
                 let mut weights:Vec<i32> = vec![];
@@ -74,8 +74,8 @@ impl BrandService {
         }
     }
 
-    pub fn remove(&mut self, id:&str) -> Result<Brand, String> {
-        match self.repo.delete(id) {
+    pub fn delete(&mut self, id:&str) -> Result<Brand, String> {
+        match self.repo.drop(id) {
             Ok(Some(result)) => {
                 let mut weights:Vec<i32> = vec![];
                 for vb in result {
@@ -88,8 +88,8 @@ impl BrandService {
         }
     }
 
-    pub fn remove_part(&mut self, id:&str, value:i32) -> Result<i32, String> {
-        match self.repo.delete_subvalue(id, value) {
+    pub fn delete_value(&mut self, id:&str, value:i32) -> Result<i32, String> {
+        match self.repo.drop_value(id, value) {
             Ok(Some(result)) => {
                 Ok(result.sack_weight)
             },

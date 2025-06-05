@@ -1,18 +1,19 @@
-use diesel::{prelude::*,SqliteConnection};
-use diesel::sql_types::Text;
+use diesel::{
+    prelude::*,
+    SqliteConnection
+};
 use dotenvy::dotenv;
 
 use core::panic;
 use std::env;
 
-use crate::{schema::tb_batch::dsl::*,models::batch::*};
+use crate::{
+    schema::tb_batch::dsl::*,
+    models::batch::*
+};
 
 pub struct BatchRepository {
     connection:SqliteConnection
-}
-
-define_sql_function! {
-    fn lower(x: Text) -> Text;
 }
 
 impl BatchRepository {
@@ -24,14 +25,14 @@ impl BatchRepository {
         Self { connection: connection }
     }
 
-    pub fn create(&mut self, object:&Batch) -> Result<Batch, diesel::result::Error> {
+    pub fn insert(&mut self, object:&Batch) -> Result<Batch, diesel::result::Error> {
         diesel::insert_into(tb_batch)
         .values(object)
         .returning(Batch::as_returning())
         .get_result(&mut self.connection)
     }
 
-    pub fn read(&mut self, id:&(i32,i32)) -> Result<Option<Batch>, diesel::result::Error> {
+    pub fn select_id(&mut self, id:&(i32,i32)) -> Result<Option<Batch>, diesel::result::Error> {
         let (bn, by) = id;
         tb_batch.filter(
             batch_number.eq(bn)
@@ -41,7 +42,7 @@ impl BatchRepository {
         .optional()
     }
 
-    pub fn read_all(&mut self) -> Result<Vec<Batch>, diesel::result::Error> {
+    pub fn select_all(&mut self) -> Result<Vec<Batch>, diesel::result::Error> {
         tb_batch.select(Batch::as_select())
         .get_results(&mut self.connection)
     }
@@ -57,7 +58,7 @@ impl BatchRepository {
         .optional()
     }
 
-    pub fn delete(&mut self, id:&(i32,i32)) -> Result<Option<Batch>, diesel::result::Error>{
+    pub fn drop(&mut self, id:&(i32,i32)) -> Result<Option<Batch>, diesel::result::Error>{
         let (bn, by) = id;
         diesel::delete(tb_batch.filter(
             batch_number.eq(bn)

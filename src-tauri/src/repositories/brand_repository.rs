@@ -24,20 +24,20 @@ impl BrandRepository {
         Self { connection }
     }
 
-    pub fn create(&mut self, object:&VBrand) -> Result<VBrand, diesel::result::Error> {
+    pub fn insert(&mut self, object:&VBrand) -> Result<VBrand, diesel::result::Error> {
         diesel::insert_into(tb_brand)
         .values(object)
         .get_result(&mut self.connection)
     }
 
-    pub fn read(&mut self, id:&str) -> Result<Option<Vec<VBrand>>, diesel::result::Error> {
+    pub fn select_id(&mut self, id:&str) -> Result<Option<Vec<VBrand>>, diesel::result::Error> {
         tb_brand
         .filter(brand_name.eq(id))
         .get_results(&mut self.connection)
         .optional()
     }
 
-    pub fn read_all(&mut self) -> Result<Option<Vec<VBrand>>, diesel::result::Error> {
+    pub fn select_all(&mut self) -> Result<Option<Vec<VBrand>>, diesel::result::Error> {
         tb_brand
         .select(VBrand::as_select())
         .get_results(&mut self.connection)
@@ -54,13 +54,13 @@ impl BrandRepository {
         .optional()
     }
 
-    pub fn delete(&mut self, id:&str) -> Result<Option<Vec<VBrand>>, diesel::result::Error> {
+    pub fn drop(&mut self, id:&str) -> Result<Option<Vec<VBrand>>, diesel::result::Error> {
         diesel::delete(tb_brand.filter(brand_name.eq(id)))
         .get_results(&mut self.connection)
         .optional()
     }
 
-    pub fn delete_subvalue(&mut self, id:&str, value:i32) -> Result<Option<VBrand>, diesel::result::Error> {
+    pub fn drop_value(&mut self, id:&str, value:i32) -> Result<Option<VBrand>, diesel::result::Error> {
         diesel::delete(tb_brand
             .filter(brand_name.eq(id))
             .filter(sack_weight.eq(value)))

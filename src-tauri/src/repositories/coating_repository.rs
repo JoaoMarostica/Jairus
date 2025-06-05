@@ -1,4 +1,7 @@
-use diesel::{prelude::*,SqliteConnection};
+use diesel::{
+    prelude::*,
+    SqliteConnection
+};
 use dotenvy::dotenv;
 
 use core::panic;
@@ -24,14 +27,14 @@ impl CoatingRepository {
         Self { connection }
     }
 
-    pub fn create(&mut self, object:&Coating) -> Result<Coating, diesel::result::Error> {
+    pub fn insert(&mut self, object:&Coating) -> Result<Coating, diesel::result::Error> {
         diesel::insert_into(tb_coating)
         .values(object)
         .returning(Coating::as_returning())
         .get_result(&mut self.connection)
     }
 
-    pub fn read(&mut self, id:&str) -> Result<Option<Coating>, diesel::result::Error> {
+    pub fn select_id(&mut self, id:&str) -> Result<Option<Coating>, diesel::result::Error> {
         tb_coating
         .find(id)
         .select(Coating::as_select())
@@ -39,7 +42,7 @@ impl CoatingRepository {
         .optional()
     }
 
-    pub fn read_all(&mut self) -> Result<Vec<Coating>, diesel::result::Error> {
+    pub fn select_all(&mut self) -> Result<Vec<Coating>, diesel::result::Error> {
         tb_coating
         .select(Coating::as_select())
         .get_results(&mut self.connection)
@@ -53,7 +56,7 @@ impl CoatingRepository {
         .optional()
     }
 
-    pub fn delete(&mut self, id:&str) -> Result<Option<Coating>, diesel::result::Error> {
+    pub fn drop(&mut self, id:&str) -> Result<Option<Coating>, diesel::result::Error> {
         diesel::delete(tb_coating.find(id))
         .get_result(&mut self.connection)
         .optional()

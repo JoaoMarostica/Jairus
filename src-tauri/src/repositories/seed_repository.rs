@@ -1,4 +1,7 @@
-use diesel::{prelude::*,SqliteConnection};
+use diesel::{
+    prelude::*,
+    SqliteConnection
+};
 use dotenvy::dotenv;
 
 use core::panic;
@@ -24,14 +27,14 @@ impl SeedRepository {
         Self { connection }
     }
 
-    pub fn create(&mut self, object:&Seed) -> Result<Seed, diesel::result::Error> {
+    pub fn insert(&mut self, object:&Seed) -> Result<Seed, diesel::result::Error> {
         diesel::insert_into(tb_seed)
         .values(object)
         .returning(Seed::as_returning())
         .get_result(&mut self.connection)
     }
 
-    pub fn read(&mut self, id:&str) -> Result<Option<Seed>, diesel::result::Error> {
+    pub fn select_id(&mut self, id:&str) -> Result<Option<Seed>, diesel::result::Error> {
         tb_seed
         .find(id)
         .select(Seed::as_select())
@@ -39,7 +42,7 @@ impl SeedRepository {
         .optional() 
     }
 
-    pub fn read_all(&mut self) -> Result<Vec<Seed>, diesel::result::Error> {
+    pub fn select_all(&mut self) -> Result<Vec<Seed>, diesel::result::Error> {
         tb_seed
         .select(Seed::as_select())
         .get_results(&mut self.connection)
@@ -53,7 +56,7 @@ impl SeedRepository {
         .optional()
     }
 
-    pub fn delete(&mut self, id:&str) -> Result<Option<Seed>, diesel::result::Error> {
+    pub fn drop(&mut self, id:&str) -> Result<Option<Seed>, diesel::result::Error> {
         diesel::delete(tb_seed.find(id))
         .get_result(&mut self.connection)
         .optional()

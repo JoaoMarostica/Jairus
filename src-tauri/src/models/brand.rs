@@ -1,5 +1,13 @@
-use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
-use serde::{Serialize, Deserialize};
+use diesel::prelude::{
+    AsChangeset,
+    Insertable,
+    Queryable,
+    Selectable
+};
+use serde::{
+    Serialize,
+    Deserialize
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct Brand {
@@ -31,7 +39,7 @@ impl Brand {
     }
 }
 
-#[derive(Queryable,Selectable,Insertable,AsChangeset)]
+#[derive(Queryable, Selectable, Insertable, AsChangeset)]
 #[diesel(table_name = crate::schema::tb_brand)]
 pub struct VBrand {
     pub brand_name:String,

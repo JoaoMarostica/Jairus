@@ -1,5 +1,13 @@
-use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
-use serde::{Deserialize, Serialize};
+use diesel::prelude::{
+    AsChangeset,
+    Insertable,
+    Queryable,
+    Selectable
+};
+use serde::{
+    Deserialize,
+    Serialize
+};
 use super::balance::Balance;
 
 #[derive(Queryable, Selectable, AsChangeset, Serialize)]
@@ -43,7 +51,7 @@ impl Outflow {
     }
 }
 
-#[derive(Insertable,AsChangeset, Deserialize)]
+#[derive(Insertable, AsChangeset, Deserialize)]
 #[diesel(table_name = crate::schema::tb_outflow)]
 pub struct NewOutflow {
     batch_number:i32,
