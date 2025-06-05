@@ -21,6 +21,7 @@ pub fn run() {
             batch_commands::remove_batch,
 
             brand_commands::add_brand,
+            brand_commands::add_brand_weight,
             brand_commands::get_brand,
             brand_commands::list_brands,
             brand_commands::change_brand,

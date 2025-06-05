@@ -10,6 +10,12 @@ pub fn add_brand(new:Brand) -> Vec<String> {
 }
 
 #[tauri::command]
+pub fn add_brand_weight(id:String, value:i32) -> String {
+    let mut serv = BrandService::new();
+    serv.create_value(&id, value)
+}
+
+#[tauri::command]
 pub fn get_brand(id:String) -> Result<Brand, String> {
     let mut serv = BrandService::new();
     serv.read_id(&id)

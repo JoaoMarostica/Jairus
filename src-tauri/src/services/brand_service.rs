@@ -1,5 +1,8 @@
 use crate::{
-    models::brand::Brand,
+    models::brand::{
+        Brand,
+        VBrand
+    },
     repositories::brand_repository::BrandRepository
 };
 
@@ -22,6 +25,15 @@ impl BrandService {
             }
         }
         response
+    }
+
+    pub fn create_value(&mut self, id:&str, value:i32) -> String {
+        match self.repo.insert(&VBrand {
+            brand_name: id.to_string(),
+            sack_weight: value }) {
+            Ok(vb) => format!("Added {} to {}", vb.brand_name, vb.sack_weight),
+            Err(e) => e.to_string()
+        }
     }
 
     pub fn read_id(&mut self, id:&str) -> Result<Brand, String> {
