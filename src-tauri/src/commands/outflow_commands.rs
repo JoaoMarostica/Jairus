@@ -1,10 +1,9 @@
 use crate::{
     models::{
-        outflow::{
-            Outflow,
-            NewOutflow
-        },
-        balance::Balance
+        balance::Balance, outflow::{
+            NewOutflow,
+            Outflow
+        }
     },
     services::outflow_service::OutflowService
 };
@@ -21,9 +20,9 @@ pub fn get_outflow(id:i32) -> Result<Outflow, String> {
     serv.read_id(&id)
 }
 #[tauri::command]
-pub fn list_outflows_by_batch(batch:(i32, i32)) -> Result<Vec<Outflow>, String> {
+pub fn list_outflows_by_batch(batch_number:i32, batch_year:i32) -> Result<Vec<Outflow>, String> {
     let mut serv = OutflowService::new();
-    serv.read_batch(&batch)
+    serv.read_batch(&(batch_number, batch_year))
 }
 
 #[tauri::command]
@@ -33,9 +32,9 @@ pub fn list_outflows() -> Result<Vec<Outflow>, String> {
 }
 
 #[tauri::command]
-pub fn get_total_outflow(batch:(i32, i32)) -> Result<Balance, String> {
+pub fn get_total_outflow(batch_number:i32, batch_year:i32) -> Result<Balance, String> {
     let mut serv = OutflowService::new();
-    serv.read_total(&batch)
+    serv.read_total(&(batch_number, batch_year))
 }
 
 #[tauri::command]
