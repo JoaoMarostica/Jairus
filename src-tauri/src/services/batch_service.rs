@@ -17,8 +17,18 @@ impl BatchService {
     }
     
     pub fn create(&mut self, batch: &Batch) -> Result<Batch,String> {
-        if batch.total_weight > 10000 {
-            return Err("Total weight cannot be above 10,000".to_string())
+        if batch.batch_month < 0 || batch.batch_month > 11 {
+            return Err("Month beyond valid range".to_string())
+        } else if batch.sack_amount <= 0 || batch.sack_weight <= 0 || batch.pureness_score <= 0.0 {
+            return Err("No input can be 0 or negative".to_string())
+        } else if batch.total_weight > 10000 || batch.total_weight < batch.sack_weight {
+            return Err(format!("Total weight cannot be above 10,000 or below {}", batch.sack_weight))
+        } else if batch.total_pureness_score <= batch.pureness_score {
+            return Err(format!("Total pureness cannot be below {}", batch.pureness_score))
+        } else if batch.batch_status != 1 {
+            return Err("On creation batches must be active".to_string())
+        } else if batch.deleted_at != None {
+            return Err("On creation batches cannot have been deleted".to_string())
         }
         
         match self.repo.insert(batch) {
