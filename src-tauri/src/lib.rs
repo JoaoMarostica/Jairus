@@ -19,7 +19,6 @@ pub fn run() {
             batch_commands::update_batch,
             batch_commands::delete_batch,
             batch_commands::get_batch_statistics,
-            batch_commands::get_filtered_batches,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

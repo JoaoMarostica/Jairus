@@ -308,39 +308,38 @@ function editBatch(e: MouseEvent) {
   formRef.value?.validate(async (errors) => {
     if (!errors) {
       const batch: BatchDB = {
-      batch_number: Number(newBatch.batch_number),
-      batch_year: Number(year.value),
-      batch_month: monthMap[expireDate.value.split('/')[0].toLowerCase()],
-      seed: newBatch.seed || '',
-      coating: newBatch.coating || '',
-      brand: newBatch.sackBrand || '',
-      sack_weight: Number(newBatch.sackWeight),
-      sack_amount: Number(newBatch.sackAmount),
-      total_weight: parsePtBrNumber(totalWeight.value),
-      pureness_score: parsePtBrNumber(newBatch.purenessScore),
-      total_pureness_score: parsePtBrNumber(totalPP.value),
-      batch_status: 1,
-      deleted_at: null,
-      origin: null
-    }
+        batch_number: Number(newBatch.batch_number),
+        batch_year: Number(year.value),
+        batch_month: monthMap[expireDate.value.split('/')[0].toLowerCase()],
+        seed: newBatch.seed || '',
+        coating: newBatch.coating || '',
+        brand: newBatch.sackBrand || '',
+        sack_weight: Number(newBatch.sackWeight),
+        sack_amount: Number(newBatch.sackAmount),
+        total_weight: parsePtBrNumber(totalWeight.value),
+        pureness_score: parsePtBrNumber(newBatch.purenessScore),
+        total_pureness_score: parsePtBrNumber(totalPP.value),
+        batch_status: 1,
+        deleted_at: null,
+        origin: null
+      }
 
-    try {
-      await batchesStore.editBatch(batch)
-      
-      globalStore.showMessage({
-        content: 'Lote editado com successo!',
-        type: 'success',
-      })
-      editBatchModal.value = false
-    } catch (error: any) {
-      globalStore.showMessage({
-        content: `Erro ao editar lote: ${error?.message || error}`,
-        type: 'error',
-        keepAliveOnHover: true,
-      })
-    }
-    }
-    else {
+      try {
+        await batchesStore.editBatch(batch)
+        
+        globalStore.showMessage({
+          content: 'Lote editado com successo!',
+          type: 'success',
+        })
+        editBatchModal.value = false
+      } catch (error: any) {
+        globalStore.showMessage({
+          content: `Erro ao editar lote: ${error?.message || error}`,
+          type: 'error',
+          keepAliveOnHover: true,
+        })
+      }
+    } else {
       globalStore.showMessage({
         content: 'Preencha todos os campos obrigatórios.',
         type: 'error',

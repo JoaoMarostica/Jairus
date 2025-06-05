@@ -79,20 +79,20 @@ export const useBatchesStore = defineStore('batches', {
 
         const existingBatchNumbers = new Set(this.dataTableBatches.map(b => b.batch_number));
 
-        data.forEach((batch) => {
+        data.forEach(async (batch) => {
             if (!existingBatchNumbers.has(batch.batch_number)) {
                 // Lotes
 
                 // Para enviar para o DB
-                const batchForDB: BatchDB = formatBatchDB(batch)
+                const batchForDB: BatchDB = formatBatchForDB(batch)
                 this.batches.push(batchForDB);
 
                 const batchForDataTable: DataTableBatch = formatBatchForTable(batchForDB)
                 this.dataTableBatches.push(batchForDataTable);
+
                 existingBatchNumbers.add(batch.batch_number);
 
-                // Enviando para o DB
-                invoke('create_batch', {
+                await invoke('create_batch', {
                     batch: batchForDB
                 }).then((res) => {
                     console.log(res);
@@ -113,36 +113,26 @@ export const useBatchesStore = defineStore('batches', {
             this.batchOutflows.push(batchOutflowForDB);
 
             // Para enviar para a tela de detalhes do lote
-            const batchOutflowForDataTable: DataTableBatchOutflow = {
-                batch_number: batch.batch_number,
-                batch_year: batch.batch_year,
-                sack_amount: batch.sack_amount,
-                total_weight: batch.outflow_total_weight.toLocaleString("pt-BR"),
-                total_pureness_score: batch.outflow_total_pureness_score.toLocaleString("pt-BR"),
-                pureness_score: toFloat2(batch.outflow_total_pureness_score / batch.outflow_total_weight).toLocaleString("pt-BR"),
-                usage: batch.usage,
-                _searchIndex: normalizeText(
-                    [
-                        batch.batch_number,
-                        batch.batch_year,
-                        batch.sack_amount,
-                        batch.outflow_total_weight.toLocaleString("pt-BR"),
-                        batch.outflow_total_pureness_score.toLocaleString("pt-BR"),
-                        toFloat2(batch.outflow_total_pureness_score / batch.outflow_total_weight).toLocaleString("pt-BR"),
-                        batch.usage
-                    ].join(' ')
-                )
-            };
+            const batchOutflowForDataTable: DataTableBatchOutflow = formatOutflowForTable(batchOutflowForDB);
             this.dataTableBatchOutflows.push(batchOutflowForDataTable);
+
+            await invoke('new_outflow', {
+                new: batchOutflowForDB
+            }).then((res) => {
+                console.log(res);
+            }).catch(console.error);
         });
     },
     async fetchBatches() {
         try {
             this.batches = await invoke('list_batches');
+            this.batchOutflows = await invoke('list_all_outflows');
             
             this.dataTableBatches = this.batches.map(formatBatchForTable);
+            this.dataTableBatchOutflows = this.batchOutflows.map(formatOutflowForTable);
         } catch (err) {
             console.error(err);
+            throw err;
         }
     },
     async createBatch(newBatch: BatchDB) {
@@ -154,6 +144,7 @@ export const useBatchesStore = defineStore('batches', {
             this.dataTableBatches.push(formatBatchForTable(createdBatch));
         } catch (err) {
             console.error(err);
+            throw err;
         }
     },
     async editBatch(batch: BatchDB) {
@@ -198,18 +189,18 @@ export const useBatchesStore = defineStore('batches', {
 
         return lastBatchNumber;
     },
-    async getBatchOutflow(batchNumber: number, batchYear: number) {
+    getBatchOutflow(batchNumber: number, batchYear: number) {
         return this.dataTableBatchOutflows
             .filter(batch => batch.batch_number === batchNumber && batch.batch_year === batchYear)
-            .map(batchOutflow => ({
-                outflowTotalPP: batchOutflow.total_pureness_score,
-                outflowTotalWeight: batchOutflow.total_weight,
-                outflowPP: batchOutflow.pureness_score,
-                outflowSackAmount: batchOutflow.sack_amount,
-                usage: batchOutflow.usage,
-            }));
+            // .map(batchOutflow => ({
+            //     outflowTotalPP: batchOutflow.total_pureness_score,
+            //     outflowTotalWeight: batchOutflow.total_weight,
+            //     outflowPP: batchOutflow.pureness_score,
+            //     outflowSackAmount: batchOutflow.sack_amount,
+            //     usage: batchOutflow.usage,
+            // }));
     },
-    async getBatchBalance(dataTableBatch: DataTableBatch, batchOutflows: any[]) {
+    getBatchBalance(dataTableBatch: DataTableBatch, batchOutflows: any[]) {
         const batch = this.batches.find(batch => batch.batch_number === dataTableBatch.batch_number && batch.batch_year === dataTableBatch.batch_year);
 
         let BatchOutflowTotalPP = 0;
@@ -283,7 +274,7 @@ export const useBatchesStore = defineStore('batches', {
   },
 });
 
-function createDataTableBatchKey(batchNumber: number, batchYear: number): string {
+function createDataTableKey(batchNumber: number, batchYear: number): string {
     return `${batchNumber}${batchYear}`
 }
 
@@ -299,7 +290,7 @@ function parseExpireDate(expireDate: number, year: number): string {
   return `${month}/${year + 1}`;
 }
 
-function formatBatchDB(batch: RawBatch): BatchDB {
+function formatBatchForDB(batch: RawBatch): BatchDB {
     const BatchForDB: BatchDB = {
         batch_number: batch.batch_number,
         batch_year: batch.batch_year,
@@ -322,7 +313,7 @@ function formatBatchDB(batch: RawBatch): BatchDB {
 
 function formatBatchForTable(batch: BatchDB): DataTableBatch {
     const batchForTable: DataTableBatch = {
-        key: createDataTableBatchKey(batch.batch_number, batch.batch_year),
+        key: createDataTableKey(batch.batch_number, batch.batch_year),
         batch_number: batch.batch_number,
         batch_year: batch.batch_year,
         expire_date: parseExpireDate(batch.batch_month, batch.batch_year),
@@ -348,6 +339,30 @@ function formatBatchForTable(batch: BatchDB): DataTableBatch {
             batch.total_weight.toLocaleString("pt-BR"),
             batch.pureness_score.toLocaleString("pt-BR"),
             batch.total_pureness_score.toLocaleString("pt-BR"),
+        ].join(' '))
+    };
+
+    return batchForTable
+}
+
+function formatOutflowForTable(batchOutflow: BatchOutflowDB): DataTableBatchOutflow {
+    const batchForTable: DataTableBatchOutflow = {
+        key: createDataTableKey(batchOutflow.batch_number, batchOutflow.batch_year),
+        batch_number: batchOutflow.batch_number,
+        batch_year: batchOutflow.batch_year,
+        sack_amount: batchOutflow.sack_amount,
+        total_weight: batchOutflow.total_weight.toLocaleString("pt-BR"),
+        total_pureness_score: batchOutflow.total_pureness_score.toLocaleString("pt-BR"),
+        pureness_score: (batchOutflow.total_pureness_score / batchOutflow.total_weight).toLocaleString("pt-BR"),
+        usage: batchOutflow.usage,
+        _searchIndex: normalizeText([
+            batchOutflow.batch_number,
+            batchOutflow.batch_year,
+            batchOutflow.sack_amount,
+            batchOutflow.total_weight.toLocaleString("pt-BR"),
+            batchOutflow.total_pureness_score.toLocaleString("pt-BR"), 
+            (batchOutflow.total_pureness_score / batchOutflow.total_weight).toLocaleString("pt-BR"),
+            batchOutflow.usage 
         ].join(' '))
     };
 
