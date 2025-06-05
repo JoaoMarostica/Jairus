@@ -26,7 +26,7 @@ export const useCoatingsStore = defineStore('coatings', {
     async createCoating(newCoating: CoatingDB) {
         try {
             const createdCoating: CoatingDB = await invoke('add_coating', {
-                seed: newCoating
+                coating: newCoating
             });
 
            this.dataTableCoatings.push(formatCoatingForTable(createdCoating));
@@ -74,11 +74,11 @@ export const useCoatingsStore = defineStore('coatings', {
 });
 
 function formatCoatingForTable(coating: CoatingDB): DataTableCoating {
-    const seedForTable: DataTableCoating = {
+    const coatingForTable: DataTableCoating = {
         key: coating.coating_name,
         coating_name: coating.coating_name,
         
     };
 
-    return seedForTable
+    return coatingForTable
 }

@@ -10,7 +10,7 @@ export const useBrandsStore = defineStore('brands', {
     dataTableBrands: [] as DataTableBrand[],
   }),
   actions: {
-    async fetchSeeds() {
+    async fetchBrands() {
         try {
             this.$reset;
 
@@ -62,7 +62,7 @@ export const useBrandsStore = defineStore('brands', {
                 brandName: brand.brand_name
             });
 
-            await this.fetchSeeds();
+            await this.fetchBrands();
         } catch (err) {
             console.error(err);
             throw err;
