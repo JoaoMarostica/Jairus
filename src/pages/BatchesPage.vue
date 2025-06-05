@@ -103,14 +103,14 @@
 
     <!-- Batch Details Modal -->
     <AppBatchDetails v-model:modal="batchDetailsModal" :selectedBatch="selectedBatch"/>
-
-    <!-- Create Outflow Modal -->
-    <AppCreateOutflow v-model:modal="createOutflowModal"/>
-
+    
     <!-- Batch CRUD -->
     <AppCreateBatch v-model:modal="createBatchModal"/>
     <AppEditBatch v-model:modal="editBatchModal" :selectedBatch="selectedBatch" />
     <AppRemoveBatch v-model:modal="removeBatchModal" :selectedBatch="selectedBatch" :multiple="multipleRemove" />
+    
+    <!-- Create Outflow Modal -->
+    <AppCreateOutflow v-model:modal="createOutflowModal"  :selectedBatch="selectedBatch"/>
   </n-card>
 </template>
 

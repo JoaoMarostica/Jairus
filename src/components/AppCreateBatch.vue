@@ -269,6 +269,8 @@ watchEffect(() => {
 watch(createBatchModal, () => {
   if (createBatchModal.value) {
     form.batch_number = getNextBatchNumber()
+  } else {
+    resetForm()
   }
 })
 

@@ -90,7 +90,7 @@ export const useBatchesStore = defineStore('batches', {
 
                 existingBatchNumbers.add(batch.batch_number);
 
-                await invoke('create_batch', {
+                await invoke('add_batch', {
                     batch: batchForDB
                 }).then((res) => {
                     console.log(res);
@@ -114,7 +114,7 @@ export const useBatchesStore = defineStore('batches', {
             const batchOutflowForDataTable: DataTableBatchOutflow = formatOutflowForTable(batchOutflowForDB);
             this.dataTableBatchOutflows.push(batchOutflowForDataTable);
 
-            await invoke('new_outflow', {
+            await invoke('add_outflow', {
                 new: batchOutflowForDB
             }).then((res) => {
                 console.log(res);
@@ -124,7 +124,7 @@ export const useBatchesStore = defineStore('batches', {
     async fetchBatches() {
         try {
             this.batches = await invoke('list_batches');
-            this.batchOutflows = await invoke('list_all_outflows');
+            this.batchOutflows = await invoke('list_outflows');
             
             this.dataTableBatches = this.batches.map(formatBatchForTable);
             this.dataTableBatchOutflows = this.batchOutflows.map(formatOutflowForTable);
@@ -135,7 +135,7 @@ export const useBatchesStore = defineStore('batches', {
     },
     async createBatch(newBatch: BatchDB) {
         try {
-            const createdBatch: BatchDB = await invoke('create_batch', {
+            const createdBatch: BatchDB = await invoke('add_batch', {
                 batch: newBatch
             });
 
@@ -147,7 +147,7 @@ export const useBatchesStore = defineStore('batches', {
     },
     async editBatch(batch: BatchDB) {
         try {
-            const editedBatch: BatchDB = await invoke('update_batch', {
+            const editedBatch: BatchDB = await invoke('change_batch', {
                 batchNumber: batch.batch_number,
                 batchYear: batch.batch_year,
                 batch: batch
@@ -167,7 +167,7 @@ export const useBatchesStore = defineStore('batches', {
     },
     async removeBatch(batch: DataTableBatch) {
         try {
-            await invoke('delete_batch', {
+            await invoke('remove_batch', {
                 batchNumber: batch.batch_number,
                 batchYear: batch.batch_year
             });
@@ -183,7 +183,7 @@ export const useBatchesStore = defineStore('batches', {
             this.selectedBatches.forEach(async (batchKey) => {
                 const batch = this.dataTableBatches.find(batch => batch.key === batchKey);
                 if (batch) {
-                    await invoke('delete_batch', {
+                    await invoke('remove_batch', {
                         batchNumber: batch.batch_number,
                         batchYear: batch.batch_year
                     });
@@ -205,6 +205,18 @@ export const useBatchesStore = defineStore('batches', {
         const lastBatchNumber = Math.max(...batchesNumber);
 
         return lastBatchNumber;
+    },
+    async createOutflow(newOutflow: BatchOutflowDB) {
+        try {
+            const createdOutflow: BatchOutflowDB = await invoke('add_outflow', {
+                new: newOutflow
+            });
+
+            this.dataTableBatchOutflows.push(formatOutflowForTable(createdOutflow));
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     },
     getBatchOutflows(batchKey: string): DataTableBatchOutflow[] {
         return this.dataTableBatchOutflows
