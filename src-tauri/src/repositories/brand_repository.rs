@@ -61,9 +61,7 @@ impl BrandRepository {
     }
 
     pub fn drop_value(&mut self, id:&str, value:i32) -> Result<Option<VBrand>, diesel::result::Error> {
-        diesel::delete(tb_brand
-            .filter(brand_name.eq(id))
-            .filter(sack_weight.eq(value)))
+        diesel::delete(tb_brand.find((id, value)))
         .get_result(&mut self.connection)
         .optional()
     }
