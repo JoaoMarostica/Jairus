@@ -1,6 +1,7 @@
 use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
+use serde::{Serialize, Deserialize};
 
-#[derive(Queryable,Selectable,Insertable,AsChangeset)]
+#[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize, Deserialize)]
 #[diesel(table_name = crate::schema::tb_seed)]
 pub struct Seed {
     popular_name:String,

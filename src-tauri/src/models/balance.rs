@@ -1,3 +1,6 @@
+use serde::Serialize;
+
+#[derive(Serialize)]
 pub struct Balance {
     sack_amount:i32,
     total_weight:i32,

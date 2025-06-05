@@ -1,5 +1,7 @@
 use diesel::prelude::{AsChangeset, Insertable, Queryable, Selectable};
+use serde::{Serialize, Deserialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct Brand {
     brand_name:String,
     weights:Vec<i32>

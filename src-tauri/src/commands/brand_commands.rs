@@ -1,31 +1,37 @@
 use crate::{ models::brand::Brand, services::brand_service::BrandService};
 
 #[tauri::command]
-fn new_brand(new:Brand) -> Vec<String> {
+pub fn new_brand(new:Brand) -> Vec<String> {
     let mut serv = BrandService::new();
     serv.add(&new)
 }
 
 #[tauri::command]
-fn get_brand(id:String) -> Result<Brand, String> {
+pub fn get_brand(id:String) -> Result<Brand, String> {
     let mut serv = BrandService::new();
     serv.get(&id)
 }
 
 #[tauri::command]
-fn list_brand() -> Result<Vec<Brand>, String> {
+pub fn list_brand() -> Result<Vec<Brand>, String> {
     let mut serv = BrandService::new();
     serv.list()
 }
 
 #[tauri::command]
-fn change_brand(id:String, new_name:String) -> Result<Brand, String> {
+pub fn change_brand(id:String, new_name:String) -> Result<Brand, String> {
     let mut serv = BrandService::new();
     serv.save(&id, &new_name)
 }
 
 #[tauri::command]
-fn delete_brand(id:String) -> Result<Brand, String> {
+pub fn delete_brand(id:String) -> Result<Brand, String> {
     let mut serv = BrandService::new();
     serv.remove(&id)
+}
+
+#[tauri::command]
+pub fn delete_brand_weight(id:String, value:i32) -> Result<i32, String> {
+    let mut serv = BrandService::new();
+    serv.remove_part(&id, value)
 }
