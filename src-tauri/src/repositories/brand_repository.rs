@@ -1,10 +1,13 @@
-use diesel::{prelude::*, SqliteConnection};
+use diesel::{
+    prelude::*,
+    SqliteConnection
+};
 use dotenvy::dotenv;
 
 use core::panic;
 use std::env;
 
-use crate::schema::{tb_brand::dsl::*};
+use crate::schema::tb_brand::dsl::*;
 use crate::models::brand::VBrand;
 
 pub struct BrandRepository {
@@ -31,23 +34,20 @@ impl BrandRepository {
     }
 
     pub fn select_id(&mut self, id:&str) -> Result<Option<Vec<VBrand>>, diesel::result::Error> {
-        tb_brand
+        tb_brand.select(VBrand::as_select())
         .filter(brand_name.eq(id))
         .get_results(&mut self.connection)
         .optional()
     }
 
     pub fn select_all(&mut self) -> Result<Option<Vec<VBrand>>, diesel::result::Error> {
-        tb_brand
-        .select(VBrand::as_select())
+        tb_brand.select(VBrand::as_select())
         .get_results(&mut self.connection)
         .optional()
     }
 
     pub fn update(&mut self, id:&str, new_name:&str) -> Result<Option<Vec<VBrand>>, diesel::result::Error> {
-        diesel::update(
-            tb_brand
-            .filter(brand_name.eq(id)))
+        diesel::update(tb_brand.filter(brand_name.eq(id)))
         .set(brand_name.eq(new_name))
         .returning(VBrand::as_returning())
         .get_results(&mut self.connection)

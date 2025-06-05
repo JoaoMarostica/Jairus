@@ -38,24 +38,21 @@ impl OutflowRepository {
     }
 
     pub fn select_id(&mut self, id:&i32) -> Result<Option<Outflow>, diesel::result::Error> {
-        tb_outflow
+        tb_outflow.select(Outflow::as_select())
         .find(id)
-        .select(Outflow::as_select())
         .get_result(&mut self.connection)
         .optional()
     }
 
     pub fn select_batch(&mut self, batch:&(i32, i32)) -> Result<Vec<Outflow>, diesel::result::Error> {
-        tb_outflow
-        .select(Outflow::as_select())
+        tb_outflow.select(Outflow::as_select())
         .filter(batch_number.eq(batch.0))
         .filter(batch_year.eq(batch.1))
         .get_results(&mut self.connection)
     }
 
     pub fn select_all(&mut self) -> Result<Vec<Outflow>, diesel::result::Error> {
-        tb_outflow
-        .select(Outflow::as_select())
+        tb_outflow.select(Outflow::as_select())
         .get_results(&mut self.connection)
     }
 

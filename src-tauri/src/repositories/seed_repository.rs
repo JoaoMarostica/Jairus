@@ -35,16 +35,14 @@ impl SeedRepository {
     }
 
     pub fn select_id(&mut self, id:&str) -> Result<Option<Seed>, diesel::result::Error> {
-        tb_seed
+        tb_seed.select(Seed::as_select())
         .find(id)
-        .select(Seed::as_select())
         .get_result(&mut self.connection)
         .optional() 
     }
 
     pub fn select_all(&mut self) -> Result<Vec<Seed>, diesel::result::Error> {
-        tb_seed
-        .select(Seed::as_select())
+        tb_seed.select(Seed::as_select())
         .get_results(&mut self.connection)
     }
 

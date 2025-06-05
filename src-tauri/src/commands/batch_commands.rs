@@ -19,6 +19,12 @@ pub fn get_batch(batch_number: i32, batch_year: i32) -> Result<Batch, String> {
 }
 
 #[tauri::command]
+pub fn get_batch_by_year(year:i32) -> Result<Vec<Batch>, String> {
+    let mut service = BatchService::new();
+    service.read_year(year)
+}
+
+#[tauri::command]
 pub fn list_batches() -> Result<Vec<Batch>, String> {
     let mut service = BatchService::new();
     service.read_all()
