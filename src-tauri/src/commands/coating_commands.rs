@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[tauri::command]
-pub fn new_coating(new:Coating) -> Result<Coating, String> {
+pub fn add_coating(new:Coating) -> Result<Coating, String> {
     let mut serv = CoatingService::new();
     serv.create(&new)
 }
@@ -16,7 +16,7 @@ pub fn get_coating(id:String) -> Result<Coating, String> {
 }
 
 #[tauri::command]
-pub fn list_coating() -> Result<Vec<Coating>, String> {
+pub fn list_coatings() -> Result<Vec<Coating>, String> {
     let mut serv = CoatingService::new();
     serv.read_all()
 }
@@ -28,7 +28,7 @@ pub fn change_coating(id:String, changes:Coating) -> Result<Coating, String> {
 }
 
 #[tauri::command]
-pub fn delete_coating(id:String) -> Result<Coating, String> {
+pub fn remove_coating(id:String) -> Result<Coating, String> {
     let mut serv = CoatingService::new();
     serv.delete(&id)
 }

@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[tauri::command]
-pub fn new_brand(new:Brand) -> Vec<String> {
+pub fn add_brand(new:Brand) -> Vec<String> {
     let mut serv = BrandService::new();
     serv.create(&new)
 }
@@ -16,7 +16,7 @@ pub fn get_brand(id:String) -> Result<Brand, String> {
 }
 
 #[tauri::command]
-pub fn list_brand() -> Result<Vec<Brand>, String> {
+pub fn list_brands() -> Result<Vec<Brand>, String> {
     let mut serv = BrandService::new();
     serv.read_all()
 }
@@ -28,13 +28,13 @@ pub fn change_brand(id:String, new_name:String) -> Result<Brand, String> {
 }
 
 #[tauri::command]
-pub fn delete_brand(id:String) -> Result<Brand, String> {
+pub fn remove_brand(id:String) -> Result<Brand, String> {
     let mut serv = BrandService::new();
     serv.delete(&id)
 }
 
 #[tauri::command]
-pub fn delete_brand_weight(id:String, value:i32) -> Result<i32, String> {
+pub fn remove_brand_weight(id:String, value:i32) -> Result<i32, String> {
     let mut serv = BrandService::new();
     serv.delete_value(&id, value)
 }

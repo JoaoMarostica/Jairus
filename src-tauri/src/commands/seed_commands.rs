@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[tauri::command]
-pub fn new_seed(new:Seed) -> Result<Seed, String> {
+pub fn add_seed(new:Seed) -> Result<Seed, String> {
     let mut serv = SeedService::new();
     serv.create(&new)
 }
@@ -16,7 +16,7 @@ pub fn get_seed(id:String) -> Result<Seed, String> {
 }
 
 #[tauri::command]
-pub fn list_seed() -> Result<Vec<Seed>, String> {
+pub fn list_seeds() -> Result<Vec<Seed>, String> {
     let mut serv = SeedService::new();
     serv.read_all()
 }
@@ -28,7 +28,7 @@ pub fn change_seed(id:String, changes:Seed) -> Result<Seed, String> {
 }
 
 #[tauri::command]
-pub fn delete_seed(id:String) -> Result<Seed, String> {
+pub fn remove_seed(id:String) -> Result<Seed, String> {
     let mut serv = SeedService::new();
     serv.delete(&id)
 }

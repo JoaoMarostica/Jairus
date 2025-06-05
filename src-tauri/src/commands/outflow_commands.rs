@@ -10,7 +10,7 @@ use crate::{
 };
 
 #[tauri::command]
-pub fn new_outflow(new:NewOutflow) -> Result<Outflow, String> {
+pub fn add_outflow(new:NewOutflow) -> Result<Outflow, String> {
     let mut serv = OutflowService::new();
     serv.create(&new)
 }
@@ -21,13 +21,13 @@ pub fn get_outflow(id:i32) -> Result<Outflow, String> {
     serv.read_id(&id)
 }
 #[tauri::command]
-pub fn list_outflows(batch:(i32, i32)) -> Result<Vec<Outflow>, String> {
+pub fn list_outflows_by_batch(batch:(i32, i32)) -> Result<Vec<Outflow>, String> {
     let mut serv = OutflowService::new();
     serv.read_batch(&batch)
 }
 
 #[tauri::command]
-pub fn list_all_outflows() -> Result<Vec<Outflow>, String> {
+pub fn list_outflows() -> Result<Vec<Outflow>, String> {
     let mut serv = OutflowService::new();
     serv.read_all()
 }
@@ -45,7 +45,7 @@ pub fn change_outflow(id:i32, changes:NewOutflow) -> Result<Outflow, String> {
 }
 
 #[tauri::command]
-pub fn delete_outflow(id:i32) -> Result<Outflow, String> {
+pub fn remove_outflow(id:i32) -> Result<Outflow, String> {
     let mut serv = OutflowService::new();
     serv.delete(&id)
 }
