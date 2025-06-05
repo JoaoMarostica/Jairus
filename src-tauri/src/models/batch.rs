@@ -8,6 +8,7 @@ use serde::{
     Deserialize,
     Serialize
 };
+use super::balance::Balance;
 
 #[derive(Queryable, Selectable, Insertable, AsChangeset, Deserialize, Serialize)]
 #[diesel(table_name = crate::schema::tb_batch)]
@@ -58,5 +59,13 @@ impl Batch {
                 deleted_at:None,
                 origin:None
             }
-        }
+    }
+    
+    pub fn get_expiration_date(&self) -> String {
+        format!("{}/{}", self.batch_month+1, self.batch_year+1)
+    }
+    
+    pub fn get_initial_balance(&self) -> Balance {
+        Balance::new(self.sack_amount, self.total_weight, self.total_pureness_score)
+    }
 }
