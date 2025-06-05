@@ -1,5 +1,4 @@
 use diesel::prelude::{
-    AsChangeset,
     Insertable,
     Queryable,
     Selectable
@@ -39,7 +38,7 @@ impl Brand {
     }
 }
 
-#[derive(Queryable, Selectable, Insertable, AsChangeset)]
+#[derive(Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::tb_brand)]
 pub struct VBrand {
     pub brand_name:String,

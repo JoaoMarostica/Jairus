@@ -49,6 +49,10 @@ impl Outflow {
     pub fn get_balance(&self) -> Balance {
         Balance::new(self.sack_amount, self.total_weight, self.total_pureness_score)
     }
+
+    pub fn get_usage(&self) -> String {
+        self.usage.clone()
+    }
 }
 
 #[derive(Insertable, AsChangeset, Deserialize)]
