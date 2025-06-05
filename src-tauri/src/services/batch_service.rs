@@ -13,6 +13,10 @@ impl BatchService {
     }
     
     pub fn add(&mut self, batch: &Batch) -> Result<Batch,String> {
+        if batch.total_weight > 10000 {
+            return Err("Total weight cannot be above 10,000".to_string())
+        }
+        
         match self.repo.create(batch) {
             Ok(result) => Ok(result),
             Err(e) => Err(e.to_string())
