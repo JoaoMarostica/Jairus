@@ -9,7 +9,7 @@
     content="Tem certeza que deseja remover este lote? Esta ação é irreversível e excluirá completamente todos os dados associados."
     positive-text="Confirmar"
     negative-text="Cancelar"
-    @positive-click="removeBatch"
+    @positive-click="confirmRemove"
     @negative-click="cancelRemove"
   />
 </template>
@@ -25,10 +25,12 @@ const removeBatchModal = defineModel('modal', {
 })
 
 const props = defineProps<{
-  selectedBatch: any
+  selectedBatch: any,
+  multiple: boolean,
 }>()
 
 const batchesStore = useBatchesStore()
+
 const globalStore = useGlobalStore()
 
 const selectedBatch = computed(() => props.selectedBatch)
@@ -38,6 +40,14 @@ const modalTitle = computed(() =>
     ? `Remoção do Lote ${props.selectedBatch.batch_number}/${String(props.selectedBatch.batch_year).slice(-2)}`
     : 'Remoção de Lote'
 )
+
+function confirmRemove() {
+  if (props.multiple) {
+    removeSelectedBatches()
+  } else {
+    removeBatch()
+  }
+}
 
 async function removeBatch() {
   try {
@@ -58,7 +68,27 @@ async function removeBatch() {
   }
 }
 
+async function removeSelectedBatches() {
+  try {
+    await batchesStore.removeSelectedBatches()
+
+    globalStore.showMessage({
+      content: 'Lotes selecionados removidos com sucesso!',
+      type: 'success',
+    })
+
+    removeBatchModal.value = false
+  } catch (error: any) {
+    globalStore.showMessage({
+      content: `Erro ao remover lotes selecionados: ${error?.message || error}`,
+      type: 'error',
+      keepAliveOnHover: true,
+    })
+  }
+}
+
 function cancelRemove() {
   removeBatchModal.value = false
 }
+
 </script>

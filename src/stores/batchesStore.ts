@@ -11,7 +11,7 @@ export const useBatchesStore = defineStore('batches', {
     batchOutflows: ref<BatchOutflowDB[]>([]),
     dataTableBatches: ref<DataTableBatch[]>([]),
     dataTableBatchOutflows: ref<DataTableBatchOutflow[]>([]),
-    batchesForDownload: [] as DataTableRowKey[],
+    selectedBatches: [] as DataTableRowKey[],
   }),
   actions: {
     async importBatchesFromSheet(file: File) {
@@ -178,6 +178,25 @@ export const useBatchesStore = defineStore('batches', {
             throw err;
         }
     },
+    async removeSelectedBatches() {
+        try {
+            this.selectedBatches.forEach(async (batchKey) => {
+                const batch = this.dataTableBatches.find(batch => batch.key === batchKey);
+                if (batch) {
+                    await invoke('delete_batch', {
+                        batchNumber: batch.batch_number,
+                        batchYear: batch.batch_year
+                    });
+                }
+            });
+            this.selectedBatches = [];
+
+            await this.fetchBatches();
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    },
     getLastBatch() {
         const batchesNumber = this.dataTableBatches
             .filter(batch => batch.batch_status === 1)
@@ -222,7 +241,7 @@ export const useBatchesStore = defineStore('batches', {
     async downloadPdf() {
         let downloadData: any[] = [];
 
-        if (this.batchesForDownload.length === 0) {
+        if (this.selectedBatches.length === 0) {
             downloadData = this.dataTableBatches.map((batch) => {
                 return {
                     number: batch.batch_number,
@@ -238,7 +257,7 @@ export const useBatchesStore = defineStore('batches', {
             })
         } else {
             downloadData = this.dataTableBatches.map((batch) => {
-                if (this.batchesForDownload.some((b: any) => b.number === batch.batch_number)) {
+                if (this.selectedBatches.some((b: any) => b.number === batch.batch_number)) {
                     return {
                         number: batch.batch_number,
                         year: batch.batch_year,

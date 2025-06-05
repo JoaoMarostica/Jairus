@@ -51,6 +51,16 @@
           Novo Lote
         </n-button>
       </n-grid-item>
+      <n-grid-item>
+        <n-button strong secondary type="error" @click="handleRemoveSelected" v-if="selectedBatches.length !== 0">
+          <template #icon>
+            <n-icon>
+              <DeleteForeverOutlined />
+            </n-icon>
+          </template>
+          Remover Lotes Selecionados
+        </n-button>
+      </n-grid-item>
     </n-grid>
 
     <!-- Data Table -->
@@ -100,7 +110,7 @@
     <!-- Batch CRUD -->
     <AppCreateBatch v-model:modal="createBatchModal"/>
     <AppEditBatch v-model:modal="editBatchModal" :selectedBatch="selectedBatch" />
-    <AppRemoveBatch v-model:modal="removeBatchModal" :selectedBatch="selectedBatch" />
+    <AppRemoveBatch v-model:modal="removeBatchModal" :selectedBatch="selectedBatch" :multiple="multipleRemove" />
   </n-card>
 </template>
 
@@ -125,7 +135,7 @@ import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import * as batchesUtils from '@/utils/batches'
 import { ref, computed, reactive, watch, onMounted, h } from 'vue';
-import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound, PostAddOutlined } from '@vicons/material'
+import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteForeverOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound, PostAddOutlined } from '@vicons/material'
 import AppBatchDetails from '@/components/AppBatchDetails.vue';
 import AppCreateOutflow from '@/components/AppCreateOutflow.vue';
 import AppCreateBatch from '@/components/AppCreateBatch.vue';
@@ -146,12 +156,13 @@ const createOutflowModal = ref<boolean>(false);
 const createBatchModal = ref<boolean>(false);
 const editBatchModal = ref<boolean>(false);
 const removeBatchModal = ref<boolean>(false);
+const multipleRemove = ref<boolean>(false);
 
 const globalStore = useGlobalStore()
 const { fileUploadModal } = storeToRefs(globalStore);
 
 const batchesStore = useBatchesStore();
-const { dataTableBatches, batchesForDownload } = storeToRefs(batchesStore);
+const { dataTableBatches, selectedBatches } = storeToRefs(batchesStore);
 
 const selectedBatch = ref<any>(null);
 const search = ref('');
@@ -221,9 +232,14 @@ const filteredData = computed(() => {
 onMounted(async () => {
   try {
     loading.value = true
+    multipleRemove.value = false;
+    selectedBatches.value = [];
+    selectedBatch.value = null;
+
     createColumns();
     setColumnFilterOptions();
     setYearFilterOptions();
+
     try {
       await batchesStore.fetchBatches();
 
@@ -259,7 +275,19 @@ function openCreateBatchModal() {
 }
 
 function handleCheck(rowKeys: DataTableRowKey[]) {
-  batchesForDownload.value = rowKeys
+  selectedBatches.value = rowKeys
+}
+
+function handleRemoveSelected() {
+  if (selectedBatches.value.length === 0) {
+    globalStore.showMessage({
+      content: 'Nenhum lote selecionado para remoção.',
+      type: 'warning',
+    });
+    return;
+  }
+  removeBatchModal.value = true;
+  multipleRemove.value = true;
 }
 
 function handleSearch(searchTerm: string) {
@@ -543,7 +571,7 @@ function createColumns() {
                   key: 'delete',
                   icon: () => h(NIcon, {
                     color: 'red'
-                  }, { default: () => h(DeleteOutlined) })
+                  }, { default: () => h(DeleteForeverOutlined) })
                 }
               ],
               onSelect: (key: string) => {
