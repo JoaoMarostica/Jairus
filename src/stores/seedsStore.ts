@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { SeedDB, DataTableSeed } from '@/types/seeds';
+import type { SeedDB, DataTableSeed, RawSeed } from '@/types/seeds';
 import { invoke } from '@tauri-apps/api/core';
 import cultivarsInfo from '@/assets/cultivarsInfo.json';
 
@@ -24,7 +24,7 @@ export const useSeedsStore = defineStore('seeds', {
     },
     fetchSeedsFromJsonFile() {
       for (const seed of cultivarsInfo) {
-            this.seeds.push(formatSeedforDB(seed));
+            this.seeds.push(formatSeedForDB(seed));
       }
     },
     async createSeed(newSeed: SeedDB) {
@@ -39,7 +39,7 @@ export const useSeedsStore = defineStore('seeds', {
         }
     },
     
-});
+}});
 
 function normalizeText(text: string | null): string {
   return text
@@ -49,9 +49,9 @@ function normalizeText(text: string | null): string {
 
 function formatSeedForDB(seed: RawSeed): SeedDB {
     const seedForDB: SeedDB = {
-        popular_name: seed.popular_name;
-        scientific_name: seed.scientific_name;
-        deleted_at: null;
+        popular_name: seed.name,
+        scientific_name: seed.scientific_name
+        
     };
 
     return seedForDB
@@ -59,10 +59,10 @@ function formatSeedForDB(seed: RawSeed): SeedDB {
 
 function formatSeedForTable(seed: SeedDB): DataTableSeed {
     const seedForTable: DataTableSeed = {
-        key: seed.popular_name;
-        popular_name: seed.popular_name;
-        scientific_name: seed.scientific_name;
-        deleted_at: null;
+        key: seed.popular_name,
+        popular_name: seed.popular_name,
+        scientific_name: seed.scientific_name,
+        deleted_at: null,
    
         _searchIndex: normalizeText([
           seed.popular_name,

@@ -1,6 +1,6 @@
 <template>
   <n-modal
-    v-model:show="createBatchModal"
+    v-model:show="createOutflowModal"
     style="width: 600px;"
     :mask-closable="false"
     preset="card"
@@ -10,7 +10,7 @@
     <div style="width: 100%; height: 100%; overflow: auto;" class="bg-white dark:bg-black p-4">
       <n-space vertical>
         <n-input-group>
-          <n-input v-model:value="newBatch.batch_number" :style="{ width: '33%' }" :status="batchNumberInputStatus" placeholder="Número do Lote" />
+          <n-input v-model:value="newBatch.number" :style="{ width: '33%' }" :status="batchNumberInputStatus" placeholder="Número do Lote" />
           <n-input :style="{ width: '33%' }" :placeholder="year.toString()" disabled />
           <n-input :style="{ width: '33%' }" :placeholder="parsedExpireDate" disabled />
         </n-input-group>
@@ -34,7 +34,7 @@
 
         <!-- Botão de criar -->
         <n-button type="primary" block @click="createBatch" :disabled="batchNumberInputStatus === 'error'">
-          Criar Lote
+          Adicionar Saída
         </n-button>
       </n-space>
     </div>
@@ -51,7 +51,7 @@ import { useGlobalStore } from '@/stores/globalStore'
 import { storeToRefs } from 'pinia'
 import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
-const createBatchModal = defineModel('modal', {
+const createOutflowModal = defineModel('modal', {
   type: Boolean,
   default: false
 })
@@ -62,11 +62,7 @@ const batchesStore = useBatchesStore()
 const settingsStore = useSettingsStore()
 const { seeds, coatings, brands } = storeToRefs(settingsStore)
 
-const modalTitle = computed(() =>
-  newBatch?.batch_number
-    ? `Novo Lote ${newBatch.batch_number}/${String(year.value).slice(-2)}`
-    : 'Novo Lote'
-)
+const modalTitle = ref('Lote')
 
 const year = ref(new Date().getFullYear())
 const expireDate = ref(new Date().getMonth())
@@ -74,7 +70,7 @@ const batchNumberInputStatus = ref<FormValidationStatus | undefined>(undefined)
 
 // Estado do formulário
 const newBatch = reactive({
-  batch_number: '',
+  number: '',
   seed: null,
   coating: null,
   sackBrand: null,
@@ -119,25 +115,30 @@ const parsedExpireDate = computed(() => {
   return `${month}/${year.value + 1}`;
 })
 
-watch(createBatchModal, () => {
-  if (createBatchModal.value) {
-    newBatch.batch_number = getNextBatchNumber()
+watch(createOutflowModal, () => {
+  if (createOutflowModal.value) {
+    newBatch.number = getNextBatchNumber()
   } else {
     resetForm()
   }
 })
 
 watchEffect(() => {
-  batchNumberInputStatus.value = undefined
-  if (newBatch.batch_number) {
-    const batchKey = `${newBatch.batch_number}${String(year.value)}`
-
-    if (batchesStore.getBatchKeys.some(key => key === batchKey)) {
-      globalStore.showMessage({
-        content: `Lote ${newBatch.batch_number}/${String(year.value).slice(-2)} já existe!`,
-        type: 'error',
-      })
-      batchNumberInputStatus.value = 'error'
+  if (createOutflowModal.value) {
+    batchNumberInputStatus.value = undefined
+    if (newBatch.number) {
+      const batchKey = `${newBatch.number}${String(year.value)}`
+  
+      if (batchesStore.getBatchKeys.some(key => key === batchKey)) {
+        globalStore.showMessage({
+          content: `Lote ${newBatch.number}/${String(year.value).slice(-2)} já existe!`,
+          type: 'error',
+        })
+        batchNumberInputStatus.value = 'error'
+      }
+      modalTitle.value = `Lote ${newBatch.number}/${String(year.value).slice(-2)}`
+    } else {
+      modalTitle.value = 'Lote'
     }
   }
 })
@@ -150,9 +151,10 @@ function getNextBatchNumber() {
   return '1'
 }
 
+// Função para submeter
 async function createBatch() {
   if (
-    !newBatch.batch_number ||
+    !newBatch.number ||
     !newBatch.seed ||
     !newBatch.coating ||
     !newBatch.sackBrand ||
@@ -168,7 +170,7 @@ async function createBatch() {
   }
   
   const batch: BatchDB = {
-    batch_number: Number(newBatch.batch_number),
+    batch_number: Number(newBatch.number),
     batch_year: Number(year.value),
     batch_month: Number(expireDate.value),
     seed: newBatch.seed,
@@ -185,7 +187,7 @@ async function createBatch() {
   }
 
   try {
-    createBatchModal.value = false
+    createOutflowModal.value = false
     await batchesStore.createBatch(batch)
 
     globalStore.showMessage({
@@ -201,7 +203,7 @@ async function createBatch() {
 }
 
 function resetForm() {
-  newBatch.batch_number = ''
+  newBatch.number = ''
   newBatch.seed = null
   newBatch.coating = null
   newBatch.sackBrand = null

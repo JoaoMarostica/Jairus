@@ -4,7 +4,9 @@
     :theme-overrides="theme === 'dark' ? darkThemeOverrides : lightThemeOverrides"
   >
     <n-message-provider :placement="message.placement">
-      <MainView />
+      <n-dialog-provider>
+        <MainView />
+      </n-dialog-provider>
     </n-message-provider>
   </n-config-provider>
 </template>
@@ -14,7 +16,7 @@ import { onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGlobalStore } from '@/stores/globalStore';
 import { lightThemeOverrides, darkThemeOverrides } from '@/styles/naiveUI';
-import { NConfigProvider, NMessageProvider, darkTheme } from 'naive-ui';
+import { NConfigProvider, NMessageProvider, NDialogProvider, darkTheme } from 'naive-ui';
 import MainView from '@/views/MainView.vue';
 
 const globalStore = useGlobalStore();
