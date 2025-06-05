@@ -63,6 +63,7 @@ export type DataTableBatch = {
 };
 
 export type DataTableBatchOutflow = {
+    key: string;
     batch_number: number;
     batch_year: number;
     sack_amount: number;

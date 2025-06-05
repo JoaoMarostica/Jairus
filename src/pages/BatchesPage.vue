@@ -221,14 +221,23 @@ const filteredData = computed(() => {
 onMounted(async () => {
   try {
     loading.value = true
-    await batchesStore.fetchBatches();
     createColumns();
     setColumnFilterOptions();
     setYearFilterOptions();
-    globalStore.showMessage({
+    try {
+      await batchesStore.fetchBatches();
+
+      globalStore.showMessage({
       content: 'Lotes carregados com sucesso!',
       type: 'success',
     });
+    } catch (error: any) {
+      globalStore.showMessage({
+        content: `Erro ao carregar lotes: ${error?.message || error}`,
+        type: 'error',
+        keepAliveOnHover: true,
+      })
+    }
   } catch (err) {
     globalStore.showMessage({
       content: `Erro ao carregar lotes: ${err instanceof Error ? err.message : String(err)}`,
