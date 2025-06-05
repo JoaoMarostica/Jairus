@@ -33,25 +33,30 @@ impl BatchRepository {
     }
 
     pub fn select_id(&mut self, id:&(i32,i32)) -> Result<Option<Batch>, diesel::result::Error> {
-        let (bn, by) = id;
-        tb_batch.filter(
-            batch_number.eq(bn)
-            .and(batch_year.eq(by)))
-        .select(Batch::as_select())
+        tb_batch.select(Batch::as_select())
+        .filter(batch_number.eq(id.0))
+        .filter(batch_year.eq(id.1))
         .get_result(&mut self.connection)
         .optional()
     }
 
-    pub fn select_all(&mut self) -> Result<Vec<Batch>, diesel::result::Error> {
+    pub fn select_year(&mut self, year:i32) -> Result<Option<Vec<Batch>>, diesel::result::Error> {
+        tb_batch.select(Batch::as_select())
+        .filter(batch_year.eq(year))
+        .get_results(&mut self.connection)
+        .optional()
+    }
+
+    pub fn select_all(&mut self) -> Result<Option<Vec<Batch>>, diesel::result::Error> {
         tb_batch.select(Batch::as_select())
         .get_results(&mut self.connection)
+        .optional()
     }
 
     pub fn update(&mut self, id:&(i32, i32), object:&Batch) -> Result<Option<Batch>,diesel::result::Error> {
-        let (bn, by) = id;
-        diesel::update(tb_batch.filter(
-            batch_number.eq(bn)
-            .and(batch_year.eq(by))))
+        diesel::update(tb_batch
+            .filter(batch_number.eq(id.0))
+            .filter(batch_year.eq(id.1)))
         .set(object)
         .returning(Batch::as_returning())
         .get_result(&mut self.connection)
@@ -59,10 +64,9 @@ impl BatchRepository {
     }
 
     pub fn drop(&mut self, id:&(i32,i32)) -> Result<Option<Batch>, diesel::result::Error>{
-        let (bn, by) = id;
-        diesel::delete(tb_batch.filter(
-            batch_number.eq(bn)
-            .and(batch_year.eq(by))))
+        diesel::delete(tb_batch
+            .filter(batch_number.eq(id.0))
+            .filter(batch_year.eq(id.1)))
         .get_result(&mut self.connection)
         .optional()
     }

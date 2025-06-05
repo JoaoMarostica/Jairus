@@ -34,16 +34,25 @@ impl BatchService {
             Err(e) => Err(e.to_string())
         }
     }
+
+    pub fn read_year(&mut self, year:i32) -> Result<Vec<Batch>, String>{
+        match self.repo.select_year(year) {
+            Ok(Some(result)) => Ok(result),
+            Ok(None) => Err(format!("No batches in year {}", year)),
+            Err(e) => Err(e.to_string())
+        }
+    }
     
     pub fn read_all(&mut self) -> Result<Vec<Batch>,String> {
         match self.repo.select_all() {
-            Ok(result) => Ok(result),
+            Ok(Some(result)) => Ok(result),
+            Ok(None) => Err("No batches in the database".to_string()),
             Err(e) => Err(e.to_string())
         }
     }
  
     pub fn read_statistics(&mut self) -> Result<BatchStatistics, String> {
-        if let Ok(all_batches) = self.read_all() {
+        if let Ok(Some(all_batches)) = self.repo.select_all() {
 
             let total_batches = all_batches.len();
             

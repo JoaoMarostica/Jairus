@@ -35,16 +35,14 @@ impl CoatingRepository {
     }
 
     pub fn select_id(&mut self, id:&str) -> Result<Option<Coating>, diesel::result::Error> {
-        tb_coating
+        tb_coating.select(Coating::as_select())
         .find(id)
-        .select(Coating::as_select())
         .get_result(&mut self.connection)
         .optional()
     }
 
     pub fn select_all(&mut self) -> Result<Vec<Coating>, diesel::result::Error> {
-        tb_coating
-        .select(Coating::as_select())
+        tb_coating.select(Coating::as_select())
         .get_results(&mut self.connection)
     }
 

@@ -14,6 +14,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             batch_commands::create_batch,
             batch_commands::get_batch,
+            batch_commands::get_batch_by_year,
             batch_commands::list_batches,
             batch_commands::update_batch,
             batch_commands::delete_batch,
