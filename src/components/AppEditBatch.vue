@@ -12,7 +12,7 @@
       <n-gi :span="2">
         <n-form
           ref="formRef"
-          :model="newBatch"
+          :model="form"
           :rules="rules"
           :size="size"
           label-placement="top"
@@ -24,14 +24,14 @@
             :validation-status="batchNumberInputStatus"
             :feedback="batchNumberInputFeedback"
           >
-            <n-input v-model:value="newBatch.batch_number" placeholder="Digite o número do lote" clearable />
+            <n-input v-model:value="form.batch_number" placeholder="Digite o número do lote" clearable />
           </n-form-item>
           <n-form-item
             :span="12"
             label="Data de Criação"
           >
             <n-date-picker
-              v-model:value="timestamp"
+              v-model:value="form.timestamp"
               type="date"
               format="dd/MM/yyyy"
               placeholder="Selecione a data de criação"
@@ -42,7 +42,7 @@
           </n-form-item>
           <n-form-item :span="12" label="Cultivar" path="seed">
             <n-select
-              v-model:value="newBatch.seed"
+              v-model:value="form.seed"
               placeholder="Selecione a cultivar"
               :options="seedsOptions"
               clearable
@@ -50,29 +50,43 @@
           </n-form-item>
           <n-form-item :span="12" label="Tratamento" path="coating">
             <n-select
-              v-model:value="newBatch.coating"
+              v-model:value="form.coating"
               placeholder="Selecione o tratamento"
               :options="coatingsOptions"
               clearable
             />
           </n-form-item>
           <n-form-item :span="12" label="PP/Kg" path="purenessScore">
-            <n-input v-model:value="newBatch.purenessScore" placeholder="Digite o ponto de pureza por Kg" clearable />
+            <n-input-number
+              v-model:value="form.purenessScore"
+              :parse="parseNumber"
+              :format="formatNumber"
+              placeholder="Digite o ponto de pureza por Kg"
+              style="width: 100%"
+              clearable 
+            />
           </n-form-item>
           <n-form-item :span="12" label="Marca do Saco" path="sackBrand">
             <n-select
-              v-model:value="newBatch.sackBrand"
+              v-model:value="form.sackBrand"
               placeholder="Selecione a marca do saco"
               :options="brandsOptions"
               clearable
             />
           </n-form-item>
           <n-form-item :span="12" label="Quantidade de Sacos" path="sackAmount">
-            <n-input v-model:value="newBatch.sackAmount" placeholder="Digite a quantidade de sacos" clearable />
+            <n-input-number
+              v-model:value="form.sackAmount"
+              :step="1"
+              :precision="0"
+              placeholder="Digite a quantidade de sacos"
+              style="width: 100%"
+              clearable
+            />
           </n-form-item>
           <n-form-item :span="12" label="Peso da Sacaria" path="sackWeight">
             <n-select
-              v-model:value="newBatch.sackWeight"
+              v-model:value="form.sackWeight"
               placeholder="Selecione o peso da sacaria"
               :options="sackWeightsOptions"
               clearable
@@ -88,20 +102,20 @@
           :column="1"
           title="Resumo do Lote"
           size="small"
-          v-if="newBatch.batch_number || 
+          v-if="form.batch_number || 
             year || 
             expireDate || 
-            newBatch.seed || 
-            newBatch.coating || 
-            newBatch.sackBrand || 
-            newBatch.sackWeight || 
-            newBatch.sackAmount || 
+            form.seed || 
+            form.coating || 
+            form.sackBrand || 
+            form.sackWeight || 
+            form.sackAmount || 
             totalWeight || 
-            newBatch.purenessScore || 
+            form.purenessScore || 
             totalPP"
         >
-          <n-descriptions-item label="Número do Lote" v-if="newBatch.batch_number">
-            {{ newBatch.batch_number }}
+          <n-descriptions-item label="Número do Lote" v-if="form.batch_number">
+            {{ form.batch_number }}
           </n-descriptions-item>
           <n-descriptions-item label="Ano" v-if="year">
             {{ year }}
@@ -109,26 +123,26 @@
           <n-descriptions-item label="Vencimento" v-if="expireDate">
             {{ expireDate }}
           </n-descriptions-item>
-          <n-descriptions-item label="Cultivar" v-if="newBatch.seed">
-            {{ newBatch.seed }}
+          <n-descriptions-item label="Cultivar" v-if="form.seed">
+            {{ form.seed }}
           </n-descriptions-item>
-          <n-descriptions-item label="Tratamento" v-if="newBatch.coating">
-            {{ newBatch.coating }}
+          <n-descriptions-item label="Tratamento" v-if="form.coating">
+            {{ form.coating }}
           </n-descriptions-item>
-          <n-descriptions-item label="Marca do Saco" v-if="newBatch.sackBrand">
-            {{ newBatch.sackBrand }}
+          <n-descriptions-item label="Marca do Saco" v-if="form.sackBrand">
+            {{ form.sackBrand }}
           </n-descriptions-item>
-          <n-descriptions-item label="Peso da Sacaria (Kg)" v-if="newBatch.sackWeight">
-            {{ newBatch.sackWeight }}
+          <n-descriptions-item label="Peso da Sacaria (Kg)" v-if="form.sackWeight">
+            {{ form.sackWeight }}
           </n-descriptions-item>
-          <n-descriptions-item label="Quantidade de Sacos" v-if="newBatch.sackAmount">
-            {{ newBatch.sackAmount }}
+          <n-descriptions-item label="Quantidade de Sacos" v-if="form.sackAmount">
+            {{ form.sackAmount }}
           </n-descriptions-item>
           <n-descriptions-item label="Quantidade (kg)" v-if="totalWeight">
             {{ totalWeight }}
           </n-descriptions-item>
-          <n-descriptions-item label="PP/Kg" v-if="newBatch.purenessScore">
-            {{ newBatch.purenessScore }}
+          <n-descriptions-item label="PP/Kg" v-if="form.purenessScore">
+            {{ formatNumber(form.purenessScore) }}
           </n-descriptions-item>
           <n-descriptions-item label="Total PP" v-if="totalPP">
             {{ totalPP }}
@@ -138,7 +152,7 @@
     </n-grid>
     <template #footer>
       <div style="display: flex; justify-content: flex-end; margin-top: 16px">
-        <n-button round type="primary" @click="editBatch">
+        <n-button type="primary" @click="editBatch">
           Editar Lote
         </n-button>
       </div>
@@ -148,7 +162,7 @@
 
 <script setup lang="ts">
 import { computed, ref, reactive, watchEffect, watch } from 'vue'
-import { NModal, NInput, FormInst, NSelect, NButton, NForm, NFormItem, NDatePicker, NDescriptions, NDescriptionsItem, NGi, NGrid } from 'naive-ui'
+import { NModal, NInput, FormInst, NSelect, NButton, NForm, NFormItem, NDatePicker, NDescriptions, NDescriptionsItem, NGi, NGrid, NInputNumber } from 'naive-ui'
 import { BatchDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
 import { useSettingsStore } from '@/stores/settingsStore'
@@ -175,7 +189,6 @@ const modalTitle = computed(() =>
 
 const year = ref<number | null>(null)
 const expireDate = ref<string | null>(null)
-const timestamp = ref<number | null>(null)
 
 const batchNumberInputStatus = ref<FormValidationStatus | undefined>(undefined)
 const batchNumberInputFeedback = computed(() => {
@@ -199,8 +212,9 @@ const selectedBatch = computed(() => props.selectedBatch)
 
 const formRef = ref<FormInst | null>(null)
 const size = ref<'small' | 'medium' | 'large'>('medium')
-const newBatch = reactive({
-  batch_number: null,
+const form = reactive({
+  batch_number: null as string | null,
+  timestamp: null as number | null,
   seed: null,
   coating: null,
   sackBrand: null,
@@ -222,29 +236,31 @@ const brandsOptions = computed(() => {
 })
 
 const sackWeightsOptions = computed(() => {
-  const brand = brands.value.find(brand => brand.name === newBatch.sackBrand)
+  const brand = brands.value.find(brand => brand.name === form.sackBrand)
   return brand?.sackWeights ?? []
 })
 
 const totalWeight = computed(() => {
-  const amount = Number(newBatch.sackAmount)
-  const weight = Number(newBatch.sackWeight)
+  const amount = Number(form.sackAmount)
+  const weight = Number(form.sackWeight)
   const totalWeight = amount * weight
 
   return totalWeight === 0 ? null : totalWeight.toLocaleString("pt-BR")
 })
 
 const totalPP = computed(() => {
-  const totalPP = parsePtBrNumber(totalWeight.value) * parsePtBrNumber(newBatch.purenessScore)
-  return totalPP === 0 ? null : (Math.round(totalPP * 100) / 100).toLocaleString("pt-BR")
+  const weight = parsePtBrNumber(totalWeight.value)
+  const purenessScore = form.purenessScore ?? 0
+  const total = weight * purenessScore
+  return total === 0 ? null : (Math.round(total * 100) / 100).toLocaleString("pt-BR")
 })
 
 watchEffect(() => {
   batchNumberInputStatus.value = undefined
   batchTotalWeightInputStatus.value = undefined
 
-  if (newBatch.batch_number) {
-    const batchKey = `${newBatch.batch_number}${String(year.value)}`
+  if (form.batch_number) {
+    const batchKey = `${form.batch_number}${String(year.value)}`
 
     if (batchKey !== `${selectedBatch.value.batch_number}${selectedBatch.value.batch_year.toString()}` &&
       batchesStore.getBatchKeys.includes(batchKey)) {
@@ -263,20 +279,20 @@ watch(props, () => {
 })
 
 function prefillForm() {
-  newBatch.batch_number = selectedBatch.value.batch_number?.toString() || ''
-  newBatch.seed = selectedBatch.value.seed || null
-  newBatch.coating = selectedBatch.value.coating || null
-  newBatch.sackBrand = selectedBatch.value.brand || null
-  newBatch.sackAmount = selectedBatch.value.sack_amount?.toString() || ''
-  newBatch.sackWeight = selectedBatch.value.sack_weight?.toString() || null
-  newBatch.purenessScore = selectedBatch.value.pureness_score || ''
+  form.batch_number = selectedBatch.value.batch_number || null
+  form.seed = selectedBatch.value.seed || null
+  form.coating = selectedBatch.value.coating || null
+  form.sackBrand = selectedBatch.value.brand || null
+  form.sackAmount = selectedBatch.value.sack_amount || null
+  form.sackWeight = selectedBatch.value.sack_weight || null
+  form.purenessScore = selectedBatch.value.pureness_score || null
 
   year.value = selectedBatch.value.batch_year
   expireDate.value = selectedBatch.value.expire_date
 
   const y = year.value ?? 0
   const m = expireDate.value ? monthMap[expireDate.value.split('/')[0].toLowerCase()] : 0
-  timestamp.value = new Date(y, m, 1).getTime()
+  form.timestamp = new Date(y, m, 1).getTime()
 }
 
 function parsePtBrNumber(value: string | null): number {
@@ -305,6 +321,12 @@ const rules = {
     trigger: ['blur', 'input'],
     message: 'Campo obrigatório',
   },
+  timestamp: {
+    required: true,
+    type: 'number' as const,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
   seed: {
     required: true,
     trigger: ['blur', 'change'],
@@ -317,6 +339,7 @@ const rules = {
   },
   purenessScore: {
     required: true,
+    type: 'number' as const,
     trigger: ['blur', 'change'],
     message: 'Campo obrigatório'
   },
@@ -327,6 +350,7 @@ const rules = {
   },
   sackAmount: {
     required: true,
+    type: 'number' as const,
     trigger: ['blur', 'change'],
     message: 'Campo obrigatório'
   },
@@ -342,16 +366,16 @@ function editBatch(e: MouseEvent) {
   formRef.value?.validate(async (errors) => {
     if (!errors) {
       const batch: BatchDB = {
-        batch_number: Number(newBatch.batch_number),
+        batch_number: Number(form.batch_number),
         batch_year: Number(year.value),
         batch_month: expireDate.value ? monthMap[expireDate.value.split('/')[0].toLowerCase()] : 0,
-        seed: newBatch.seed || '',
-        coating: newBatch.coating || '',
-        brand: newBatch.sackBrand || '',
-        sack_weight: Number(newBatch.sackWeight),
-        sack_amount: Number(newBatch.sackAmount),
+        seed: form.seed || '',
+        coating: form.coating || '',
+        brand: form.sackBrand || '',
+        sack_weight: Number(form.sackWeight),
+        sack_amount: Number(form.sackAmount),
         total_weight: parsePtBrNumber(totalWeight.value),
-        pureness_score: parsePtBrNumber(newBatch.purenessScore),
+        pureness_score: Number(form.purenessScore),
         total_pureness_score: parsePtBrNumber(totalPP.value),
         batch_status: 1,
         deleted_at: null,
@@ -389,8 +413,28 @@ function parseExpireDate(value: number | null) {
     year.value = date.getFullYear()
     expireDate.value = `${date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}/${year.value + 1}`
   } else {
-    timestamp.value = null
+    form.timestamp = null
   }
+}
+
+const parseNumber = (input: string): number | null => {
+  const cleaned = input.trim()
+    .replace(/\./g, '')
+    .replace(',', '.')
+
+  if (cleaned === '') return null
+
+  const num = Number(cleaned)
+  return isNaN(num) ? Number.NaN : num
+}
+
+const formatNumber = (value: number | null): string => {
+  if (value === null)
+    return ''
+  return value.toLocaleString('pt-BR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 2
+  })
 }
 
 </script>
