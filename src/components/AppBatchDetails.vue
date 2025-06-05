@@ -67,23 +67,15 @@
 </template>
 
 <script setup lang="ts">
-import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptionsItem, NEmpty, NTooltip, NButton, NIcon, NDropdown } from 'naive-ui'
+import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptionsItem, NEmpty, NButton, NIcon, NDropdown } from 'naive-ui'
 import type { DataTableBatchOutflow } from '@/types/batches';
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
-import { computed, h, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, h, nextTick, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useBatchesStore } from '@/stores/batchesStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
-import { AutoAwesomeMosaicOutlined, DeleteOutlined, EditOutlined, MoreVertOutlined, PostAddOutlined } from '@vicons/material';
-
-// type DataTableBatchOutflow = {
-//   outflowTotalPP: string;
-//   outflowTotalWeight: string;
-//   outflowPP: string;
-//   outflowSackAmount: number;
-//   usage: string;
-// };
+import { DeleteOutlined, EditOutlined, MoreVertOutlined } from '@vicons/material';
 
 type BatchBalance = {value: number; name: string};
 
@@ -91,7 +83,6 @@ const globalStore = useGlobalStore();
 const { theme } = storeToRefs(globalStore);
 
 const batchesStore = useBatchesStore();
-const { batchOutflows } = storeToRefs(batchesStore);
 
 const props = defineProps<{
   selectedBatch: any
@@ -112,31 +103,13 @@ const outflowData = ref<DataTableBatchOutflow[]>([])
 const outflowColumns = ref<TableColumn<RowData>[]>([]);
 const batchBalance = ref<BatchBalance[]>([])
 
-onMounted(() => {
-  try {
-    createColumns();
-  } catch (err) {
-    globalStore.showMessage({
-      content: `Erro ao carregar detalhes do lotes: ${err instanceof Error ? err.message : String(err)}`,
-      type: 'error',
-    });
-  }
-})
-
-// watch(batchOutflows.value, () => {
-//   globalStore.showMessage({
-//     content: JSON.stringify(batchOutflows.value[0], null, 2),
-//     type: 'error',
-//     keepAliveOnHover: true,
-//   });
-// })
-
 watch(batchDetailsModal, async () => {
-  if (batchDetailsModal.value) {
+  if (batchDetailsModal) {
     await nextTick()
+    createColumns();
     modalTitle.value = `Detalhes do Lote ${selectedBatch.value.batch_number}`
     batchData.value = getbatchData()
-    outflowData.value = batchesStore.getBatchOutflow(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
+    outflowData.value = batchesStore.getBatchOutflows(selectedBatch.value.key)
     batchBalance.value = batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
     renderCharts()
   }
@@ -262,6 +235,7 @@ function closeModal(model: boolean) {
 
 function getbatchData() {
   return [
+    { titulo: 'Chave', valor: selectedBatch.value.key, unidade: '' },
     { titulo: 'Ano', valor: selectedBatch.value.batch_year, unidade: '' },
     { titulo: 'Vencimento', valor: selectedBatch.value.expire_date, unidade: '' },
     { titulo: 'Cultivar', valor: selectedBatch.value.seed, unidade: '' },
@@ -276,32 +250,22 @@ function getbatchData() {
 }
 
 // Ações
-function openBatchDetails(batch: any) {
-  // selectedBatch.value = batch;
-  // batchDetailsModal.value = true;
-}
-
-function createOutflow(batch: any) {
-  // selectedBatch.value = batch;
-  // createOutflowModal.value = true;
-}
-
-function handleEdit(batch: any) {
-  // selectedBatch.value = batch;
+function handleEdit(outflow: any) {
+  // selectedBatch.value = outflow;
   // editBatchModal.value = true;
 }
 
-function handleRemove(batch: any) {
-  // selectedBatch.value = batch;
+function handleRemove(outflow: any) {
+  // selectedBatch.value = outflow;
   // removeBatchModal.value = true;
 }
 
 function createColumns() {
   outflowColumns.value = [
-    { title: 'Total de PP', key: 'outflowTotalPP' },
-    { title: 'Quantidade (kg)', key: 'outflowTotalWeight', titleAlign: 'center', align: 'center' },
-    { title: 'PP/Kg', key: 'outflowPP' },
-    { title: 'Sacos', key: 'outflowSackAmount' },
+    { title: 'Total de PP', key: 'total_pureness_score' },
+    { title: 'Quantidade (kg)', key: 'total_weight', titleAlign: 'center', align: 'center' },
+    { title: 'PP/Kg', key: 'pureness_score' },
+    { title: 'Sacos', key: 'sack_amount' },
     { title: 'Pedido', key: 'usage' },
     {
       title: 'Ações',
@@ -311,52 +275,6 @@ function createColumns() {
       width: '150px',
       render(batch: RowData): ReturnType<typeof h>[]  {
         return [
-          h(
-            NTooltip,
-            { placement: 'bottom' },
-            {
-              trigger: () =>
-                h(
-                  NButton,
-                  {
-                    quaternary: true,
-                    type: 'primary',
-                    size: 'small',
-                    onClick: () => openBatchDetails(batch),
-                    renderIcon: () =>h(NIcon, null, 
-                      { default: () => 
-                        h(AutoAwesomeMosaicOutlined, {
-                          style: { color: '#2080f0' }
-                        }) 
-                      })
-                  }
-                ),
-              default: () => 'Ver detalhes'
-            }
-          ),
-          h(
-            NTooltip,
-            { placement: 'bottom' },
-            {
-              trigger: () =>
-                h(
-                  NButton,
-                  {
-                    quaternary: true,
-                    type: 'primary',
-                    size: 'small',
-                    onClick: () => createOutflow(batch),
-                    renderIcon: () =>h(NIcon, null, 
-                      { default: () => 
-                        h(PostAddOutlined, {
-                          style: { color: '#04853a' }
-                        }) 
-                      })
-                  }
-                ),
-              default: () => 'Adicionar Saída'
-            }
-          ),
           h(
             NDropdown,
             {

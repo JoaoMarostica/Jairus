@@ -75,8 +75,6 @@ export const useBatchesStore = defineStore('batches', {
     setBatchesFromSheetData(data: RawBatch[]) {
         this.$reset();
 
-        const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100;
-
         const existingBatchNumbers = new Set(this.dataTableBatches.map(b => b.batch_number));
 
         data.forEach(async (batch) => {
@@ -189,18 +187,11 @@ export const useBatchesStore = defineStore('batches', {
 
         return lastBatchNumber;
     },
-    getBatchOutflow(batchNumber: number, batchYear: number) {
+    getBatchOutflows(batchKey: string): DataTableBatchOutflow[] {
         return this.dataTableBatchOutflows
-            .filter(batch => batch.batch_number === batchNumber && batch.batch_year === batchYear)
-            // .map(batchOutflow => ({
-            //     outflowTotalPP: batchOutflow.total_pureness_score,
-            //     outflowTotalWeight: batchOutflow.total_weight,
-            //     outflowPP: batchOutflow.pureness_score,
-            //     outflowSackAmount: batchOutflow.sack_amount,
-            //     usage: batchOutflow.usage,
-            // }));
+            .filter(outflow => outflow.key === batchKey)
     },
-    getBatchBalance(dataTableBatch: DataTableBatch, batchOutflows: any[]) {
+    getBatchBalance(dataTableBatch: DataTableBatch, batchOutflows: DataTableBatchOutflow[]) {
         const batch = this.batches.find(batch => batch.batch_number === dataTableBatch.batch_number && batch.batch_year === dataTableBatch.batch_year);
 
         let BatchOutflowTotalPP = 0;
@@ -208,9 +199,9 @@ export const useBatchesStore = defineStore('batches', {
         let BatchOutflowTotalSackAmount = 0;
 
         batchOutflows.forEach((batchOutflow) => {
-            BatchOutflowTotalPP += batchOutflow.outflowTotalPP;
-            BatchOutflowTotalWeight += batchOutflow.outflowTotalWeight;
-            BatchOutflowTotalSackAmount += batchOutflow.outflowSackAmount;
+            BatchOutflowTotalPP += Number(batchOutflow.total_pureness_score);
+            BatchOutflowTotalWeight += Number(batchOutflow.total_weight);
+            BatchOutflowTotalSackAmount += Number(batchOutflow.sack_amount);
         });
 
         // Calculate totalPP and totalWeight from batch properties
