@@ -206,12 +206,12 @@ const size = ref<'small' | 'medium' | 'large'>('medium')
 const form = reactive({
   batchNumber: null as string | null,
   timestamp: null as number | null,
-  seed: null,
-  coating: null,
-  sackBrand: null,
-  sackAmount: null,
-  sackWeight: null,
-  purenessScore: null,
+  seed: null as string | null,
+  coating: null as string | null,
+  sackBrand: null as string | null,
+  sackAmount: null as number | null,
+  sackWeight: null as string | null,
+  purenessScore: null as number | null,
 })
 
 const seedsOptions = computed(() => {
@@ -232,7 +232,7 @@ const sackWeightsOptions = computed(() => {
 })
 
 const totalWeight = computed(() => {
-  const totalWeight = Number(form.sackAmount) * Number(form.sackWeight)
+  const totalWeight = Number(form.sackAmount) * parsePtBrNumber(form.sackWeight)
 
   return totalWeight === 0 ? null : totalWeight.toLocaleString("pt-BR")
 })
@@ -266,6 +266,123 @@ const monthMap: Record<string, number> = {
   out: 9,
   nov: 10,
   dez: 11
+}
+
+function handleSubmit(e: MouseEvent) {
+  e.preventDefault()
+
+  const parsedWeight = parsePtBrNumber(totalWeight.value)
+
+  if (parsedWeight > 10000) {
+    globalStore.showMessage({
+      content: 'O quantidade (Kg) não pode ultrapassar 10.000 kg.',
+      type: 'error',
+    })
+    return
+  }
+
+  formRef.value?.validate(async (errors) => {
+    if (!errors) {
+      const batch: BatchDB = {
+        batch_number: Number(form.batchNumber),
+        batch_year: Number(year.value),
+        batch_month: expireDate.value ? monthMap[expireDate.value.split('/')[0].toLowerCase()] : 0,
+        seed: form.seed || '',
+        coating: form.coating || '',
+        brand: form.sackBrand || '',
+        sack_weight: parsePtBrNumber(form.sackWeight),
+        sack_amount: Number(form.sackAmount),
+        total_weight: parsedWeight,
+        pureness_score: Number(form.purenessScore),
+        total_pureness_score: parsePtBrNumber(totalPP.value),
+        batch_status: 1,
+        deleted_at: null,
+        origin: null,
+      }
+
+      try {
+        await batchesStore.createBatch(batch)
+
+        globalStore.showMessage({
+          content: 'Lote criado com sucesso!',
+          type: 'success',
+        })
+        createBatchModal.value = false
+        resetForm()
+      } catch (error: any) {
+        globalStore.showMessage({
+          content: `Erro ao criar lote: ${error?.message || error}`,
+          type: 'error',
+        })
+      }
+    } else {
+      globalStore.showMessage({
+        content: 'Preencha todos os campos obrigatórios.',
+        type: 'error',
+      })
+    }
+  })
+}
+
+function resetForm() {
+  form.batchNumber = null
+  form.seed = null
+  form.coating = null
+  form.sackBrand = null
+  form.sackAmount = null
+  form.sackWeight = null
+  form.purenessScore = null
+}
+
+function parsePtBrNumber(value: string | null): number {
+  if (!value) return 0
+  return Number(value.replace(/\./g, '').replace(',', '.'))
+}
+
+function parseExpireDate(value: number | null) {
+  if (value) {
+    const date = new Date(value)
+    year.value = date.getFullYear()
+    expireDate.value = `${date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}/${year.value + 1}`
+    form.timestamp = value
+  } else {
+    form.timestamp = null
+  }
+}
+
+function getNextBatchNumber() {
+  const lastBatchNumber = batchesStore.getLastBatch()
+  if (lastBatchNumber) {
+    return (lastBatchNumber + 1).toString()
+  }
+  return '1'
+}
+
+const parseNumber = (input: string): number | null => {
+  const cleaned = input.trim()
+    .replace(/\./g, '')
+    .replace(',', '.')
+
+  if (cleaned === '') return null
+
+  const num = Number(cleaned)
+  return isNaN(num) ? Number.NaN : num
+}
+
+const formatNumber = (value: number | null): string => {
+  if (value === null)
+    return ''
+  return value.toLocaleString('pt-BR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 2
+  })
+}
+
+function positiveNumberValidator(_: any, value: number | string | null) {
+  if (Number(value) <= 0) {
+    return new Error('Deve ser maior que zero')
+  }
+  return true
 }
 
 const rules = {
@@ -336,123 +453,6 @@ const rules = {
       trigger: ['blur', 'change']
     }
   ],
-}
-
-function parseExpireDate(value: number | null) {
-  if (value) {
-    const date = new Date(value)
-    year.value = date.getFullYear()
-    expireDate.value = `${date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}/${year.value + 1}`
-    form.timestamp = value
-  } else {
-    form.timestamp = null
-  }
-}
-
-function getNextBatchNumber() {
-  const lastBatchNumber = batchesStore.getLastBatch()
-  if (lastBatchNumber) {
-    return (lastBatchNumber + 1).toString()
-  }
-  return '1'
-}
-
-function handleSubmit(e: MouseEvent) {
-  e.preventDefault()
-
-  const parsedWeight = parsePtBrNumber(totalWeight.value)
-
-  if (parsedWeight > 10000) {
-    globalStore.showMessage({
-      content: 'O quantidade (Kg) não pode ultrapassar 10.000 kg.',
-      type: 'error',
-    })
-    return
-  }
-
-  formRef.value?.validate(async (errors) => {
-    if (!errors) {
-      const batch: BatchDB = {
-        batch_number: Number(form.batchNumber),
-        batch_year: Number(year.value),
-        batch_month: expireDate.value ? monthMap[expireDate.value.split('/')[0].toLowerCase()] : 0,
-        seed: form.seed || '',
-        coating: form.coating || '',
-        brand: form.sackBrand || '',
-        sack_weight: Number(form.sackWeight),
-        sack_amount: Number(form.sackAmount),
-        total_weight: parsedWeight,
-        pureness_score: Number(form.purenessScore),
-        total_pureness_score: parsePtBrNumber(totalPP.value),
-        batch_status: 1,
-        deleted_at: null,
-        origin: null,
-      }
-
-      try {
-        await batchesStore.createBatch(batch)
-
-        globalStore.showMessage({
-          content: 'Lote criado com sucesso!',
-          type: 'success',
-        })
-        createBatchModal.value = false
-        resetForm()
-      } catch (error: any) {
-        globalStore.showMessage({
-          content: `Erro ao criar lote: ${error?.message || error}`,
-          type: 'error',
-        })
-      }
-    } else {
-      globalStore.showMessage({
-        content: 'Preencha todos os campos obrigatórios.',
-        type: 'error',
-      })
-    }
-  })
-}
-
-function resetForm() {
-  form.batchNumber = null
-  form.seed = null
-  form.coating = null
-  form.sackBrand = null
-  form.sackAmount = null
-  form.sackWeight = null
-  form.purenessScore = null
-}
-
-function parsePtBrNumber(value: string | null): number {
-  if (!value) return 0
-  return Number(value.replace(/\./g, '').replace(',', '.'))
-}
-
-const parseNumber = (input: string): number | null => {
-  const cleaned = input.trim()
-    .replace(/\./g, '')
-    .replace(',', '.')
-
-  if (cleaned === '') return null
-
-  const num = Number(cleaned)
-  return isNaN(num) ? Number.NaN : num
-}
-
-const formatNumber = (value: number | null): string => {
-  if (value === null)
-    return ''
-  return value.toLocaleString('pt-BR', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 2
-  })
-}
-
-function positiveNumberValidator(_: any, value: number | string | null) {
-  if (Number(value) <= 0) {
-    return new Error('Deve ser maior que zero')
-  }
-  return true
 }
 
 </script>
