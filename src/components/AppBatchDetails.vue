@@ -63,11 +63,11 @@
         </n-grid-item>
       </n-grid>
     </div>
-
-    <!-- Outflow CRUD -->
-    <AppEditOutflow v-model:modal="editOutflowModal" :selectedOutflow="selectedOutflow" />
-    <AppRemoveOutflow v-model:modal="removeOutflowModal" :selectedOutflow="selectedOutflow" />
   </n-modal>
+
+  <!-- Outflow CRUD -->
+  <AppEditOutflow v-model:modal="editOutflowModal" :selectedOutflow="selectedOutflow" @close="batchDetailsModal = true" />
+  <AppRemoveOutflow v-model:modal="removeOutflowModal" :selectedOutflow="selectedOutflow" @close="batchDetailsModal = true" />
 </template>
 
 <script setup lang="ts">
@@ -118,16 +118,14 @@ watch(batchDetailsModal, async () => {
     await nextTick()
     createColumns();
     modalTitle.value = `Detalhes do Lote ${selectedBatch.value.batch_number}`
-    batchData.value = getbatchData()
-    outflowData.value = batchesStore.getBatchOutflows(selectedBatch.value.key)
-    batchBalance.value = batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
+    await getbatchData()
     renderCharts()
   }
 })
 
-watchEffect(() => {
+watchEffect(async () => {
   if (batchDetailsModal.value) {
-    outflowData.value = batchesStore.getBatchOutflows(selectedBatch.value.key)
+    outflowData.value = await batchesStore.getBatchOutflows(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
     batchBalance.value = batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
   }
 })
@@ -250,8 +248,38 @@ function closeModal(model: boolean) {
   }
 }
 
-function getbatchData() {
-  return [
+async function getbatchData() {
+  try {
+    outflowData.value = await batchesStore.getBatchOutflows(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
+
+    // globalStore.showMessage({
+    //   content: 'Pedidos carregados com sucesso!',
+    //   type: 'success',
+    // })
+  } catch (error: any) {
+    globalStore.showMessage({
+      content: `Erro ao carregar pedidos: ${error?.message || error}`,
+      type: 'error',
+      keepAliveOnHover: true,
+    })
+  }
+
+  batchBalance.value = batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
+  // try {
+
+  //   // globalStore.showMessage({
+  //   //   content: 'Saldo carregado com sucesso!',
+  //   //   type: 'success',
+  //   // })
+  // } catch (error: any) {
+  //   globalStore.showMessage({
+  //     content: `Erro ao carregar saldo: ${error?.message || error}`,
+  //     type: 'error',
+  //     keepAliveOnHover: true,
+  //   })
+  // }
+
+  batchData.value = [
     { titulo: 'Chave', valor: selectedBatch.value.key, unidade: '' },
     { titulo: 'Ano', valor: selectedBatch.value.batch_year, unidade: '' },
     { titulo: 'Vencimento', valor: selectedBatch.value.expire_date, unidade: '' },
@@ -267,13 +295,17 @@ function getbatchData() {
 }
 
 // Ações
-function handleEdit(outflow: any) {
+async function handleEdit(outflow: any) {
   selectedOutflow.value = outflow;
+  batchDetailsModal.value = false;
+  await nextTick();
   editOutflowModal.value = true;
 }
 
-function handleRemove(outflow: any) {
+async function handleRemove(outflow: any) {
   selectedOutflow.value = outflow;
+  batchDetailsModal.value = false;
+  await nextTick();
   removeOutflowModal.value = true;
 }
 
@@ -290,7 +322,7 @@ function createColumns() {
       titleAlign: 'center',
       align: 'center',
       width: '150px',
-      render(batch: RowData): ReturnType<typeof h>[]  {
+      render(outflow: RowData): ReturnType<typeof h>[]  {
         return [
           h(
             NDropdown,
@@ -312,9 +344,9 @@ function createColumns() {
               ],
               onSelect: (key: string) => {
                 if (key === 'edit') {
-                  handleEdit(batch)
+                  handleEdit(outflow)
                 } else if (key === 'delete') {
-                  handleRemove(batch)
+                  handleRemove(outflow)
                 }
               },
               placement: 'bottom'

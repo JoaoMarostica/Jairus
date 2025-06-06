@@ -75,32 +75,18 @@ export const useBatchesStore = defineStore('batches', {
     setBatchesFromSheetData(data: RawBatch[]) {
         this.$reset();
 
-        const existingBatchNumbers = new Set(this.dataTableBatches.map(b => b.batch_number));
-
         data.forEach(async (batch) => {
-            if (!existingBatchNumbers.has(batch.batch_number)) {
-                // Lotes
+            // Lotes
+            const batchForDB: BatchDB = formatBatchForDB(batch)
 
-                // Para enviar para o DB
-                const batchForDB: BatchDB = formatBatchForDB(batch)
-                this.batches.push(batchForDB);
-
-                const batchForDataTable: DataTableBatch = formatBatchForTable(batchForDB)
-                this.dataTableBatches.push(batchForDataTable);
-
-                existingBatchNumbers.add(batch.batch_number);
-
-                await invoke('add_batch', {
-                    batch: batchForDB
-                }).then((res) => {
-                    console.log(res);
-                }).catch(console.error);
-            }
+            await invoke('add_batch', {
+                batch: batchForDB
+            }).then((res) => {
+                console.log(res);
+            }).catch(console.error);
 
             // Saídas
-
-            // Para enviar para o DB
-            const batchOutflowForDB: BatchOutflowDB = {
+            const batchOutflowForDB = {
                 batch_number: batch.batch_number,
                 batch_year: batch.batch_year,
                 sack_amount: batch.sack_amount,
@@ -108,11 +94,6 @@ export const useBatchesStore = defineStore('batches', {
                 total_pureness_score: batch.total_pureness_score,
                 usage: batch.usage,
             };
-            this.batchOutflows.push(batchOutflowForDB);
-
-            // Para enviar para a tela de detalhes do lote
-            const batchOutflowForDataTable: DataTableBatchOutflow = formatOutflowForTable(batchOutflowForDB);
-            this.dataTableBatchOutflows.push(batchOutflowForDataTable);
 
             await invoke('add_outflow', {
                 new: batchOutflowForDB
@@ -120,8 +101,10 @@ export const useBatchesStore = defineStore('batches', {
                 console.log(res);
             }).catch(console.error);
         });
+
+        this.fetchBatchesData();
     },
-    async fetchBatches() {
+    async fetchBatchesData() {
         try {
             this.batches = await invoke('list_batches');
             this.batchOutflows = await invoke('list_outflows');
@@ -172,7 +155,7 @@ export const useBatchesStore = defineStore('batches', {
                 batchYear: batch.batch_year
             });
 
-            await this.fetchBatches();
+            await this.fetchBatchesData();
         } catch (err) {
             console.error(err);
             throw err;
@@ -191,7 +174,7 @@ export const useBatchesStore = defineStore('batches', {
             });
             this.selectedBatches = [];
 
-            await this.fetchBatches();
+            await this.fetchBatchesData();
         } catch (err) {
             console.error(err);
             throw err;
@@ -220,18 +203,19 @@ export const useBatchesStore = defineStore('batches', {
     },
     async editOutflow(outflow: DataTableBatchOutflow) {
         try {
-            const editedOutflow: BatchDB = await invoke('change_outflow', {
-                id: outflow.batch_number + outflow.batch_year,
+            const editedOutflow: BatchOutflowDB = await invoke('change_outflow', {
+                id: outflow.id,
                 changes: outflow
             });
 
-            const index = this.dataTableBatches.findIndex(b => b.batch_number === outflow.batch_number && b.batch_year === outflow.batch_year);
+            // const index = this.dataTableBatchOutflows.findIndex(o => o.id === outflow.id);
 
-            if (index !== -1) {
-                this.dataTableBatches[index] = formatBatchForTable(editedOutflow);
-            }
+            // if (index !== -1) {
+            //     this.dataTableBatchOutflows[index] = formatOutflowForTable(editedOutflow);
+            // }
 
-            this.batches = await invoke('list_batches');
+            // this.batches = await invoke('list_batches');
+            await this.fetchBatchesData();
         } catch (err) {
             console.error(err);
             throw err;
@@ -240,18 +224,27 @@ export const useBatchesStore = defineStore('batches', {
     async removeOutflow(outflow: DataTableBatchOutflow) {
         try {
             await invoke('remove_outflow', {
-                id: outflow.batch_number + outflow.batch_year,
+                id: outflow.id,
             });
 
-            await this.fetchBatches();
+            await this.fetchBatchesData();
         } catch (err) {
             console.error(err);
             throw err;
         }
     },
-    getBatchOutflows(batchKey: string): DataTableBatchOutflow[] {
-        return this.dataTableBatchOutflows
-            .filter(outflow => outflow.key === batchKey)
+    async getBatchOutflows(batchNumber: number, batchYear: number): Promise<DataTableBatchOutflow[]> {
+        try {
+            const outflows: BatchOutflowDB[] = await invoke('list_outflows_by_batch', {
+                batchNumber: batchNumber,
+                batchYear: batchYear
+            })
+
+            return outflows.map(formatOutflowForTable);
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     },
     getBatchBalance(dataTableBatch: DataTableBatch, batchOutflows: DataTableBatchOutflow[]) {
         const batch = this.batches.find(batch => batch.batch_number === dataTableBatch.batch_number && batch.batch_year === dataTableBatch.batch_year);
@@ -399,8 +392,9 @@ function formatBatchForTable(batch: BatchDB): DataTableBatch {
 }
 
 function formatOutflowForTable(batchOutflow: BatchOutflowDB): DataTableBatchOutflow {
-    const batchForTable: DataTableBatchOutflow = {
+    const batchOutflowForTable: DataTableBatchOutflow = {
         key: createDataTableKey(batchOutflow.batch_number, batchOutflow.batch_year),
+        id: batchOutflow.id,
         batch_number: batchOutflow.batch_number,
         batch_year: batchOutflow.batch_year,
         sack_amount: batchOutflow.sack_amount,
@@ -419,5 +413,5 @@ function formatOutflowForTable(batchOutflow: BatchOutflowDB): DataTableBatchOutf
         ].join(' '))
     };
 
-    return batchForTable
+    return batchOutflowForTable
 }

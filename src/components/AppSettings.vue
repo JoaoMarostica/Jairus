@@ -75,7 +75,7 @@
             </n-space>
         </template>
     </n-modal>
-  </template>
+</template>
 
 <script setup lang="ts">
 import { ref, watch, h, onMounted} from 'vue'

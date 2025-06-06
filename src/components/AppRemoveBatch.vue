@@ -18,6 +18,7 @@
 import { computed } from 'vue'
 import { useBatchesStore } from '@/stores/batchesStore'
 import { useGlobalStore } from '@/stores/globalStore'
+import { NModal } from 'naive-ui'
 
 const removeBatchModal = defineModel('modal', {
   type: Boolean,

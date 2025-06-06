@@ -241,12 +241,12 @@ onMounted(async () => {
     setYearFilterOptions();
 
     try {
-      await batchesStore.fetchBatches();
+      await batchesStore.fetchBatchesData();
 
-      globalStore.showMessage({
-      content: 'Lotes carregados com sucesso!',
-      type: 'success',
-    });
+      // globalStore.showMessage({
+      //   content: 'Lotes carregados com sucesso!',
+      //   type: 'success',
+      // });
     } catch (error: any) {
       globalStore.showMessage({
         content: `Erro ao carregar lotes: ${error?.message || error}`,
