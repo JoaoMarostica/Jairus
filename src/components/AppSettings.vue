@@ -182,7 +182,17 @@ function createSeedColumns() {
 async function deleteSeedHandler(seed: any) {
     dialog.warning({
         title: 'Confirmar Exclusão',
-        content: `Tem certeza que deseja excluir a cultivar "${seed.popular_name}"?\n\n\nEsta ação não pode ser desfeita.`,
+        content: () => h('div', [
+            h('p', { style: 'margin-bottom: 12px;' }, 
+                'Tem certeza que deseja excluir a cultivar:'
+            ),
+            h('p', { style: 'font-weight: bold; color: #d03050; margin: 12px 0; font-size: 16px;' }, 
+                `"${seed.popular_name}"`
+            ),
+            h('p', { style: 'color: #666; font-size: 14px; margin-top: 16px;' }, 
+                'Esta ação não pode ser desfeita.'
+            )
+        ]),
         positiveText: 'Excluir',
         negativeText: 'Cancelar',
         positiveButtonProps: {

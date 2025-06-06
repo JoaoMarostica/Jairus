@@ -27,7 +27,7 @@ export const useCoatingsStore = defineStore('coatings', {
     async createCoating(newCoating: CoatingDB) {
         try {
             const createdCoating: CoatingDB = await invoke('add_coating', {
-                coating: newCoating
+                new: newCoating
             });
 
            this.dataTableCoatings.push(formatCoatingForTable(createdCoating));
@@ -39,7 +39,10 @@ export const useCoatingsStore = defineStore('coatings', {
     async editCoating(coating: CoatingDB) {
         try {
             const editedCoating: CoatingDB = await invoke('change_coating', {
-                coatingName: coating.coating_name
+                id: coating.coating_name,
+                changes: {
+                    coating_name: coating.coating_name,
+                }
             });
     
             
@@ -60,7 +63,7 @@ export const useCoatingsStore = defineStore('coatings', {
     async removeCoating(coating: DataTableCoating) {
         try {
             await invoke('remove_coating', {
-                coatingName: coating.coating_name
+                id: coating.coating_name
                     
             });
     
