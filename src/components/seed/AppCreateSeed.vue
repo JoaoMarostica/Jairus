@@ -64,12 +64,12 @@
     
     <template #footer>
       <div style="display: flex; justify-content: space-between; margin-top: 16px">
-        <n-button @click="cancelCreate">
+        <n-button @click="cancel">
           Cancelar
         </n-button>
         <n-button 
           type="primary" 
-          @click="createSeed" 
+          @click="handleSubmit" 
           :disabled="seedNameInputStatus === 'error'"
         >
           Criar Cultivar
@@ -155,7 +155,7 @@ const rules = {
   }
 }
 
-function createSeed(e: MouseEvent) {
+function handleSubmit(e: MouseEvent) {
   e.preventDefault()
   formRef.value?.validate(async (errors) => {
     if (!errors) {
@@ -188,7 +188,7 @@ function createSeed(e: MouseEvent) {
   })
 }
 
-function cancelCreate() {
+function cancel() {
   createSeedModal.value = false
   resetForm()
 }

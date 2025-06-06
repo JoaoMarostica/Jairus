@@ -8,15 +8,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AppBatchDetails: typeof import('./src/components/AppBatchDetails.vue')['default']
-    AppCreateBatch: typeof import('./src/components/AppCreateBatch.vue')['default']
-    AppCreateOutflow: typeof import('./src/components/AppCreateOutflow.vue')['default']
-    AppCreateSeed: typeof import('./src/components/AppCreateSeed.vue')['default']
-    AppEditBatch: typeof import('./src/components/AppEditBatch.vue')['default']
-    AppEditOutflow: typeof import('./src/components/AppEditOutflow.vue')['default']
+    AppBatchDetails: typeof import('./src/components/batch/AppBatchDetails.vue')['default']
+    AppCreateBatch: typeof import('./src/components/batch/AppCreateBatch.vue')['default']
+    AppCreateOutflow: typeof import('./src/components/outflow/AppCreateOutflow.vue')['default']
+    AppCreateSeed: typeof import('./src/components/seed/AppCreateSeed.vue')['default']
+    AppEditBatch: typeof import('./src/components/batch/AppEditBatch.vue')['default']
+    AppEditOutflow: typeof import('./src/components/outflow/AppEditOutflow.vue')['default']
     AppFileUpload: typeof import('./src/components/AppFileUpload.vue')['default']
-    AppRemoveBatch: typeof import('./src/components/AppRemoveBatch.vue')['default']
-    AppRemoveOutflow: typeof import('./src/components/AppRemoveOutflow.vue')['default']
+    AppRemoveBatch: typeof import('./src/components/batch/AppRemoveBatch.vue')['default']
+    AppRemoveOutflow: typeof import('./src/components/outflow/AppRemoveOutflow.vue')['default']
     AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     AppToolbar: typeof import('./src/components/AppToolbar.vue')['default']
     NDrawer: typeof import('naive-ui')['NDrawer']

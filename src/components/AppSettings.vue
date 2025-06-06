@@ -84,7 +84,7 @@ import { useGlobalStore } from '@/stores/globalStore';
 import { useSeedsStore } from '@/stores/seedsStore';
 import { useCoatingsStore } from '@/stores/coatingsStore';
 import { useBrandsStore } from '@/stores/brandsStore';
-import AppCreateSeed from '@/components/AppCreateSeed.vue'
+import AppCreateSeed from '@/components/seed/AppCreateSeed.vue'
 import { storeToRefs } from 'pinia';
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@vicons/material'

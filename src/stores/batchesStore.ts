@@ -1,117 +1,23 @@
 import { defineStore } from 'pinia';
-import type { RawBatch, BatchDB, BatchOutflowDB, DataTableBatch, DataTableBatchOutflow } from '@/types/batches';
+import type { BatchDB, DataTableBatch } from '@/types/batches';
 import type { BalanceDB, DataTableBalanceOutflow } from '@/types/balance';
 import type { DataTableRowKey } from 'naive-ui';
-import ExcelJS from 'exceljs';
+import { parseExpireDate } from '@/utils/parsing';
 import { invoke } from '@tauri-apps/api/core';
 import { ref } from 'vue';
 
 export const useBatchesStore = defineStore('batches', {
   state: () => ({
     batches: ref<BatchDB[]>([]),
-    batchOutflows: ref<BatchOutflowDB[]>([]),
     dataTableBatches: ref<DataTableBatch[]>([]),
-    dataTableBatchOutflows: ref<DataTableBatchOutflow[]>([]),
     selectedBatches: [] as DataTableRowKey[],
   }),
   actions: {
-    async importBatchesFromSheet(file: File) {
-        const buffer = await file.arrayBuffer()
-        const workbook = new ExcelJS.Workbook()
-        await workbook.xlsx.load(buffer)
-
-        const sheet = workbook.getWorksheet('LOT')
-        if (!sheet) {
-            throw new Error('formato inválido')
-        }
-
-        // Pega os títulos da linha 2 (cabeçalho)
-        const headers: string[] = []
-        sheet.getRow(2).eachCell((cell, colNumber) => {
-            headers[colNumber - 1] = (cell.value as string).trim()
-        })
-
-        const data = []
-        for (let i = 3; i <= sheet.rowCount; i++) {
-            const row = sheet.getRow(i)
-
-            if (row.getCell(1).value === null) continue
-            if (row.getCell(1).value === "RESUMO SEMENTES FISCALIZADAS") break
-
-            // Monta um objeto que mapeia header -> valor da célula
-            const rowData: Record<string, any> = {}
-            row.eachCell((cell, colNumber) => {
-            const header = headers[colNumber - 1]
-            rowData[header] = cell.value
-            })
-
-            const toFloat2 = (value: any) => Math.round(parseFloat(value) * 100) / 100
-            
-            // Pegando os dados do lote que realmente interessam
-            const batch = {
-                batch_number: rowData['LOTE'],
-                batch_year: parseInt(rowData['ANO']),
-                // ex1.: set/2024 --> 7 + 1 = 8 % 12 = 8 (setembro em um array de [0..11])
-                // ex2.: jan/2026 --> 11 + 1 = 12 % 12 = 0 (janeiro em um array de [0..11])
-                batch_month: (new Date(rowData['VCTO']).getMonth() + 1) % 12,
-                seed: rowData['VARIEDADE'],
-                coating: rowData['TIPO'],
-                brand: rowData['SC'],
-                sack_weight: toFloat2(rowData['P.SC.']),
-                sack_amount: parseInt(rowData['QT.SC.']),
-                total_weight: toFloat2(rowData['P.TOT.'].result),
-                pureness_score: toFloat2(rowData['PP']),
-                total_pureness_score: toFloat2(rowData['TOTAL PP'].result),
-                outflow_total_pureness_score: toFloat2(rowData['SAÍDAS PP']),
-                outflow_total_weight: toFloat2(rowData['SAÍDAS KG']),
-                usage: rowData['USO'],
-                batch_status: 1, // 1 = ativo
-                deleted_at: null,
-                origin: null
-            }
-            data.push(batch)
-        }
-        this.setBatchesFromSheetData(data)
-    },
-    setBatchesFromSheetData(data: RawBatch[]) {
-        this.$reset();
-
-        data.forEach(async (batch) => {
-            // Lotes
-            const batchForDB: BatchDB = formatBatchForDB(batch)
-
-            await invoke('add_batch', {
-                batch: batchForDB
-            }).then((res) => {
-                console.log(res);
-            }).catch(console.error);
-
-            // Saídas
-            const batchOutflowForDB = {
-                batch_number: batch.batch_number,
-                batch_year: batch.batch_year,
-                sack_amount: batch.sack_amount,
-                total_weight: batch.total_weight,
-                total_pureness_score: batch.total_pureness_score,
-                usage: batch.usage,
-            };
-
-            await invoke('add_outflow', {
-                new: batchOutflowForDB
-            }).then((res) => {
-                console.log(res);
-            }).catch(console.error);
-        });
-
-        this.fetchBatchesData();
-    },
     async fetchBatchesData() {
         try {
             this.batches = await invoke('list_batches');
-            this.batchOutflows = await invoke('list_outflows');
             
             this.dataTableBatches = this.batches.map(formatBatchForTable);
-            this.dataTableBatchOutflows = this.batchOutflows.map(formatOutflowForTable);
         } catch (err) {
             console.error(err);
             throw err;
@@ -123,6 +29,7 @@ export const useBatchesStore = defineStore('batches', {
                 batch: newBatch
             });
 
+            this.batches.push(createdBatch);
             this.dataTableBatches.push(formatBatchForTable(createdBatch));
         } catch (err) {
             console.error(err);
@@ -190,63 +97,6 @@ export const useBatchesStore = defineStore('batches', {
 
         return lastBatchNumber;
     },
-    async createOutflow(newOutflow: any) {
-        try {
-            const createdOutflow: BatchOutflowDB = await invoke('add_outflow', {
-                new: newOutflow
-            });
-
-            this.dataTableBatchOutflows.push(formatOutflowForTable(createdOutflow));
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
-    async editOutflow(outflow: DataTableBatchOutflow) {
-        try {
-            const editedOutflow: BatchOutflowDB = await invoke('change_outflow', {
-                id: outflow.id,
-                changes: outflow
-            });
-
-            // const index = this.dataTableBatchOutflows.findIndex(o => o.id === outflow.id);
-
-            // if (index !== -1) {
-            //     this.dataTableBatchOutflows[index] = formatOutflowForTable(editedOutflow);
-            // }
-
-            // this.batches = await invoke('list_batches');
-            await this.fetchBatchesData();
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
-    async removeOutflow(outflow: DataTableBatchOutflow) {
-        try {
-            await invoke('remove_outflow', {
-                id: outflow.id,
-            });
-
-            await this.fetchBatchesData();
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
-    async getBatchOutflows(batchNumber: number, batchYear: number): Promise<DataTableBatchOutflow[]> {
-        try {
-            const outflows: BatchOutflowDB[] = await invoke('list_outflows_by_batch', {
-                batchNumber: batchNumber,
-                batchYear: batchYear
-            })
-
-            return outflows.map(formatOutflowForTable);
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
     async getBatchBalance(batchNumber: number, batchYear: number): Promise<DataTableBalanceOutflow> {
         try {
             const outflowTotals: BalanceDB = await invoke('get_total_outflow', {
@@ -288,34 +138,6 @@ export const useBatchesStore = defineStore('batches', {
             console.error(err);
             throw err;
         }
-    },
-    getBatchBalance2(dataTableBatch: DataTableBatch, batchOutflows: DataTableBatchOutflow[]) {
-        const batch = this.batches.find(batch => batch.batch_number === dataTableBatch.batch_number && batch.batch_year === dataTableBatch.batch_year);
-
-        let BatchOutflowTotalPP = 0;
-        let BatchOutflowTotalWeight = 0;
-        let BatchOutflowTotalSackAmount = 0;
-
-        batchOutflows.forEach((batchOutflow) => {
-            BatchOutflowTotalPP += Number(batchOutflow.total_pureness_score);
-            BatchOutflowTotalWeight += Number(batchOutflow.total_weight);
-            BatchOutflowTotalSackAmount += Number(batchOutflow.sack_amount);
-        });
-
-        // Calculate totalPP and totalWeight from batch properties
-        const totalPP = batch ? batch.sack_amount * batch.sack_weight * batch.pureness_score : 0;
-        const totalWeight = batch ? batch.sack_amount * batch.sack_weight : 0;
-        const sackAmount = batch ? batch.sack_amount : 0;
-
-        const balancePP = totalPP - BatchOutflowTotalPP;
-        const balanceWeight = totalWeight - BatchOutflowTotalWeight;
-        const balanceSackAmount = sackAmount - BatchOutflowTotalSackAmount;
-
-        return [
-            { value: parseFloat(Math.max(balancePP, 0).toFixed(2)), name: 'Ponto de Pureza (PP)' },
-            { value: parseFloat(Math.max(balanceWeight, 0).toFixed(2)), name: 'Quantidade (Kg)' },
-            { value: parseFloat(Math.max(balanceSackAmount, 0).toFixed(2)), name: 'Sacos' }
-        ];
     },
     async downloadPdf() {
         let downloadData: any[] = [];
@@ -373,33 +195,6 @@ function normalizeText(text: string | null): string {
     : '';
 }
 
-function parseExpireDate(expireDate: number, year: number): string {
-  const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-  const month = monthNames[expireDate] || '--';
-  return `${month}/${year + 1}`;
-}
-
-function formatBatchForDB(batch: RawBatch): BatchDB {
-    const BatchForDB: BatchDB = {
-        batch_number: batch.batch_number,
-        batch_year: batch.batch_year,
-        batch_month: batch.batch_month,
-        seed: batch.seed,
-        coating: batch.coating,
-        brand: batch.brand,
-        sack_weight: batch.sack_weight,
-        sack_amount: batch.sack_amount,
-        total_weight: batch.total_weight,
-        pureness_score: batch.pureness_score,
-        total_pureness_score: batch.total_pureness_score,
-        batch_status: batch.batch_status,
-        deleted_at: batch.deleted_at,
-        origin: batch.origin,
-    };
-
-    return BatchForDB
-}
-
 function formatBatchForTable(batch: BatchDB): DataTableBatch {
     const batchForTable: DataTableBatch = {
         key: createDataTableKey(batch.batch_number, batch.batch_year),
@@ -432,29 +227,4 @@ function formatBatchForTable(batch: BatchDB): DataTableBatch {
     };
 
     return batchForTable
-}
-
-function formatOutflowForTable(batchOutflow: BatchOutflowDB): DataTableBatchOutflow {
-    const batchOutflowForTable: DataTableBatchOutflow = {
-        key: createDataTableKey(batchOutflow.batch_number, batchOutflow.batch_year),
-        id: batchOutflow.id,
-        batch_number: batchOutflow.batch_number,
-        batch_year: batchOutflow.batch_year,
-        sack_amount: batchOutflow.sack_amount,
-        total_weight: batchOutflow.total_weight.toLocaleString("pt-BR"),
-        total_pureness_score: batchOutflow.total_pureness_score.toLocaleString("pt-BR"),
-        pureness_score: (batchOutflow.total_pureness_score / batchOutflow.total_weight).toLocaleString("pt-BR"),
-        usage: batchOutflow.usage,
-        _searchIndex: normalizeText([
-            batchOutflow.batch_number,
-            batchOutflow.batch_year,
-            batchOutflow.sack_amount,
-            batchOutflow.total_weight.toLocaleString("pt-BR"),
-            batchOutflow.total_pureness_score.toLocaleString("pt-BR"), 
-            (batchOutflow.total_pureness_score / batchOutflow.total_weight).toLocaleString("pt-BR"),
-            batchOutflow.usage 
-        ].join(' '))
-    };
-
-    return batchOutflowForTable
 }

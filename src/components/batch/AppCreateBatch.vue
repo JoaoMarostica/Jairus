@@ -154,6 +154,9 @@
     </n-grid>
     <template #footer>
       <div style="display: flex; justify-content: flex-end; margin-top: 16px">
+        <n-button @click="cancel">
+          Cancelar
+        </n-button>
         <n-button type="primary" @click="handleSubmit">
           Criar Lote
         </n-button>
@@ -171,6 +174,7 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useGlobalStore } from '@/stores/globalStore'
 import { useSeedsStore } from '@/stores/seedsStore';
 import { storeToRefs } from 'pinia'
+import { parseNumber, formatNumber } from '@/utils/parsing';
 import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
 const createBatchModal = defineModel('modal', {
@@ -325,6 +329,11 @@ function handleSubmit(e: MouseEvent) {
   })
 }
 
+function cancel() {
+  createBatchModal.value = false
+  resetForm()
+}
+
 function resetForm() {
   form.batchNumber = null
   form.seed = null
@@ -357,26 +366,6 @@ function getNextBatchNumber() {
     return (lastBatchNumber + 1).toString()
   }
   return '1'
-}
-
-const parseNumber = (input: string): number | null => {
-  const cleaned = input.trim()
-    .replace(/\./g, '')
-    .replace(',', '.')
-
-  if (cleaned === '') return null
-
-  const num = Number(cleaned)
-  return isNaN(num) ? Number.NaN : num
-}
-
-const formatNumber = (value: number | null): string => {
-  if (value === null)
-    return ''
-  return value.toLocaleString('pt-BR', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 2
-  })
 }
 
 function positiveNumberValidator(_: any, value: number | string | null) {

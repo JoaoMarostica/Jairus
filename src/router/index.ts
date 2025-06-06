@@ -3,7 +3,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   // main pages routes
   { path: '/', name: 'batch', component: () => import('@/pages/BatchesPage.vue') },
-  { path: '/spv-calculator', name: 'spaCalculator', component: () => import('@/pages/SpvCalculatorPage.vue') },
 
   // static pages routes
   { path: '/about', name: 'about', component: () => import('@/pages/AboutPage.vue') },

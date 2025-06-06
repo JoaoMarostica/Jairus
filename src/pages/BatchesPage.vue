@@ -136,12 +136,13 @@ import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import * as batchesUtils from '@/utils/batches'
 import { ref, computed, reactive, watch, onMounted, h } from 'vue';
 import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteForeverOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound, PostAddOutlined } from '@vicons/material'
-import AppBatchDetails from '@/components/AppBatchDetails.vue';
-import AppCreateOutflow from '@/components/AppCreateOutflow.vue';
-import AppCreateBatch from '@/components/AppCreateBatch.vue';
-import AppEditBatch from '@/components/AppEditBatch.vue';
-import AppRemoveBatch from '@/components/AppRemoveBatch.vue';
+import AppBatchDetails from '@/components/batch/AppBatchDetails.vue';
+import AppCreateOutflow from '@/components/outflow/AppCreateOutflow.vue';
+import AppCreateBatch from '@/components/batch/AppCreateBatch.vue';
+import AppEditBatch from '@/components/batch/AppEditBatch.vue';
+import AppRemoveBatch from '@/components/batch/AppRemoveBatch.vue';
 import { useBatchesStore } from '@/stores/batchesStore';
+import { useOutflowsStore } from '@/stores/outflowsStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
 import type { DataTableBatch } from '@/types/batches';
@@ -163,6 +164,8 @@ const { fileUploadModal } = storeToRefs(globalStore);
 
 const batchesStore = useBatchesStore();
 const { dataTableBatches, selectedBatches } = storeToRefs(batchesStore);
+
+const outflowsStore = useOutflowsStore();
 
 const selectedBatch = ref<any>(null);
 const search = ref('');
@@ -241,7 +244,7 @@ onMounted(async () => {
     setYearFilterOptions();
 
     try {
-      await batchesStore.fetchBatchesData();
+      await fetchData();
 
       // globalStore.showMessage({
       //   content: 'Lotes carregados com sucesso!',
@@ -269,6 +272,11 @@ watch(dataTableBatches.value, () => {
     type: 'success',
   });
 });
+
+async function fetchData() {
+  await batchesStore.fetchBatchesData();
+  await outflowsStore.fetchOutflowsData();
+}
 
 function openCreateBatchModal() {
   createBatchModal.value = true

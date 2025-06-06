@@ -92,6 +92,9 @@
     </n-grid>
     <template #footer>
       <div style="display: flex; justify-content: flex-end; margin-top: 16px">
+        <n-button @click="cancel">
+          Cancelar
+        </n-button>
         <n-button type="primary" @click="handleSubmit">
           Adicionar Saída
         </n-button>
@@ -104,9 +107,10 @@
 import { computed, ref, reactive, watch } from 'vue'
 import type { FormInst, FormRules } from 'naive-ui'
 import { NModal, NInput, NButton, NForm, NFormItem, NDescriptions, NDescriptionsItem, NGi, NGrid, NInputNumber } from 'naive-ui'
-import { BatchOutflowDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
-import { useGlobalStore } from '@/stores/globalStore'
+import { useOutflowsStore } from '@/stores/outflowsStore';
+import { useGlobalStore } from '@/stores/globalStore';
+import { parsePtBrNumber } from '@/utils/parsing';
 
 const createOutflowModal = defineModel('modal', {
   type: Boolean,
@@ -115,6 +119,7 @@ const createOutflowModal = defineModel('modal', {
 
 const globalStore = useGlobalStore()
 const batchesStore = useBatchesStore()
+const outflowsStore = useOutflowsStore();
 
 const modalTitle = computed(() =>
   selectedBatch.value
@@ -213,17 +218,17 @@ async function handleSubmit(e: MouseEvent) {
       }
 
       try {
-        await batchesStore.createOutflow(outflow)
+        await outflowsStore.createOutflow(outflow)
         
         globalStore.showMessage({
-          content: 'Saída criada com successo!',
+          content: 'Pedido criado com successo!',
           type: 'success',
         })
         createOutflowModal.value = false
         resetForm()
       } catch (error: any) {
         globalStore.showMessage({
-          content: `Erro ao criar saída: ${error?.message || error}`,
+          content: `Erro ao criar pedido: ${error?.message || error}`,
           type: 'error',
         })
       }
@@ -237,37 +242,17 @@ async function handleSubmit(e: MouseEvent) {
   })
 }
 
+function cancel() {
+  createOutflowModal.value = false
+  resetForm()
+}
+
 function resetForm() {
   form.usage = null
   form.sackAmount = null
   // form.totalWeight = null
   // form.totalPurenessScore = null
   // inputMode.value = null
-}
-
-function parsePtBrNumber(value: string | null): number {
-  if (!value) return 0
-  return Number(value.replace(/\./g, '').replace(',', '.'))
-}
-
-const parseNumber = (input: string): number | null => {
-  const cleaned = input.trim()
-    .replace(/\./g, '')
-    .replace(',', '.')
-
-  if (cleaned === '') return null
-
-  const num = Number(cleaned)
-  return isNaN(num) ? Number.NaN : num
-}
-
-const formatNumber = (value: number | null): string => {
-  if (value === null)
-    return ''
-  return value.toLocaleString('pt-BR', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 2
-  })
 }
 
 function positiveNumberValidator(_: any, value: number | string | null) {

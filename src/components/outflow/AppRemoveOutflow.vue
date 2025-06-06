@@ -3,9 +3,8 @@
     v-model:show="removeOutflowModal"
     style="width: 400px;"
     :mask-closable="false"
-    :z-index="3000"
     :closable="true"
-    preset="card"
+    preset="dialog"
     type="error"
     :title="modalTitle"
     content="Tem certeza que deseja remover este pedido? Esta ação é irreversível e excluirá completamente todos os dados associados."
@@ -18,7 +17,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useBatchesStore } from '@/stores/batchesStore'
+import { useOutflowsStore } from '@/stores/outflowsStore';
 import { useGlobalStore } from '@/stores/globalStore'
 import { NModal } from 'naive-ui'
 
@@ -28,36 +27,35 @@ const removeOutflowModal = defineModel('modal', {
 })
 
 const emit = defineEmits<{
-  (e: 'close'): void
+  (e: 'reloadData'): void
 }>()
 
 const props = defineProps<{
   selectedOutflow: any
 }>()
 
-const batchesStore = useBatchesStore()
-
+const outflowsStore = useOutflowsStore();
 const globalStore = useGlobalStore()
 
 const selectedOutflow = computed(() => props.selectedOutflow)
 
 const modalTitle = computed(() =>
   props.selectedOutflow?.usage
-    ? `Remoção do Pedido ${props.selectedOutflow.usage}}`
+    ? `Remoção do Pedido ${props.selectedOutflow.usage}`
     : 'Remoção de Pedido'
 )
 
 async function confirmRemove() {
   try {
-    await batchesStore.removeOutflow(selectedOutflow.value)
+    await outflowsStore.removeOutflow(selectedOutflow.value)
 
     globalStore.showMessage({
       content: 'Pedido removido com sucesso!',
       type: 'success',
     })
 
+    emit('reloadData')
     removeOutflowModal.value = false
-    emit('close')
   } catch (error: any) {
     globalStore.showMessage({
       content: `Erro ao remover pedido: ${error?.message || error}`,

@@ -33,7 +33,9 @@ import { ArchiveOutlined } from '@vicons/material'
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
+import { useSheetStore } from '@/stores/sheetStore';
 import { useBatchesStore } from '@/stores/batchesStore';
+import { useOutflowsStore } from '@/stores/outflowsStore';
 import { UploadFileInfo } from 'naive-ui'
 import {
   NModal,
@@ -48,9 +50,16 @@ import {
 const globalStore = useGlobalStore();
 const { fileUploadModal } = storeToRefs(globalStore);
 
-const batchStore = useBatchesStore();
+const batchesStore = useBatchesStore();
+const outflowsStore = useOutflowsStore();
+const sheetStore = useSheetStore();
 
 const loading = ref(false)
+
+async function fetchData() {
+  await batchesStore.fetchBatchesData();
+  await outflowsStore.fetchOutflowsData();
+}
 
 async function handleFileChange({ file }: { file: UploadFileInfo }) {
   if (loading.value) return
@@ -63,12 +72,13 @@ async function handleFileChange({ file }: { file: UploadFileInfo }) {
     return
   }
 
-  batchStore.importBatchesFromSheet(rawFile)
-    .then(() => {
+  sheetStore.importBatchesFromSheet(rawFile)
+    .then(async () => {
       globalStore.showMessage({
         content: 'Planilha lida com sucesso!',
         type: 'success',
       })
+      await fetchData();
       fileUploadModal.value = false
     })
     .catch((err) => {

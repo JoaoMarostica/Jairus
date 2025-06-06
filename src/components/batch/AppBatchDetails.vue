@@ -97,8 +97,8 @@
         </n-grid-item>
       </n-grid>
     <!-- Outflow CRUD -->
-    <AppEditOutflow v-model:modal="editOutflowModal" :selectedOutflow="selectedOutflow" @close="batchDetailsModal = true" />
-    <AppRemoveOutflow v-model:modal="removeOutflowModal" :selectedOutflow="selectedOutflow" @close="batchDetailsModal = true" />
+    <AppEditOutflow v-model:modal="editOutflowModal" :selectedOutflow="selectedOutflow" @reloadData="reloadData" />
+    <AppRemoveOutflow v-model:modal="removeOutflowModal" :selectedOutflow="selectedOutflow" @reloadData="reloadData" />
   </n-modal>
 
 </template>
@@ -109,19 +109,22 @@ import type { DataTableBatchOutflow } from '@/types/batches';
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import { computed, h, nextTick, ref, watch } from 'vue'
 import * as echarts from 'echarts'
-import { useBatchesStore } from '@/stores/batchesStore';
+import { parsePtBrNumber } from '@/utils/parsing';
+import { useOutflowsStore } from '@/stores/outflowsStore';
+import { useBalancesStore } from '@/stores/balancesStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
 import { DeleteOutlined, EditOutlined, MoreVertOutlined } from '@vicons/material';
-import AppEditOutflow from '@/components/AppEditOutflow.vue';
-import AppRemoveOutflow from '@/components/AppRemoveOutflow.vue';
+import AppEditOutflow from '@/components/outflow/AppEditOutflow.vue';
+import AppRemoveOutflow from '@/components/outflow/AppRemoveOutflow.vue';
 
 type BatchBalance = {value: number; name: string};
 
 const globalStore = useGlobalStore();
 const { theme } = storeToRefs(globalStore);
 
-const batchesStore = useBatchesStore();
+const outflowsStore = useOutflowsStore();
+const balancesStore = useBalancesStore();
 
 const props = defineProps<{
   selectedBatch: any
@@ -156,6 +159,12 @@ watch(batchDetailsModal, async (val) => {
   await getbatchBalance();
   renderCharts();
 });
+
+async function reloadData() {
+  await getbatchOutflow();
+  await getbatchBalance();
+  renderCharts();
+}
 
 function renderCharts() {
   const isDark = theme.value === 'dark'
@@ -277,7 +286,7 @@ function closeModal(model: boolean) {
 
 async function getbatchOutflow() {
   try {
-    outflowData.value = await batchesStore.getBatchOutflows(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
+    outflowData.value = await outflowsStore.getBatchOutflows(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
 
     // globalStore.showMessage({
     //   content: 'Pedidos carregados com sucesso!',
@@ -294,7 +303,7 @@ async function getbatchOutflow() {
 
 async function getbatchBalance() {
   try {
-    const balance = await batchesStore.getBatchBalance(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
+    const balance = await balancesStore.getBatchBalance(selectedBatch.value)
 
     batchBalance.value = [
       { value: parsePtBrNumber(balance.total_pureness_score), name: 'Ponto de Pureza (PP)' },
@@ -400,31 +409,6 @@ function createColumns() {
       }
     }
   ]
-}
-
-function parsePtBrNumber(value: string | null): number {
-  if (!value) return 0
-  return Number(value.replace(/\./g, '').replace(',', '.'))
-}
-
-const parseNumber = (input: string): number | null => {
-  const cleaned = input.trim()
-    .replace(/\./g, '')
-    .replace(',', '.')
-
-  if (cleaned === '') return null
-
-  const num = Number(cleaned)
-  return isNaN(num) ? Number.NaN : num
-}
-
-const formatNumber = (value: number | null): string => {
-  if (value === null)
-    return ''
-  return value.toLocaleString('pt-BR', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 2
-  })
 }
 
 </script>

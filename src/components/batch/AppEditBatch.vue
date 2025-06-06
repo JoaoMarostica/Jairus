@@ -1,9 +1,8 @@
 <template>
   <n-modal
-    v-model:show="editOutflowModal"
+    v-model:show="editBatchModal"
     style="width: 1000px;"
     :mask-closable="false"
-    :z-index="3000"
     preset="card"
     :closable="true"
     :title="modalTitle"
@@ -153,7 +152,10 @@
     </n-grid>
     <template #footer>
       <div style="display: flex; justify-content: flex-end; margin-top: 16px">
-        <n-button type="primary" @click="editBatch">
+        <n-button @click="cancel">
+          Cancelar
+        </n-button>
+        <n-button type="primary" @click="handleSubmit">
           Editar Lote
         </n-button>
       </div>
@@ -170,16 +172,13 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useGlobalStore } from '@/stores/globalStore'
 import { useSeedsStore } from '@/stores/seedsStore';
 import { storeToRefs } from 'pinia'
+import { parsePtBrNumber, parseNumber, formatNumber } from '@/utils/parsing';
 import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
-const editOutflowModal = defineModel('modal', {
+const editBatchModal = defineModel('modal', {
   type: Boolean,
   default: false
 })
-
-const emit = defineEmits<{
-  (e: 'close'): void
-}>()
 
 const globalStore = useGlobalStore()
 const batchesStore = useBatchesStore()
@@ -188,8 +187,8 @@ const settingsStore = useSettingsStore()
 const { coatings, brands } = storeToRefs(settingsStore)
 const { seeds } = storeToRefs(seedsStore)
 const modalTitle = computed(() =>
-  props.selectedOutflow?.batch_number
-    ? `Edição do Lote ${props.selectedOutflow.batch_number}/${String(props.selectedOutflow.batch_year).slice(-2)}`
+  props.selectedBatch?.batch_number
+    ? `Edição do Lote ${props.selectedBatch.batch_number}/${String(props.selectedBatch.batch_year).slice(-2)}`
     : 'Edição de Lote'
 )
 
@@ -204,10 +203,10 @@ const batchNumberInputFeedback = computed(() => {
 })
 
 const props = defineProps<{
-  selectedOutflow: any
+  selectedBatch: any
 }>()
 
-const selectedOutflow = computed(() => props.selectedOutflow)
+const selectedBatch = computed(() => props.selectedBatch)
 
 const formRef = ref<FormInst | null>(null)
 const size = ref<'small' | 'medium' | 'large'>('medium')
@@ -253,22 +252,22 @@ const totalPP = computed(() => {
 })
 
 watch(props, () => {
-  if (selectedOutflow.value && editOutflowModal.value) {
+  if (selectedBatch.value && editBatchModal.value) {
     prefillForm()
   }
 })
 
 function prefillForm() {
-  form.batchNumber = selectedOutflow.value.batch_number || null
-  form.seed = selectedOutflow.value.seed || null
-  form.coating = selectedOutflow.value.coating || null
-  form.sackBrand = selectedOutflow.value.brand || null
-  form.sackAmount = selectedOutflow.value.sack_amount || null
-  form.sackWeight = formatNumber(selectedOutflow.value.sack_weight) || null
-  form.purenessScore = parsePtBrNumber(selectedOutflow.value.pureness_score) || null
+  form.batchNumber = selectedBatch.value.batch_number || null
+  form.seed = selectedBatch.value.seed || null
+  form.coating = selectedBatch.value.coating || null
+  form.sackBrand = selectedBatch.value.brand || null
+  form.sackAmount = selectedBatch.value.sack_amount || null
+  form.sackWeight = formatNumber(selectedBatch.value.sack_weight) || null
+  form.purenessScore = parsePtBrNumber(selectedBatch.value.pureness_score) || null
 
-  year.value = selectedOutflow.value.batch_year
-  expireDate.value = selectedOutflow.value.expire_date
+  year.value = selectedBatch.value.batch_year
+  expireDate.value = selectedBatch.value.expire_date
 
   const y = year.value ?? 0
   const m = expireDate.value ? monthMap[expireDate.value.split('/')[0].toLowerCase()] : 0
@@ -290,7 +289,7 @@ const monthMap: Record<string, number> = {
   dez: 11
 }
 
-function editBatch(e: MouseEvent) {
+function handleSubmit(e: MouseEvent) {
   e.preventDefault()
 
   const parsedWeight = parsePtBrNumber(totalWeight.value)
@@ -329,8 +328,7 @@ function editBatch(e: MouseEvent) {
           content: 'Lote editado com successo!',
           type: 'success',
         })
-        editOutflowModal.value = false
-        emit('close')
+        editBatchModal.value = false
       } catch (error: any) {
         globalStore.showMessage({
           content: `Erro ao editar lote: ${error?.message || error}`,
@@ -348,6 +346,21 @@ function editBatch(e: MouseEvent) {
   })
 }
 
+function cancel() {
+  editBatchModal.value = false
+  resetForm()
+}
+
+function resetForm() {
+  form.batchNumber = null
+  form.seed = null
+  form.coating = null
+  form.sackBrand = null
+  form.sackAmount = null
+  form.sackWeight = null
+  form.purenessScore = null
+}
+
 function parseExpireDate(value: number | null) {
   if (value) {
     const date = new Date(value)
@@ -356,31 +369,6 @@ function parseExpireDate(value: number | null) {
   } else {
     form.timestamp = null
   }
-}
-
-function parsePtBrNumber(value: string | null): number {
-  if (!value) return 0
-  return Number(value.replace(/\./g, '').replace(',', '.'))
-}
-
-const parseNumber = (input: string): number | null => {
-  const cleaned = input.trim()
-    .replace(/\./g, '')
-    .replace(',', '.')
-
-  if (cleaned === '') return null
-
-  const num = Number(cleaned)
-  return isNaN(num) ? Number.NaN : num
-}
-
-const formatNumber = (value: number | null): string => {
-  if (value === null)
-    return ''
-  return value.toLocaleString('pt-BR', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 2
-  })
 }
 
 function positiveNumberValidator(_: any, value: number | string | null) {
@@ -395,7 +383,7 @@ const rules = {
     required: true,
     validator: (rule: any, value: string) => {
       const batchKey = `${value}${String(year.value)}`
-      if (batchesStore.getBatchKeys.includes(batchKey) && selectedOutflow.value?.key !== batchKey) {
+      if (batchesStore.getBatchKeys.includes(batchKey) && selectedBatch.value?.key !== batchKey) {
         return Promise.reject(`Lote ${value}/${String(year.value).slice(-2)} já existe!`)
       }
       return Promise.resolve()

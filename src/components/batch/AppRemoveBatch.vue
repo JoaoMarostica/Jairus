@@ -58,7 +58,6 @@ async function removeBatch() {
       content: 'Lote removido com sucesso!',
       type: 'success',
     })
-
     removeBatchModal.value = false
   } catch (error: any) {
     globalStore.showMessage({
