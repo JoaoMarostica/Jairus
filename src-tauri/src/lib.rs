@@ -41,13 +41,15 @@ pub fn run() {
             outflow_commands::list_outflows,
             outflow_commands::get_total_outflow,
             outflow_commands::remove_outflow,
-            outflow_commands::get_total_outflow,
 
             seed_commands::add_seed,
             seed_commands::get_seed,
             seed_commands::list_seeds,
             seed_commands::change_seed,
-            seed_commands::remove_seed
+            seed_commands::remove_seed,
+
+            batch_commands::get_stock_report_command,
+            batch_commands::generate_detailed_batch_pdf_report_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
