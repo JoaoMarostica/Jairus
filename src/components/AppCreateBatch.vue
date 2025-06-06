@@ -20,11 +20,11 @@
           <n-form-item
             :span="12"
             label="Número do Lote"
-            path="batch_number"
+            path="batchNumber"
             :validation-status="batchNumberInputStatus"
             :feedback="batchNumberInputFeedback"
           >
-            <n-input v-model:value="form.batch_number" placeholder="Digite o número do lote" clearable />
+            <n-input v-model:value="form.batchNumber" placeholder="Digite o número do lote" clearable />
           </n-form-item>
           <n-form-item
             :span="12"
@@ -103,7 +103,7 @@
           :column="1"
           title="Resumo do Lote"
           size="small"
-          v-if="form.batch_number || 
+          v-if="form.batchNumber || 
             year || 
             expireDate || 
             form.seed || 
@@ -115,8 +115,8 @@
             form.purenessScore || 
             totalPP"
         >
-          <n-descriptions-item label="Número do Lote" v-if="form.batch_number">
-            {{ form.batch_number }}
+          <n-descriptions-item label="Número do Lote" v-if="form.batchNumber">
+            {{ form.batchNumber }}
           </n-descriptions-item>
           <n-descriptions-item label="Ano" v-if="year">
             {{ year }}
@@ -153,7 +153,7 @@
     </n-grid>
     <template #footer>
       <div style="display: flex; justify-content: flex-end; margin-top: 16px">
-        <n-button type="primary" @click="createBatch" :disabled="batchNumberInputStatus === 'error'">
+        <n-button type="primary" @click="handleSubmit">
           Criar Lote
         </n-button>
       </div>
@@ -162,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, watchEffect, watch } from 'vue'
+import { computed, ref, reactive, watch } from 'vue'
 import { NModal, NInput, FormInst, NSelect, NButton, NForm, NFormItem, NDatePicker, NDescriptions, NDescriptionsItem, NGi, NGrid, NInputNumber } from 'naive-ui'
 import { BatchDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
@@ -186,8 +186,8 @@ const { coatings, brands } = storeToRefs(settingsStore)
 const { seeds } = storeToRefs(seedsStore)
 
 const modalTitle = computed(() =>
-  form?.batch_number
-    ? `Novo Lote ${form.batch_number}/${String(year.value).slice(-2)}`
+  form?.batchNumber
+    ? `Novo Lote ${form.batchNumber}/${String(year.value).slice(-2)}`
     : 'Novo Lote'
 )
 
@@ -201,24 +201,17 @@ const batchNumberInputFeedback = computed(() => {
     : undefined
 })
 
-const batchTotalWeightInputStatus = ref<FormValidationStatus | undefined>(undefined)
-// const batchTotalWeightInputFeedback = computed(() => {
-//   return batchTotalWeightInputStatus.value === 'error'
-//     ? 'Acima do limite de 10.000 Kg'
-//     : undefined
-// })
-
 const formRef = ref<FormInst | null>(null)
 const size = ref<'small' | 'medium' | 'large'>('medium')
 const form = reactive({
-  batch_number: null as string | null,
+  batchNumber: null as string | null,
   timestamp: null as number | null,
-  seed: null,
-  coating: null,
-  sackBrand: null,
-  sackAmount: null,
-  sackWeight: null,
-  purenessScore: null,
+  seed: null as string | null,
+  coating: null as string | null,
+  sackBrand: null as string | null,
+  sackAmount: null as number | null,
+  sackWeight: null as string | null,
+  purenessScore: null as number | null,
 })
 
 const seedsOptions = computed(() => {
@@ -239,9 +232,7 @@ const sackWeightsOptions = computed(() => {
 })
 
 const totalWeight = computed(() => {
-  const amount = Number(form.sackAmount)
-  const weight = Number(form.sackWeight)
-  const totalWeight = amount * weight
+  const totalWeight = Number(form.sackAmount) * parsePtBrNumber(form.sackWeight)
 
   return totalWeight === 0 ? null : totalWeight.toLocaleString("pt-BR")
 })
@@ -253,42 +244,12 @@ const totalPP = computed(() => {
   return total === 0 ? null : (Math.round(total * 100) / 100).toLocaleString("pt-BR")
 })
 
-watchEffect(() => {
-  batchNumberInputStatus.value = undefined
-  batchTotalWeightInputStatus.value = undefined
-
-  if (form.batch_number) {
-    const batchKey = `${form.batch_number}${String(year.value)}`
-
-    if (batchesStore.getBatchKeys.includes(batchKey)) {
-      batchNumberInputStatus.value = 'error'
-    }
-  }
-  if (totalWeight.value !== null && parsePtBrNumber(totalWeight.value) > 10000) {
-    batchTotalWeightInputStatus.value = 'error'
-  }
-})
-
 watch(createBatchModal, () => {
   if (createBatchModal.value) {
-    form.batch_number = getNextBatchNumber()
+    form.batchNumber = getNextBatchNumber()
+    parseExpireDate(Date.now())
   } else {
     resetForm()
-  }
-})
-
-watchEffect(() => {
-  batchNumberInputStatus.value = undefined
-  if (form.batch_number) {
-    const batchKey = `${form.batch_number}${String(year.value)}`
-
-    if (batchesStore.getBatchKeys.some(key => key === batchKey)) {
-      globalStore.showMessage({
-        content: `Lote ${form.batch_number}/${String(year.value).slice(-2)} já existe!`,
-        type: 'error',
-      })
-      batchNumberInputStatus.value = 'error'
-    }
   }
 })
 
@@ -307,97 +268,43 @@ const monthMap: Record<string, number> = {
   dez: 11
 }
 
-const rules = {
-  batch_number: {
-    required: true,
-    trigger: ['blur', 'input'],
-    message: 'Campo obrigatório',
-  },
-  timestamp: {
-    required: true,
-    type: 'number' as const,
-    trigger: ['blur', 'change'],
-    message: 'Campo obrigatório'
-  },
-  seed: {
-    required: true,
-    trigger: ['blur', 'change'],
-    message: 'Campo obrigatório'
-  },
-  coating: {
-    required: true,
-    trigger: ['blur', 'change'],
-    message: 'Campo obrigatório'
-  },
-  purenessScore: {
-    required: true,
-    type: 'number' as const,
-    trigger: ['blur', 'change'],
-    message: 'Campo obrigatório'
-  },
-  sackBrand: {
-    required: true,
-    trigger: ['blur', 'change'],
-    message: 'Campo obrigatório'
-  },
-  sackAmount: {
-    required: true,
-    type: 'number' as const,
-    trigger: ['blur', 'change'],
-    message: 'Campo obrigatório'
-  },
-  sackWeight: {
-    required: true,
-    trigger: ['blur', 'change'],
-    message: 'Campo obrigatório'
-  },
-}
-
-function parseExpireDate(value: number | null) {
-  if (value) {
-    const date = new Date(value)
-    year.value = date.getFullYear()
-    expireDate.value = `${date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}/${year.value + 1}`
-  } else {
-    form.timestamp = null
-  }
-}
-
-function getNextBatchNumber() {
-  const lastBatchNumber = batchesStore.getLastBatch()
-  if (lastBatchNumber) {
-    return (lastBatchNumber + 1).toString()
-  }
-  return '1'
-}
-
-
-function createBatch(e: MouseEvent) {
+function handleSubmit(e: MouseEvent) {
   e.preventDefault()
+
+  const parsedWeight = parsePtBrNumber(totalWeight.value)
+
+  if (parsedWeight > 10000) {
+    globalStore.showMessage({
+      content: 'O quantidade (Kg) não pode ultrapassar 10.000 kg.',
+      type: 'error',
+    })
+    return
+  }
+
   formRef.value?.validate(async (errors) => {
     if (!errors) {
       const batch: BatchDB = {
-        batch_number: Number(form.batch_number),
+        batch_number: Number(form.batchNumber),
         batch_year: Number(year.value),
         batch_month: expireDate.value ? monthMap[expireDate.value.split('/')[0].toLowerCase()] : 0,
         seed: form.seed || '',
         coating: form.coating || '',
         brand: form.sackBrand || '',
-        sack_weight: Number(form.sackWeight),
+        sack_weight: parsePtBrNumber(form.sackWeight),
         sack_amount: Number(form.sackAmount),
-        total_weight: parsePtBrNumber(totalWeight.value),
+        total_weight: parsedWeight,
         pureness_score: Number(form.purenessScore),
         total_pureness_score: parsePtBrNumber(totalPP.value),
         batch_status: 1,
         deleted_at: null,
-        origin: null
+        origin: null,
       }
 
       try {
         await batchesStore.createBatch(batch)
-        
+
         globalStore.showMessage({
-          content: 'Lote criado com successo!',
+          content: 'Lote criado com sucesso!',
           type: 'success',
         })
         createBatchModal.value = false
@@ -413,13 +320,12 @@ function createBatch(e: MouseEvent) {
         content: 'Preencha todos os campos obrigatórios.',
         type: 'error',
       })
-      return
     }
   })
 }
 
 function resetForm() {
-  form.batch_number = null
+  form.batchNumber = null
   form.seed = null
   form.coating = null
   form.sackBrand = null
@@ -431,6 +337,25 @@ function resetForm() {
 function parsePtBrNumber(value: string | null): number {
   if (!value) return 0
   return Number(value.replace(/\./g, '').replace(',', '.'))
+}
+
+function parseExpireDate(value: number | null) {
+  if (value) {
+    const date = new Date(value)
+    year.value = date.getFullYear()
+    expireDate.value = `${date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}/${year.value + 1}`
+    form.timestamp = value
+  } else {
+    form.timestamp = null
+  }
+}
+
+function getNextBatchNumber() {
+  const lastBatchNumber = batchesStore.getLastBatch()
+  if (lastBatchNumber) {
+    return (lastBatchNumber + 1).toString()
+  }
+  return '1'
 }
 
 const parseNumber = (input: string): number | null => {
@@ -451,6 +376,83 @@ const formatNumber = (value: number | null): string => {
     minimumFractionDigits: 1,
     maximumFractionDigits: 2
   })
+}
+
+function positiveNumberValidator(_: any, value: number | string | null) {
+  if (Number(value) <= 0) {
+    return new Error('Deve ser maior que zero')
+  }
+  return true
+}
+
+const rules = {
+  batchNumber: {
+    required: true,
+    validator: (rule: any, value: string) => {
+      const batchKey = `${value}${String(year.value)}`
+      if (batchesStore.getBatchKeys.includes(batchKey)) {
+        return Promise.reject(`Lote ${value}/${String(year.value).slice(-2)} já existe!`)
+      }
+      return Promise.resolve()
+    },
+    trigger: ['input', 'blur'],
+  },
+  timestamp: {
+    required: true,
+    type: 'number' as const,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+  seed: {
+    required: true,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+  coating: {
+    required: true,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+  sackBrand: {
+    required: true,
+    trigger: ['blur', 'change'],
+    message: 'Campo obrigatório'
+  },
+  sackAmount: [
+    {
+      required: true,
+      type: 'number' as const,
+      trigger: ['blur', 'change'],
+      message: 'Campo obrigatório'
+    },
+    {
+      validator: positiveNumberValidator,
+      trigger: ['blur', 'change']
+    }
+  ],
+  sackWeight: [
+    {
+      required: true,
+      trigger: ['blur', 'change'],
+      message: 'Campo obrigatório'
+    },
+    {
+      validator: positiveNumberValidator,
+      trigger: ['blur', 'change']
+    }
+  ],
+  purenessScore: [
+    {
+      required: true,
+      type: 'number' as const,
+      trigger: ['blur', 'change'],
+      message: 'Campo obrigatório'
+    },
+    {
+      validator: positiveNumberValidator,
+      trigger: ['blur', 'change']
+    }
+  ],
 }
 
 </script>
