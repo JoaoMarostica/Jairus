@@ -7,7 +7,7 @@ export const useSeedsStore = defineStore('seeds', {
   state: () => ({
     seeds: [] as SeedDB[],
     dataTableSeeds: [] as DataTableSeed[],
-    jsonMigration: false,
+    jsonMigration: false, //remover futuramente
   }),
   actions: {
     async fetchSeeds() {
@@ -23,56 +23,44 @@ export const useSeedsStore = defineStore('seeds', {
                 this.dataTableSeeds.push(formatSeedForTable(seed))
             );
 
-            // Migração automática na primeira carga
-            if (!this.jsonMigration && this.seeds.length === 0) {
-                await this.migrateJsonToDatabase();
-                this.jsonMigration= true;
-                this.seeds = await invoke('list_seeds');
-                this.dataTableSeeds = [];
-                this.seeds.forEach((seed: SeedDB) =>
+            // Migração automática na primeira carga -- remover futuramentea
+           
+            await this.migrateJsonToDatabase();
+            this.seeds = await invoke('list_seeds');
+            this.dataTableSeeds = [];
+            this.seeds.forEach((seed: SeedDB) =>
                 this.dataTableSeeds.push(formatSeedForTable(seed))
-                );
-            }
+            );
+        
 
         } catch (err) {
             console.error(err);
         }
     },
+    //remover futuramente
     async migrateJsonToDatabase() {
         try {
-            console.log('Iniciando migração dos seeds do JSON para o banco...');
+            console.log('Iniciando migração');
             
             let migratedCount = 0;
             let skippedCount = 0;
             
             for (const jsonSeed of cultivarsInfo) {
                 const seedForDB = formatSeedForDB(jsonSeed);
-                
-                // Verifica se já existe no banco
-                const existsInDB = this.seeds.find(
-                    s => s.popular_name.toLowerCase() === seedForDB.popular_name.toLowerCase()
-                );
-                
-                if (!existsInDB) {
-                    try {
-                        await invoke('add_seed', {
-                            new: seedForDB
-                        });
-                        migratedCount++;
-                        console.log(`✅ Migrado: ${seedForDB.popular_name}`);
-                    } catch (error) {
-                        console.error(`❌ Erro ao migrar ${seedForDB.popular_name}:`, error);
-                    }
-                } else {
+
+                try {
+                    await invoke('add_seed', {
+                        new: seedForDB
+                    });
+                    migratedCount++;
+                    console.log(`Migrado: ${seedForDB.popular_name}`);
+                } catch (error) {
                     skippedCount++;
                     console.log(`⏭️ Já existe: ${seedForDB.popular_name}`);
                 }
             }
             
-            // Atualiza a lista após migração
-            await this.fetchSeeds();
-            
-            console.log(`🎉 Migração concluída: ${migratedCount} adicionados, ${skippedCount} já existiam`);
+            console.log(`Migração concluída: ${migratedCount} adicionados, ${skippedCount} já existiam`);
             return { migratedCount, skippedCount };
             
         } catch (err) {
@@ -108,8 +96,13 @@ export const useSeedsStore = defineStore('seeds', {
     async editSeed(seed: SeedDB) {
             try {
                 const editedSeed: SeedDB = await invoke('change_seed', {
-                    seedName: seed.popular_name,
-                    scientificName: seed.scientific_name
+                    id: seed.popular_name,
+                    changes: {
+                        popular_name: seed.popular_name,
+                        scientific_name: seed.scientific_name
+
+                    }
+                   
                 });
     
                 const index = this.dataTableSeeds.findIndex(s => s.key === seed.popular_name);
@@ -127,7 +120,7 @@ export const useSeedsStore = defineStore('seeds', {
         async removeSeed(seed: DataTableSeed) {
             try {
                 await invoke('remove_seed', {
-                    seedName: seed.popular_name
+                    id: seed.popular_name
                 });
     
                 await this.fetchSeeds();

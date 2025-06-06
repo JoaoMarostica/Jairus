@@ -80,6 +80,7 @@
 <script setup lang="ts">
 import { ref, watch, h, onMounted} from 'vue'
 import { useSettingsStore } from '@/stores/settingsStore'
+import { useGlobalStore } from '@/stores/globalStore';
 import { useSeedsStore } from '@/stores/seedsStore';
 import { useCoatingsStore } from '@/stores/coatingsStore';
 import { useBrandsStore } from '@/stores/brandsStore';
@@ -95,6 +96,7 @@ import {
   NDataTable,
   NSpace,
   NIcon,
+  useDialog,
 } from 'naive-ui'
    
      
@@ -103,6 +105,8 @@ const settingsStore = useSettingsStore()
 const seedsStore = useSeedsStore()
 const coatingsStore = useCoatingsStore()
 const brandsStore = useBrandsStore()
+const globalStore = useGlobalStore()
+const dialog = useDialog() 
 
 const { settingsModal } = storeToRefs(settingsStore)
 const { dataTableSeeds } = storeToRefs(seedsStore)
@@ -147,29 +151,67 @@ function createSeedColumns() {
         titleAlign: 'center',
         align: 'center',
         width: '100px',
-        render() {
+        render(row) {
             return [
                 h(
                     NButton,
                     {
                     quaternary: true,
                     size: 'small',
-                    renderIcon: () => h(EditOutlined)
+                    renderIcon: () => h(EditOutlined),
+                        onClick: () => editSeedHandler(row) 
                     }
                 ),
                 h(
                     NButton,
                     {
-                    quaternary: true,
-                    size: 'small',
-                    type: 'error',
-                    renderIcon: () => h(DeleteOutlined)
+                        quaternary: true,
+                        size: 'small',
+                        type: 'error',
+                        renderIcon: () => h(DeleteOutlined),
+                        onClick: () => deleteSeedHandler(row) 
                     }
                 )
             ];
         }
     }
   ]
+}
+
+
+async function deleteSeedHandler(seed: any) {
+    dialog.warning({
+        title: 'Confirmar Exclusão',
+        content: `Tem certeza que deseja excluir a cultivar "${seed.popular_name}"?\n\n\nEsta ação não pode ser desfeita.`,
+        positiveText: 'Excluir',
+        negativeText: 'Cancelar',
+        positiveButtonProps: {
+            type: 'error'
+        },
+        onPositiveClick: async () => {
+            try {
+                await seedsStore.removeSeed(seed);
+                
+                globalStore.showMessage({
+                    content: `Cultivar "${seed.popular_name}" excluída com sucesso!`,
+                    type: 'success'
+                });
+            } catch (error: any) {
+                globalStore.showMessage({
+                    content: `Erro ao excluir cultivar: ${error?.message || error}`,
+                    type: 'error'
+                });
+            }
+        }
+    });
+}
+
+// editar (implementar depois)
+function editSeedHandler(seed: any) {
+    globalStore.showMessage({
+        content: 'Função de editar será implementada em breve',
+        type: 'info'
+    });
 }
 
 function createCoatingColumns() {
