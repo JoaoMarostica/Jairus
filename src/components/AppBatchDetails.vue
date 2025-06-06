@@ -63,6 +63,10 @@
         </n-grid-item>
       </n-grid>
     </div>
+
+    <!-- Outflow CRUD -->
+    <AppEditOutflow v-model:modal="editOutflowModal" :selectedOutflow="selectedOutflow" />
+    <AppRemoveOutflow v-model:modal="removeOutflowModal" :selectedOutflow="selectedOutflow" />
   </n-modal>
 </template>
 
@@ -70,12 +74,14 @@
 import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptionsItem, NEmpty, NButton, NIcon, NDropdown } from 'naive-ui'
 import type { DataTableBatchOutflow } from '@/types/batches';
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
-import { computed, h, nextTick, ref, watch } from 'vue'
+import { computed, h, nextTick, ref, watch, watchEffect } from 'vue'
 import * as echarts from 'echarts'
 import { useBatchesStore } from '@/stores/batchesStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { storeToRefs } from 'pinia';
 import { DeleteOutlined, EditOutlined, MoreVertOutlined } from '@vicons/material';
+import AppEditOutflow from '@/components/AppEditOutflow.vue';
+import AppRemoveOutflow from '@/components/AppRemoveOutflow.vue';
 
 type BatchBalance = {value: number; name: string};
 
@@ -95,6 +101,10 @@ const batchDetailsModal = defineModel('modal', {
 
 const selectedBatch = computed(() => props.selectedBatch)
 const modalTitle = ref(`Detalhes do Lote ${props.selectedBatch}`)
+const selectedOutflow = ref<any>(null);
+
+const editOutflowModal = ref<boolean>(false);
+const removeOutflowModal = ref<boolean>(false);
 
 const batchData = ref<{ titulo: string; valor: any; unidade: string }[]>([])
 const outflowChart = ref<HTMLElement | null>(null)
@@ -112,6 +122,13 @@ watch(batchDetailsModal, async () => {
     outflowData.value = batchesStore.getBatchOutflows(selectedBatch.value.key)
     batchBalance.value = batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
     renderCharts()
+  }
+})
+
+watchEffect(() => {
+  if (batchDetailsModal.value) {
+    outflowData.value = batchesStore.getBatchOutflows(selectedBatch.value.key)
+    batchBalance.value = batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
   }
 })
 
@@ -251,13 +268,13 @@ function getbatchData() {
 
 // Ações
 function handleEdit(outflow: any) {
-  // selectedBatch.value = outflow;
-  // editBatchModal.value = true;
+  selectedOutflow.value = outflow;
+  editOutflowModal.value = true;
 }
 
 function handleRemove(outflow: any) {
-  // selectedBatch.value = outflow;
-  // removeBatchModal.value = true;
+  selectedOutflow.value = outflow;
+  removeOutflowModal.value = true;
 }
 
 function createColumns() {

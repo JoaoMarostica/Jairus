@@ -24,7 +24,17 @@
           >
             <n-input v-model:value="form.usage" placeholder="Digite o número do pedido" clearable />
           </n-form-item>
-          <n-form-item :span="12" label="Total PP" path="totalPurenessScore">
+          <n-form-item :span="12" label="Quantidade de Sacos" path="sackAmount">
+            <n-input-number
+              v-model:value="form.sackAmount"
+              :step="1"
+              :precision="0"
+              placeholder="Digite a quantidade de sacos"
+              style="width: 100%"
+              clearable
+            />
+          </n-form-item>
+          <!-- <n-form-item :span="12" label="Total PP" path="totalPurenessScore">
             <n-input-number
               v-model:value="form.totalPurenessScore"
               :parse="parseNumber"
@@ -49,7 +59,7 @@
                 Kg
               </template>
             </n-input-number>
-          </n-form-item>
+          </n-form-item> -->
         </n-form>
       </n-gi>
 
@@ -61,30 +71,27 @@
           title="Resumo do Lote"
           size="small"
           v-if="form.usage || 
-            sackAmount ||
-            totalWeight || 
-            form.totalWeight ||
-            totalPP ||
-            form.totalPurenessScore"
+            parsePtBrNumber(totalWeight) > 0 || 
+            totalPP"
         >
           <n-descriptions-item label="Número do Lote" v-if="form.usage">
             {{ form.usage }}
           </n-descriptions-item>
-          <n-descriptions-item label="Quantidade de Sacos" v-if="sackAmount">
-            {{ sackAmount }}
+          <n-descriptions-item label="Quantidade de Sacos" v-if="form.sackAmount">
+            {{ form.sackAmount }}
           </n-descriptions-item>
-          <n-descriptions-item label="Quantidade (kg)" v-if="form.totalWeight || totalWeight">
-            {{ totalWeight || form.totalWeight }}
+          <n-descriptions-item label="Quantidade (kg)" v-if="parsePtBrNumber(totalWeight) > 0">
+            {{ totalWeight }}
           </n-descriptions-item>
-          <n-descriptions-item label="Total PP" v-if="form.totalPurenessScore || totalPP">
-            {{ totalPP || form.totalPurenessScore }}
+          <n-descriptions-item label="Total PP" v-if="totalPP">
+            {{ totalPP }}
           </n-descriptions-item>
         </n-descriptions>
       </n-gi>
     </n-grid>
     <template #footer>
       <div style="display: flex; justify-content: flex-end; margin-top: 16px">
-        <n-button type="primary" @click="createOutflow" :disabled="batchTotalWeightInputStatus === 'error'">
+        <n-button type="primary" @click="handleSubmit">
           Adicionar Saída
         </n-button>
       </div>
@@ -94,16 +101,11 @@
 
 <script setup lang="ts">
 import { computed, ref, reactive, watch } from 'vue'
-import type {
-  FormInst,
-  FormItemRule,
-  FormRules
-} from 'naive-ui'
+import type { FormInst, FormRules } from 'naive-ui'
 import { NModal, NInput, NButton, NForm, NFormItem, NDescriptions, NDescriptionsItem, NGi, NGrid, NInputNumber } from 'naive-ui'
 import { BatchOutflowDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
 import { useGlobalStore } from '@/stores/globalStore'
-import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
 const createOutflowModal = defineModel('modal', {
   type: Boolean,
@@ -119,13 +121,6 @@ const modalTitle = computed(() =>
     : 'Nova Saída'
 )
 
-const batchTotalWeightInputStatus = ref<FormValidationStatus | undefined>(undefined)
-// const batchTotalWeightInputFeedback = computed(() => {
-//   return batchTotalWeightInputStatus.value === 'error'
-//     ? 'Acima do limite de 10.000 Kg'
-//     : undefined
-// })
-
 const props = defineProps<{
   selectedBatch: any
 }>()
@@ -133,14 +128,15 @@ const props = defineProps<{
 const selectedBatch = computed(() => props.selectedBatch)
 const purenessScore = computed(() => selectedBatch.value.pureness_score || 0)
 
-const inputMode = ref<'totalPP' | 'totalWeight' | null>(null)
+// const inputMode = ref<'totalPP' | 'totalWeight' | null>(null)
 
 const formRef = ref<FormInst | null>(null)
 const size = ref<'small' | 'medium' | 'large'>('medium')
 const form = reactive({
   usage: null as string | null,
-  totalWeight: null as number | null,
-  totalPurenessScore: null as number | null,
+  sackAmount: null as number | null,
+  // totalWeight: null as number | null,
+  // totalPurenessScore: null as number | null,
 })
 
 watch(createOutflowModal, () => {
@@ -149,107 +145,61 @@ watch(createOutflowModal, () => {
   }
 })
 
-watch(() => form.totalWeight, () => {
-  if (form.totalWeight !== null) {
-    inputMode.value = 'totalWeight'
-  }
-})
+// watch(() => form.totalWeight, () => {
+//   if (form.totalWeight !== null) {
+//     inputMode.value = 'totalWeight'
+//   }
+// })
 
-watch(() => form.totalPurenessScore, () => {
-  if (form.totalPurenessScore !== null) {
-    inputMode.value = 'totalPP'
-  }
-})
+// watch(() => form.totalPurenessScore, () => {
+//   if (form.totalPurenessScore !== null) {
+//     inputMode.value = 'totalPP'
+//   }
+// })
 
-const sackAmount = computed(() => {
-  const sackWeight = selectedBatch.value.sack_weight
-  const sackAmount = (parsePtBrNumber(totalWeight.value) || form.totalWeight || 0) / sackWeight
+// const sackAmount = computed(() => {
+//   const sackWeight = selectedBatch.value.sack_weight
+//   const sackAmount = (parsePtBrNumber(totalWeight.value) || form.totalWeight || 0) / sackWeight
 
-  return sackAmount === 0 ? null : sackAmount.toLocaleString("pt-BR")
-})
+//   return sackAmount === 0 ? null : sackAmount.toLocaleString("pt-BR")
+// })
 
 const totalWeight = computed(() => {
-  if (inputMode.value !== 'totalPP') return null
-
-  const totalPP = form.totalPurenessScore
-  const pp = parsePtBrNumber(purenessScore.value)
-
-  if (!totalPP || totalPP === 0 || !pp || pp === 0) return null
-
-  const totalWeight = totalPP / pp
-  form.totalWeight = totalWeight
+  const totalWeight = (form.sackAmount ?? 0) * selectedBatch.value.sack_weight
 
   return totalWeight.toLocaleString('pt-BR')
 })
 
 const totalPP = computed(() => {
-  if (inputMode.value !== 'totalWeight') return null
-
-  const totalWeight = form.totalWeight
   const pp = parsePtBrNumber(purenessScore.value)
 
-  if (!totalWeight || totalWeight === 0 || !pp || pp === 0) return null
-
-  const totalPP = totalWeight * pp
-  form.totalPurenessScore = totalPP
+  const totalPP = parsePtBrNumber(totalWeight.value) * pp
 
   return totalPP <= 0 ? null : (Math.round(totalPP * 100) / 100).toLocaleString("pt-BR")
 })
 
-const rules: FormRules = {
-  usage: {
-    required: true,
-    trigger: ['blur', 'input'],
-    message: 'Campo obrigatório',
-  },
-  totalPurenessScore: [
-    {
-      required: true,
-      type: 'number' as const,
-      trigger: ['blur', 'change'],
-      message: 'Campo obrigatório'
-    }, 
-    // {
-    //   validator: validatePositiveNumber,
-    //   trigger: ['blur', 'change'],
-    //   message: 'O total de PP não pode ser negativo.'
-    // }, 
-    // {
-    //   validator: validateTotalPPMaximumValue,
-    //   trigger: ['blur', 'change'],
-    //   message: 'Saldo indisponível no lote.'
-    // }
-  ],
-  totalWeight: [
-    {
-      required: true,
-      type: 'number' as const,
-      trigger: ['blur', 'change'],
-      message: 'Campo obrigatório'
-    }, 
-    // {
-    //   validator: validatePositiveNumber,
-    //   trigger: ['blur', 'change'],
-    //   message: 'A Quantidade (Kg) não pode ser negativa.'
-    // }, 
-    // {
-    //   validator: validateTotalWeightMaximumValue,
-    //   trigger: ['blur', 'change'],
-    //   message: 'Saldo indisponível no lote.'
-    // }
-  ],
-}
-
-function createOutflow(e: MouseEvent) {
+function handleSubmit(e: MouseEvent) {
   e.preventDefault()
+
+  const parsedWeight = parsePtBrNumber(totalWeight.value)
+  const batchBalance = batchesStore.getBatchBalance(selectedBatch.value, batchesStore.getBatchOutflows(selectedBatch.value.key))
+
+  if (parsedWeight > batchBalance[1].value) {
+    globalStore.showMessage({
+      content: 'O quantidade (Kg) não disponível no lote.',
+      type: 'error',
+    })
+    return
+  }
+
   formRef.value?.validate(async (errors) => {
     if (!errors) {
       const outflow: BatchOutflowDB = {
         batch_number: Number(selectedBatch.value.batch_number),
         batch_year: Number(selectedBatch.value.batch_year),
-        sack_amount: sackAmount.value ? parsePtBrNumber(sackAmount.value) : 0,
-        total_weight: parsePtBrNumber(totalWeight.value) || form.totalWeight || 0,
-        total_pureness_score: parsePtBrNumber(totalPP.value) || form.totalPurenessScore || 0,
+        sack_amount: form.sackAmount || 0,
+        total_weight: parsePtBrNumber(totalWeight.value) || 0,
+        total_pureness_score: parsePtBrNumber(totalPP.value) || 0,
         usage: form.usage || '',
       }
 
@@ -280,9 +230,10 @@ function createOutflow(e: MouseEvent) {
 
 function resetForm() {
   form.usage = null
-  form.totalWeight = null
-  form.totalPurenessScore = null
-  inputMode.value = null
+  form.sackAmount = null
+  // form.totalWeight = null
+  // form.totalPurenessScore = null
+  // inputMode.value = null
 }
 
 function parsePtBrNumber(value: string | null): number {
@@ -310,9 +261,11 @@ const formatNumber = (value: number | null): string => {
   })
 }
 
-function validatePositiveNumber(rule: FormItemRule, value: number | null): boolean {
-  if (value === null || value >= 0) return true
-  return false
+function positiveNumberValidator(_: any, value: number | string | null) {
+  if (Number(value) <= 0) {
+    return new Error('Deve ser maior que zero')
+  }
+  return true
 }
 
 // function validateTotalPPMaximumValue(rule: FormItemRule, value: number | null): boolean {
@@ -328,5 +281,62 @@ function validatePositiveNumber(rule: FormItemRule, value: number | null): boole
 //   if (value === null || value <= batchBalance[1].value) return true
 //   return false
 // }
+
+const rules: FormRules = {
+  usage: {
+    required: true,
+    trigger: ['blur', 'input'],
+    message: 'Campo obrigatório',
+  },
+  sackAmount: [
+    {
+      required: true,
+      type: 'number' as const,
+      trigger: ['blur', 'change'],
+      message: 'Campo obrigatório'
+    },
+    {
+      validator: positiveNumberValidator,
+      trigger: ['blur', 'change'],
+      message: 'A quantidade de sacos não pode ser negativa.'
+    }
+  ],
+  // totalPurenessScore: [
+  //   {
+  //     required: true,
+  //     type: 'number' as const,
+  //     trigger: ['blur', 'change'],
+  //     message: 'Campo obrigatório'
+  //   }, 
+  //   {
+  //     validator: validatePositiveNumber,
+  //     trigger: ['blur', 'change'],
+  //     message: 'O total de PP não pode ser negativo.'
+  //   }, 
+  //   {
+  //     validator: validateTotalPPMaximumValue,
+  //     trigger: ['blur', 'change'],
+  //     message: 'Saldo indisponível no lote.'
+  //   }
+  // ],
+  // totalWeight: [
+  //   {
+  //     required: true,
+  //     type: 'number' as const,
+  //     trigger: ['blur', 'change'],
+  //     message: 'Campo obrigatório'
+  //   }, 
+  //   {
+  //     validator: validatePositiveNumber,
+  //     trigger: ['blur', 'change'],
+  //     message: 'A Quantidade (Kg) não pode ser negativa.'
+  //   }, 
+  //   {
+  //     validator: validateTotalWeightMaximumValue,
+  //     trigger: ['blur', 'change'],
+  //     message: 'Saldo indisponível no lote.'
+  //   }
+  // ],
+}
 
 </script>

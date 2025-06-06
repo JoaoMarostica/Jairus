@@ -218,6 +218,37 @@ export const useBatchesStore = defineStore('batches', {
             throw err;
         }
     },
+    async editOutflow(outflow: DataTableBatchOutflow) {
+        try {
+            const editedOutflow: BatchDB = await invoke('change_outflow', {
+                id: outflow.batch_number + outflow.batch_year,
+                changes: outflow
+            });
+
+            const index = this.dataTableBatches.findIndex(b => b.batch_number === outflow.batch_number && b.batch_year === outflow.batch_year);
+
+            if (index !== -1) {
+                this.dataTableBatches[index] = formatBatchForTable(editedOutflow);
+            }
+
+            this.batches = await invoke('list_batches');
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    },
+    async removeOutflow(outflow: DataTableBatchOutflow) {
+        try {
+            await invoke('remove_outflow', {
+                id: outflow.batch_number + outflow.batch_year,
+            });
+
+            await this.fetchBatches();
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    },
     getBatchOutflows(batchKey: string): DataTableBatchOutflow[] {
         return this.dataTableBatchOutflows
             .filter(outflow => outflow.key === batchKey)
