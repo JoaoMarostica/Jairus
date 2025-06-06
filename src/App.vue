@@ -25,6 +25,7 @@ const { theme, message } = storeToRefs(globalStore);
 const seedsStore = useSeedsStore();
 onMounted(async () => {
   globalStore.detectSystemTheme();
+  //teste para carregar as sementes do json ao iniciar
   await seedsStore.fetchSeeds();
 });
 
