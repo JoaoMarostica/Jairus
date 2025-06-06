@@ -27,7 +27,7 @@ export const useBrandsStore = defineStore('brands', {
     async createBrand(newBrand: BrandDB) {
         try {
             const createdBrand: BrandDB = await invoke('add_brand', {
-                brand: newBrand
+                new: newBrand
             });
 
            this.dataTableBrands.push(formatBrandForTable(createdBrand));
@@ -36,14 +36,19 @@ export const useBrandsStore = defineStore('brands', {
         }
     },
 
-    async editBrand(brand: BrandDB) {
+    async editBrand(originalBrandName: string, updatedBrand: BrandDB) {
         try {
             const editedBrand: BrandDB = await invoke('change_brand', {
-                brandName: brand.brand_name,
-                weights: brand.weights
+                brandName: originalBrandName,
+                new_name: updatedBrand.brand_name,
             });
 
-            const index = this.dataTableBrands.findIndex(b => b.key === brand.brand_name);
+            const brandIndex = this.brands.findIndex(b => b.brand_name === originalBrandName);
+            if (brandIndex !== -1) {
+                this.brands[brandIndex] = editedBrand;
+            }
+
+            const index = this.dataTableBrands.findIndex(b => b.key === originalBrandName);
 
             if (index !== -1) {
                 this.dataTableBrands[index] = formatBrandForTable(editedBrand);
@@ -59,7 +64,7 @@ export const useBrandsStore = defineStore('brands', {
     async removeBrand(brand: DataTableBrand) {
         try {
             await invoke('remove_brand', {
-                brandName: brand.brand_name
+                id: brand.brand_name
             });
 
             await this.fetchBrands();
@@ -81,8 +86,8 @@ export const useBrandsStore = defineStore('brands', {
             }
 
             await invoke('add_brand_weight', {
-                brandName: brandName,
-                weight: weight
+                id: brandName,
+                value: weight
             });
 
             this.brands[brandIndex].weights.push(weight);
@@ -108,8 +113,8 @@ export const useBrandsStore = defineStore('brands', {
             }
 
             await invoke('remove_brand_weight', {
-                brandName: brandName,
-                weight: weight
+                id: brandName,
+               value: weight
             });
 
             this.brands[brandIndex].weights = this.brands[brandIndex].weights.filter(w => w !== weight);
