@@ -4,6 +4,7 @@
     style="width: 1000px;"
     :mask-closable="false"
     preset="card"
+    draggable
     :closable="true"
     :title="modalTitle"
   >

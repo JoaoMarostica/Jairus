@@ -4,6 +4,7 @@
     style="width: 1000px;"
     :mask-closable="false"
     preset="card"
+    draggable
     :closable="true"
     :title="modalTitle"
   >
@@ -178,15 +179,23 @@ const totalPP = computed(() => {
   return totalPP <= 0 ? null : (Math.round(totalPP * 100) / 100).toLocaleString("pt-BR")
 })
 
-function handleSubmit(e: MouseEvent) {
+async function handleSubmit(e: MouseEvent) {
   e.preventDefault()
 
-  const parsedWeight = parsePtBrNumber(totalWeight.value)
-  const batchBalance = batchesStore.getBatchBalance(selectedBatch.value, batchesStore.getBatchOutflows(selectedBatch.value.key))
+  try {
+    const parsedWeight = parsePtBrNumber(totalWeight.value)
+    const batchBalance = await batchesStore.getBatchBalance(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
 
-  if (parsedWeight > batchBalance[1].value) {
+    if (parsedWeight > parsePtBrNumber(batchBalance.total_weight)) {
+      globalStore.showMessage({
+        content: 'O quantidade (Kg) não disponível no lote.',
+        type: 'error',
+      })
+      return
+    }
+  } catch (error) {
     globalStore.showMessage({
-      content: 'O quantidade (Kg) não disponível no lote.',
+      content: 'Erro ao calcular saldo.',
       type: 'error',
     })
     return
@@ -194,7 +203,7 @@ function handleSubmit(e: MouseEvent) {
 
   formRef.value?.validate(async (errors) => {
     if (!errors) {
-      const outflow: BatchOutflowDB = {
+      const outflow = {
         batch_number: Number(selectedBatch.value.batch_number),
         batch_year: Number(selectedBatch.value.batch_year),
         sack_amount: form.sackAmount || 0,

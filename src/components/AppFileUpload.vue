@@ -1,5 +1,5 @@
 <template>
-  <n-modal v-model:show="fileUploadModal" preset="card" title="Upload de Planilha" style="width: 500px">
+  <n-modal v-model:show="fileUploadModal" preset="card" draggable title="Upload de Planilha" style="width: 500px">
     <n-spin :show="loading">
       <n-upload
         :default-upload="false"

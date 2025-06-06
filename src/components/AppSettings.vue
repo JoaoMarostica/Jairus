@@ -1,5 +1,5 @@
 <template>
-    <n-modal v-model:show="settingsModal" preset="card" title="Configurações" style="width: 600px; min-height: 600px">
+    <n-modal v-model:show="settingsModal" preset="card" draggable title="Configurações" style="width: 600px; min-height: 600px">
         <n-tabs type="segment" animated>
             <n-tab-pane name="seeds" tab="Cultivares">
                 

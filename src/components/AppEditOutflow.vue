@@ -3,6 +3,7 @@
     v-model:show="editOutflowModal"
     style="width: 1000px;"
     :mask-closable="false"
+    :z-index="3000"
     preset="card"
     :closable="true"
     :title="modalTitle"

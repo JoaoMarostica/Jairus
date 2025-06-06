@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import type { RawBatch, BatchDB, BatchOutflowDB, DataTableBatch, DataTableBatchOutflow } from '@/types/batches';
+import type { BalanceDB, DataTableBalanceOutflow } from '@/types/balance';
 import type { DataTableRowKey } from 'naive-ui';
 import ExcelJS from 'exceljs';
 import { invoke } from '@tauri-apps/api/core';
@@ -189,7 +190,7 @@ export const useBatchesStore = defineStore('batches', {
 
         return lastBatchNumber;
     },
-    async createOutflow(newOutflow: BatchOutflowDB) {
+    async createOutflow(newOutflow: any) {
         try {
             const createdOutflow: BatchOutflowDB = await invoke('add_outflow', {
                 new: newOutflow
@@ -246,7 +247,49 @@ export const useBatchesStore = defineStore('batches', {
             throw err;
         }
     },
-    getBatchBalance(dataTableBatch: DataTableBatch, batchOutflows: DataTableBatchOutflow[]) {
+    async getBatchBalance(batchNumber: number, batchYear: number): Promise<DataTableBalanceOutflow> {
+        try {
+            const outflowTotals: BalanceDB = await invoke('get_total_outflow', {
+                batchNumber: batchNumber,
+                batchYear: batchYear
+            })
+
+            const batch = this.batches.find(batch => batch.batch_number === batchNumber && batch.batch_year === batchYear);
+
+            if (!batch) {
+                throw new Error('Batch not found');
+            }
+
+            // Calculate totalPP and totalWeight from batch properties
+            const totalPP = batch?.total_pureness_score;
+            const totalWeight = batch?.total_weight;
+            const sackAmount = batch?.sack_amount;
+
+            const balancePP = totalPP - outflowTotals.total_pureness_score;
+            const balanceWeight = totalWeight - outflowTotals.total_weight;
+            const balanceSackAmount = sackAmount - outflowTotals.sack_amount;
+
+            const balance: DataTableBalanceOutflow = {
+                key: createDataTableKey(batchNumber, batchYear),
+                sack_amount: Math.max(balanceSackAmount, 0),
+                total_weight: parseFloat(Math.max(balanceWeight, 0).toFixed(2)).toLocaleString("pt-BR"),
+                total_pureness_score: parseFloat(Math.max(balancePP, 0).toFixed(2)).toLocaleString("pt-BR"),
+                _searchIndex: normalizeText([
+                    batchNumber,
+                    batchYear,
+                    (balanceSackAmount).toString(),
+                    parseFloat(Math.max(balanceWeight, 0).toFixed(2)).toLocaleString("pt-BR"),
+                    parseFloat(Math.max(balancePP, 0).toFixed(2)).toLocaleString("pt-BR")
+                ].join(' '))
+            }
+
+            return balance
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    },
+    getBatchBalance2(dataTableBatch: DataTableBatch, batchOutflows: DataTableBatchOutflow[]) {
         const batch = this.batches.find(batch => batch.batch_number === dataTableBatch.batch_number && batch.batch_year === dataTableBatch.batch_year);
 
         let BatchOutflowTotalPP = 0;

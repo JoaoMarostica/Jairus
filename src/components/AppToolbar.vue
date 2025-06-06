@@ -1,6 +1,13 @@
 <template>
   <n-layout-header class="header-fixed">
     <n-flex align="center" justify="space-between" style="width: 100%">
+      <!-- <n-image width="100" src="@/assets/jairus-logos/navbar/Jairus3.png" fit="cover" :style="{ cursor: 'pointer' }">
+        <template #error>
+          <n-icon :size="100" color="lightGrey">
+            <ImageOutlined />
+          </n-icon>
+        </template>
+      </n-image> -->
       <div>Jairus</div>
 
       <n-flex>
@@ -55,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined, PictureAsPdfOutlined } from '@vicons/material';
+import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined, PictureAsPdfOutlined, ImageOutlined } from '@vicons/material';
 import AppFileUpload from './AppFileUpload.vue';
 import AppSettings from './AppSettings.vue';
 import { useGlobalStore } from '@/stores/globalStore';
@@ -67,7 +74,8 @@ import {
   NButton,
   NIcon,
   NFlex,
-  NTooltip
+  NTooltip,
+  NImage
 } from 'naive-ui'
 
 defineEmits(['toggle-sidebar']);

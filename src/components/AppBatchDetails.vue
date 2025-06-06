@@ -1,4 +1,44 @@
 <template>
+  <!-- <n-drawer
+    v-model:show="batchDetailsModal"
+    :default-width="globalStore.windowWidth"
+    placement="right"
+    resizable
+  >
+    <n-drawer-content :title="modalTitle" closable>
+        <n-grid cols="1" responsive="screen" x-gap="16" y-gap="16">
+          <n-grid-item>
+            <n-card class="border border-gray-200">
+              <n-descriptions label-placement="top" :column="11" size="small">
+                <n-descriptions-item
+                  v-for="(indicator, index) in batchData"
+                  :key="index"
+                  :label="indicator.titulo"
+                >
+                  {{ indicator.valor }} {{ indicator.unidade }}
+                </n-descriptions-item>
+              </n-descriptions>
+            </n-card>
+          </n-grid-item>
+
+          <n-grid-item>
+            <n-card title="Saldo" style="height: 300px;">
+              <div ref="balanceChart" style="height: 250px;" />
+            </n-card>
+          </n-grid-item>
+
+          <n-grid-item>
+            <n-card v-if="outflowData.length === 0">
+              <n-empty description="Nenhuma Saída Encontrado" size="large">
+              </n-empty>
+            </n-card>
+            <n-card title="Saídas do lote" v-else>
+              <n-data-table :columns="outflowColumns" :data="outflowData" :pagination="false" :max-height="250" />
+            </n-card>
+          </n-grid-item>
+        </n-grid>
+    </n-drawer-content>
+  </n-drawer> -->
   <n-modal
     v-model:show="batchDetailsModal"
     :style="{
@@ -8,19 +48,15 @@
       padding: '0',
       width: '100vw',
       height: '100vh',
-      maxHeight: '100vh'
+      maxHeight: '100vh',
+      overflow: 'auto'
     }"
-    :mask-closable="false"
     preset="card"
     :closable="true"
     v-on:update-show="closeModal"
     :title="modalTitle"
-    size="huge"
-    class="!w-screen !h-screen"
   >
-    <div style="width: 100%; height: 100%; overflow: auto;" class="bg-white dark:bg-black p-4">
       <n-grid cols="1" responsive="screen" x-gap="16" y-gap="16">
-        <!-- Dados do lote -->
         <n-grid-item>
           <n-card class="border border-gray-200">
             <n-descriptions label-placement="top" :column="11" size="small">
@@ -35,7 +71,6 @@
           </n-card>
         </n-grid-item>
 
-        <!-- Gráficos -->
         <n-grid-item>
           <n-grid cols="1 m:2" responsive="screen" x-gap="16" y-gap="16" class="mt-6">
             <n-grid-item>
@@ -51,7 +86,6 @@
           </n-grid>
         </n-grid-item>
 
-        <!-- Tabela de saídas -->
         <n-grid-item>
           <n-card v-if="outflowData.length === 0">
             <n-empty description="Nenhuma Saída Encontrado" size="large">
@@ -62,19 +96,18 @@
           </n-card>
         </n-grid-item>
       </n-grid>
-    </div>
+    <!-- Outflow CRUD -->
+    <AppEditOutflow v-model:modal="editOutflowModal" :selectedOutflow="selectedOutflow" @close="batchDetailsModal = true" />
+    <AppRemoveOutflow v-model:modal="removeOutflowModal" :selectedOutflow="selectedOutflow" @close="batchDetailsModal = true" />
   </n-modal>
 
-  <!-- Outflow CRUD -->
-  <AppEditOutflow v-model:modal="editOutflowModal" :selectedOutflow="selectedOutflow" @close="batchDetailsModal = true" />
-  <AppRemoveOutflow v-model:modal="removeOutflowModal" :selectedOutflow="selectedOutflow" @close="batchDetailsModal = true" />
 </template>
 
 <script setup lang="ts">
-import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptionsItem, NEmpty, NButton, NIcon, NDropdown } from 'naive-ui'
+import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptionsItem, NEmpty, NButton, NIcon, NDropdown, NDrawer, NDrawerContent } from 'naive-ui'
 import type { DataTableBatchOutflow } from '@/types/batches';
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
-import { computed, h, nextTick, ref, watch, watchEffect } from 'vue'
+import { computed, h, nextTick, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useBatchesStore } from '@/stores/batchesStore';
 import { useGlobalStore } from '@/stores/globalStore';
@@ -113,22 +146,16 @@ const outflowData = ref<DataTableBatchOutflow[]>([])
 const outflowColumns = ref<TableColumn<RowData>[]>([]);
 const batchBalance = ref<BatchBalance[]>([])
 
-watch(batchDetailsModal, async () => {
-  if (batchDetailsModal) {
-    await nextTick()
-    createColumns();
-    modalTitle.value = `Detalhes do Lote ${selectedBatch.value.batch_number}`
-    await getbatchData()
-    renderCharts()
-  }
-})
-
-watchEffect(async () => {
-  if (batchDetailsModal.value) {
-    outflowData.value = await batchesStore.getBatchOutflows(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
-    batchBalance.value = batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
-  }
-})
+watch(batchDetailsModal, async (val) => {
+  if (!val) return;
+  await nextTick();
+  createColumns();
+  modalTitle.value = `Detalhes do Lote ${selectedBatch.value.batch_number}`;
+  getbatchData();
+  await getbatchOutflow();
+  await getbatchBalance();
+  renderCharts();
+});
 
 function renderCharts() {
   const isDark = theme.value === 'dark'
@@ -248,7 +275,7 @@ function closeModal(model: boolean) {
   }
 }
 
-async function getbatchData() {
+async function getbatchOutflow() {
   try {
     outflowData.value = await batchesStore.getBatchOutflows(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
 
@@ -263,22 +290,32 @@ async function getbatchData() {
       keepAliveOnHover: true,
     })
   }
+}
 
-  batchBalance.value = batchesStore.getBatchBalance(selectedBatch.value, outflowData.value)
-  // try {
+async function getbatchBalance() {
+  try {
+    const balance = await batchesStore.getBatchBalance(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
 
-  //   // globalStore.showMessage({
-  //   //   content: 'Saldo carregado com sucesso!',
-  //   //   type: 'success',
-  //   // })
-  // } catch (error: any) {
-  //   globalStore.showMessage({
-  //     content: `Erro ao carregar saldo: ${error?.message || error}`,
-  //     type: 'error',
-  //     keepAliveOnHover: true,
-  //   })
-  // }
+    batchBalance.value = [
+      { value: parsePtBrNumber(balance.total_pureness_score), name: 'Ponto de Pureza (PP)' },
+      { value: parsePtBrNumber(balance.total_weight), name: 'Quantidade (Kg)' },
+      { value: balance.sack_amount, name: 'Sacos' }
+    ];
 
+    // globalStore.showMessage({
+    //   content: 'Saldo carregado com sucesso!',
+    //   type: 'success',
+    // })
+  } catch (error: any) {
+    globalStore.showMessage({
+      content: `Erro ao carregar saldo: ${error?.message || error}`,
+      type: 'error',
+      keepAliveOnHover: true,
+    })
+  }
+}
+
+function getbatchData() {
   batchData.value = [
     { titulo: 'Chave', valor: selectedBatch.value.key, unidade: '' },
     { titulo: 'Ano', valor: selectedBatch.value.batch_year, unidade: '' },
@@ -297,15 +334,11 @@ async function getbatchData() {
 // Ações
 async function handleEdit(outflow: any) {
   selectedOutflow.value = outflow;
-  batchDetailsModal.value = false;
-  await nextTick();
   editOutflowModal.value = true;
 }
 
 async function handleRemove(outflow: any) {
   selectedOutflow.value = outflow;
-  batchDetailsModal.value = false;
-  await nextTick();
   removeOutflowModal.value = true;
 }
 
@@ -367,6 +400,31 @@ function createColumns() {
       }
     }
   ]
+}
+
+function parsePtBrNumber(value: string | null): number {
+  if (!value) return 0
+  return Number(value.replace(/\./g, '').replace(',', '.'))
+}
+
+const parseNumber = (input: string): number | null => {
+  const cleaned = input.trim()
+    .replace(/\./g, '')
+    .replace(',', '.')
+
+  if (cleaned === '') return null
+
+  const num = Number(cleaned)
+  return isNaN(num) ? Number.NaN : num
+}
+
+const formatNumber = (value: number | null): string => {
+  if (value === null)
+    return ''
+  return value.toLocaleString('pt-BR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 2
+  })
 }
 
 </script>
