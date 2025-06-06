@@ -18,11 +18,16 @@
 import { computed } from 'vue'
 import { useBatchesStore } from '@/stores/batchesStore'
 import { useGlobalStore } from '@/stores/globalStore'
+import { NModal } from 'naive-ui'
 
 const removeOutflowModal = defineModel('modal', {
   type: Boolean,
   default: false,
 })
+
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
 
 const props = defineProps<{
   selectedOutflow: any
@@ -50,6 +55,7 @@ async function confirmRemove() {
     })
 
     removeOutflowModal.value = false
+    emit('close')
   } catch (error: any) {
     globalStore.showMessage({
       content: `Erro ao remover pedido: ${error?.message || error}`,

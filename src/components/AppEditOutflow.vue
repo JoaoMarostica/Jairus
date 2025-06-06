@@ -176,6 +176,10 @@ const editOutflowModal = defineModel('modal', {
   default: false
 })
 
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
+
 const globalStore = useGlobalStore()
 const batchesStore = useBatchesStore()
 const seedsStore = useSeedsStore()
@@ -325,6 +329,7 @@ function editBatch(e: MouseEvent) {
           type: 'success',
         })
         editOutflowModal.value = false
+        emit('close')
       } catch (error: any) {
         globalStore.showMessage({
           content: `Erro ao editar lote: ${error?.message || error}`,
