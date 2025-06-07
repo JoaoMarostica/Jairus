@@ -1,11 +1,40 @@
-use crate::{
-    models::{
-        batch::*,
-        stats::*
-    },
-    repositories::batch_repository::BatchRepository
-};
+use crate::{ models::batch::Batch, repositories::batch_repository::BatchRepository};
+use crate::models::stats::*; 
 use std::collections::HashMap;
+use serde::Serialize; 
+use std::fs;
+use std::io::BufWriter;
+use anyhow::{Result, anyhow}; 
+
+use genpdf::{
+    elements::{Paragraph, TableLayout, Text},
+    fonts::{FontFamily}, 
+    style::{Style, StyledString},
+    Alignment,
+    Document,
+    Margins,
+};
+
+#[derive(Serialize, Debug)]
+pub struct StockReportEntry {
+    pub seed_name: String,
+    pub total_weight_in_stock: i32,
+    pub total_sacks_in_stock: i32,
+}
+
+#[derive(Serialize, Debug, Clone)] 
+pub struct DetailedBatchReportEntry {
+    pub batch_number: i32,
+    pub creation_year: i32,
+    pub cultivar: String, 
+    pub treatment: String, 
+    pub brand: String,
+    pub sack_weight: i32,
+    pub sack_amount: i32,
+    pub total_weight: i32,
+    pub status: i32,
+    pub origin: Option<String>,
+}
 
 pub struct BatchService {
     repo: BatchRepository
@@ -129,5 +158,108 @@ impl BatchService {
             Ok(None) => Err(format!("No batch with id {}/{} found", id.0, id.1)),
             Err(e) => Err(e.to_string())
         }
+    }
+
+
+    fn list_active_batches(&mut self) -> Result<Vec<Batch>, String> {
+        
+        self.read_all() 
+    }
+
+    pub fn get_stock_report(&mut self) -> Result<Vec<StockReportEntry>, String> {
+        let active_batches = self.list_active_batches()?;
+        let mut stock_map: HashMap<String, (i32, i32)> = HashMap::new();
+        
+        for batch in active_batches {
+            let entry = stock_map.entry(batch.seed.clone()).or_insert((0, 0));
+            entry.0 += batch.total_weight; 
+            entry.1 += batch.sack_amount; 
+        }
+        
+        let report: Vec<StockReportEntry> = stock_map
+            .into_iter()
+            .map(|(seed_name, (total_weight, total_sacks))| StockReportEntry {
+                seed_name,
+                total_weight_in_stock: total_weight,
+                total_sacks_in_stock: total_sacks,
+            })
+            .collect();
+            
+        Ok(report)
+    }
+    
+    pub fn get_detailed_batch_report(&mut self) -> Result<Vec<DetailedBatchReportEntry>, String> {
+        let report_entries = self.list_active_batches()? 
+            .into_iter()
+            .map(|batch| {
+                DetailedBatchReportEntry {
+                    batch_number: batch.batch_number,
+                    creation_year: batch.batch_year,
+                    cultivar: batch.seed, 
+                    treatment: batch.coating, 
+                    brand: batch.brand,
+                    sack_weight: batch.sack_weight,
+                    sack_amount: batch.sack_amount,
+                    total_weight: batch.total_weight,
+                    status: batch.batch_status,
+                    origin: batch.origin.clone(), 
+                }
+            })
+            .collect();
+        Ok(report_entries)
+    }
+
+    pub fn generate_detailed_batch_pdf_report(&mut self) -> Result<String> {
+        let report_data = self.get_detailed_batch_report()?;
+        if report_data.is_empty() {
+            return Err("Nenhum lote ativo encontrado para gerar o relatório.".to_string());
+        }
+
+        let font_family = FontFamily::new_sans_serif();
+        let mut doc = Document::new(font_family);
+        doc.set_title("Relatório Detalhado de Lotes");
+        doc.set_margins(Margins::trbl(20, 20, 20, 20));
+
+        doc.push(Paragraph::new("Relatório Detalhado de Lotes").aligned(Alignment::Center).styled(Style::new().bold().with_font_size(16))); 
+
+        let mut table = TableLayout::new(vec![1, 2, 2, 2, 1, 1, 1, 1]); // Largura relativa das colunas
+        table.set_margins(Margins::trbl(1, 1, 1, 1));
+
+        // Cabeçalho da tabela
+        let header_style = Style::new().bold();
+        let mut header_row = table.row();
+        header_row.push_element(Paragraph::new("Lote").styled(header_style.clone()));
+        header_row.push_element(Paragraph::new("Cultivar").styled(header_style.clone()));
+        header_row.push_element(Paragraph::new("Tratamento").styled(header_style.clone()));
+        header_row.push_element(Paragraph::new("Marca").styled(header_style.clone()));
+        header_row.push_element(Paragraph::new("Ano").styled(header_style.clone()));
+        header_row.push_element(Paragraph::new("Sacos").styled(header_style.clone()));
+        header_row.push_element(Paragraph::new("Peso Saco").styled(header_style.clone()));
+        header_row.push_element(Paragraph::new("Peso Total").styled(header_style.clone()));
+        header_row.push().map_err(|e| format!("Erro ao adicionar cabeçalho: {}", e))?;
+
+        // Adicionar dados dos lotes
+        for entry in report_data {
+            let mut row = table.row();
+            row.push_element(Paragraph::new(format!("{}", entry.batch_number)));
+            row.push_element(Paragraph::new(entry.cultivar));
+            row.push_element(Paragraph::new(entry.treatment));
+            row.push_element(Paragraph::new(entry.brand));
+            row.push_element(Paragraph::new(format!("{}", entry.creation_year)));
+            row.push_element(Paragraph::new(format!("{}", entry.sack_amount)));
+            row.push_element(Paragraph::new(format!("{}", entry.sack_weight)));
+            row.push_element(Paragraph::new(format!("{}", entry.total_weight)));
+            row.push().map_err(|e| format!("Erro ao adicionar linha de dados: {}", e))?;
+        }
+
+        doc.push(table);
+
+        let pdf_path = "/tmp/relatorio_detalhado_lotes.pdf".to_string();
+        
+        let file = fs::File::create(&pdf_path).map_err(|e| format!("Erro ao criar arquivo PDF: {}", e))?;
+        let writer = BufWriter::new(file);
+        doc.render(writer).map_err(|e| format!("Erro ao renderizar PDF: {}", e))?;
+
+        Ok(pdf_path)
     }
 }

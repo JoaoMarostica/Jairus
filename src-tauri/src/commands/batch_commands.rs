@@ -3,7 +3,7 @@ use crate::{
         batch::*,
         stats::*
     },
-    services::batch_service::BatchService
+    services::batch_service::{BatchService, StockReportEntry, DetailedBatchReportEntry}
 };
 
 #[tauri::command]
@@ -46,4 +46,16 @@ pub fn change_batch(batch_number:i32, batch_year:i32, batch: Batch) -> Result<Ba
 pub fn remove_batch(batch_number: i32, batch_year: i32) -> Result<Batch, String> {
     let mut service = BatchService::new();
     service.delete(&(batch_number, batch_year))
+}
+
+#[tauri::command]
+pub fn get_stock_report_command() -> Result<Vec<StockReportEntry>, String> {
+    let mut service = BatchService::new();
+    service.get_stock_report()
+}
+
+#[tauri::command]
+pub fn generate_detailed_batch_pdf_report_command() -> Result<String, String> {
+    let mut service = BatchService::new();
+    service.generate_detailed_batch_pdf_report().map_err(|e| e.to_string())
 }
