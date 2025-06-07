@@ -171,6 +171,7 @@ import { useBatchesStore } from '@/stores/batchesStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useGlobalStore } from '@/stores/globalStore'
 import { useSeedsStore } from '@/stores/seedsStore';
+import { useCoatingsStore } from '@/stores/coatingsStore'
 import { storeToRefs } from 'pinia'
 import { parsePtBrNumber, parseNumber, formatNumber } from '@/utils/parsing';
 import { FormValidationStatus } from 'naive-ui/es/form/src/interface'
@@ -184,8 +185,12 @@ const globalStore = useGlobalStore()
 const batchesStore = useBatchesStore()
 const seedsStore = useSeedsStore()
 const settingsStore = useSettingsStore()
-const { coatings, brands } = storeToRefs(settingsStore)
+const coatingsStore = useCoatingsStore()
+
+const { brands } = storeToRefs(settingsStore)
 const { seeds } = storeToRefs(seedsStore)
+const { coatings } = storeToRefs(coatingsStore)
+
 const modalTitle = computed(() =>
   props.selectedBatch?.batch_number
     ? `Edição do Lote ${props.selectedBatch.batch_number}/${String(props.selectedBatch.batch_year).slice(-2)}`
@@ -226,7 +231,7 @@ const seedsOptions = computed(() => {
 })
 
 const coatingsOptions = computed(() => {
-  return coatings.value.map(coating => {return ({ label: coating.name, value: coating.name })})
+  return coatings.value.map(coating => {return ({ label: coating.coating_name, value: coating.coating_name })})
 })
 
 const brandsOptions = computed(() => {

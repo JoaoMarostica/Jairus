@@ -23,7 +23,7 @@ export function formatNumber(value: number | null): string {
   })
 }
 
-export function parseExpireDate1(expireDate: number, year: number): string {
+export function parseExpireDate(expireDate: number, year: number): string {
   const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   const month = monthNames[expireDate] || '--';
   return `${month}/${year + 1}`;

@@ -26,39 +26,44 @@ export const useCoatingsStore = defineStore('coatings', {
 
     async createCoating(newCoating: CoatingDB) {
         try {
+
+             // Verifica se já existe
+            const existingCoating = this.coatings.find(
+                c => c.coating_name.toLowerCase() === newCoating.coating_name.toLowerCase()
+            );
+            if (existingCoating) {
+                throw new Error('Tratamento já existe');
+            }
+
             const createdCoating: CoatingDB = await invoke('add_coating', {
                 new: newCoating
             });
 
-           this.dataTableCoatings.push(formatCoatingForTable(createdCoating));
+           await this.fetchCoatings();
+           return createdCoating;
         } catch (err) {
             console.error('Erro ao criar Tratamento:', err);
         }
     },
 
-    async editCoating(coating: CoatingDB) {
+    async editCoating(updatedCoating: CoatingDB, originalName: string) {
         try {
             const editedCoating: CoatingDB = await invoke('change_coating', {
-                id: coating.coating_name,
+                id: originalName,
                 changes: {
-                    coating_name: coating.coating_name,
+                    coating_name: updatedCoating.coating_name, 
                 }
             });
-    
-            
-            const index = this.dataTableCoatings.findIndex(c => c.key === coating.coating_name);
 
-
-            if (index !== -1) {
-                this.dataTableCoatings[index] = formatCoatingForTable(editedCoating);
-            }
-    
-            this.coatings = await invoke('list_coatings');
+            await this.fetchCoatings();
+            return editedCoating;
         } catch (err) {
-            console.error(err);
+            console.error('Erro ao editar tratamento:', err);
             throw err;
         }
     },
+
+
 
     async removeCoating(coating: DataTableCoating) {
         try {

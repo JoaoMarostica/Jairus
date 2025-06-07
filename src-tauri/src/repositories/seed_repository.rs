@@ -47,7 +47,7 @@ impl SeedRepository {
     }
 
     pub fn update(&mut self, id:&str, object:&Seed) -> Result<Option<Seed>, diesel::result::Error> {
-        diesel::update(tb_seed.filter(scientific_name.eq(id)))
+        diesel::update(tb_seed.filter(popular_name.eq(id)))
         .set(object)
         .returning(Seed::as_returning())
         .get_result(&mut self.connection)

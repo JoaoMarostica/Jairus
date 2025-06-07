@@ -22,6 +22,7 @@
                         Nova Cultivar
                     </n-button>
                     <AppCreateSeed v-model:show="showCreateSeed" />
+                    <AppEditSeed v-model:show="showEditSeed" :seed="selectedSeed" />
                 </div>
             </n-tab-pane>
 
@@ -35,14 +36,18 @@
                 />
                 
                 <div style="text-align: center; margin-top: 24px;">
-                    <n-button strong secondary type="info">
+                    <n-button strong secondary type="info" @click="showCreateCoating = true">
                         <template #icon>
                             <n-icon>
                                 <PlusOutlined />
                             </n-icon>
                         </template>
-                        Novo Revestimento
+                        Novo Tratamento
                     </n-button>
+                    
+                    <!-- Componentes de modais -->
+                    <AppCreateCoating v-model:show="showCreateCoating" />
+                    <AppEditCoating v-model:show="showEditCoating" :coating="selectedCoating" />
                 </div>
             </n-tab-pane>
 
@@ -85,9 +90,14 @@ import { useSeedsStore } from '@/stores/seedsStore';
 import { useCoatingsStore } from '@/stores/coatingsStore';
 import { useBrandsStore } from '@/stores/brandsStore';
 import AppCreateSeed from '@/components/seed/AppCreateSeed.vue'
+import AppEditSeed from '@/components/seed/AppEditSeed.vue'
+import AppCreateCoating from '@/components/coating/AppCreateCoating.vue'
+import AppEditCoating from '@/components/coating/AppEditCoating.vue' // ← Nova importação
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@vicons/material'
+import type { DataTableSeed } from '@/types/seeds'
+import type { DataTableCoating } from '@/types/coatings' // ← Nova importação
 import { storeToRefs } from 'pinia';
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@vicons/material'
 import {
   NModal,
   NTabs,
@@ -118,6 +128,11 @@ const coatingColumns = ref<TableColumn<RowData>[]>([]);
 const brandColumns = ref<TableColumn<RowData>[]>([]);
 
 const showCreateSeed = ref(false);
+const showEditSeed = ref(false);
+const showCreateCoating = ref(false);
+const showEditCoating = ref(false); // ← Novo ref
+const selectedSeed = ref<DataTableSeed | null>(null);
+const selectedCoating = ref<DataTableCoating | null>(null); // ← Novo ref
 
 onMounted(async() => {
     await seedsStore.fetchSeeds();
@@ -159,7 +174,7 @@ function createSeedColumns() {
                     quaternary: true,
                     size: 'small',
                     renderIcon: () => h(EditOutlined),
-                        onClick: () => editSeedHandler(row) 
+                        onClick: () => editSeedHandler(row as DataTableSeed) 
                     }
                 ),
                 h(
@@ -216,12 +231,10 @@ async function deleteSeedHandler(seed: any) {
     });
 }
 
-// editar (implementar depois)
-function editSeedHandler(seed: any) {
-    globalStore.showMessage({
-        content: 'Função de editar será implementada em breve',
-        type: 'info'
-    });
+// editar 
+function editSeedHandler(seed: DataTableSeed) {
+    selectedSeed.value = seed;
+    showEditSeed.value = true;
 }
 
 function createCoatingColumns() {
@@ -236,23 +249,25 @@ function createCoatingColumns() {
         titleAlign: 'center',
         align: 'center',
         width: '100px',
-        render() {
+        render(row) { 
             return [
                 h(
                     NButton,
                     {
-                    quaternary: true,
-                    size: 'small',
-                    renderIcon: () => h(EditOutlined)
+                        quaternary: true,
+                        size: 'small',
+                        renderIcon: () => h(EditOutlined),
+                        onClick: () => editCoatingHandler(row as DataTableCoating) // ← Conectado ao handler
                     }
                 ),
                 h(
                     NButton,
                     {
-                    quaternary: true,
-                    size: 'small',
-                    type: 'error',
-                    renderIcon: () => h(DeleteOutlined)
+                        quaternary: true,
+                        size: 'small',
+                        type: 'error',
+                        renderIcon: () => h(DeleteOutlined),
+                        onClick: () => deleteCoatingHandler(row)
                     }
                 )
             ];
@@ -300,5 +315,47 @@ function createBrandColumns() {
   ]
 }
 
+// Função para editar tratamento
+function editCoatingHandler(coating: DataTableCoating) {
+    selectedCoating.value = coating;
+    showEditCoating.value = true;
+}
+
+async function deleteCoatingHandler(coating: any) {
+    dialog.warning({
+        title: 'Confirmar Exclusão',
+        content: () => h('div', [
+            h('p', { style: 'margin-bottom: 12px;' }, 
+                'Tem certeza que deseja excluir o Tratamento:'
+            ),
+            h('p', { style: 'font-weight: bold; color: #d03050; margin: 12px 0; font-size: 16px;' }, 
+                `"${coating.coating_name}"`
+            ),
+            h('p', { style: 'color: #666; font-size: 14px; margin-top: 16px;' }, 
+                'Esta ação não pode ser desfeita.'
+            )
+        ]),
+        positiveText: 'Excluir',
+        negativeText: 'Cancelar',
+        positiveButtonProps: {
+            type: 'error'
+        },
+        onPositiveClick: async () => {
+            try {
+                await coatingsStore.removeCoating(coating);
+                
+                globalStore.showMessage({
+                    content: `Tratamento "${coating.coating_name}" excluído com sucesso!`,
+                    type: 'success'
+                });
+            } catch (error: any) {
+                globalStore.showMessage({
+                    content: `Erro ao excluir Tratamento: ${error?.message || error}`,
+                    type: 'error'
+                });
+            }
+        }
+    });
+}
 </script>
 

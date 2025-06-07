@@ -56,7 +56,7 @@ export const useSeedsStore = defineStore('seeds', {
                     console.log(`Migrado: ${seedForDB.popular_name}`);
                 } catch (error) {
                     skippedCount++;
-                    console.log(`⏭️ Já existe: ${seedForDB.popular_name}`);
+                    console.log(`Já existe: ${seedForDB.popular_name}`);
                 }
             }
             
@@ -93,25 +93,25 @@ export const useSeedsStore = defineStore('seeds', {
         }
     },
 
-    async editSeed(seed: SeedDB) {
+    async editSeed(updatedSeed: SeedDB, originalName: string) {
             try {
-                const editedSeed: SeedDB = await invoke('change_seed', {
-                    id: seed.popular_name,
-                    changes: {
-                        popular_name: seed.popular_name,
-                        scientific_name: seed.scientific_name
 
+                const cleanOriginalName = originalName.trim();
+       
+                const editedSeed: SeedDB = await invoke('change_seed', {
+                    id: cleanOriginalName,
+                    changes: {
+                        popular_name: updatedSeed.popular_name,
+                        scientific_name: updatedSeed.scientific_name
                     }
                    
                 });
     
-                const index = this.dataTableSeeds.findIndex(s => s.key === seed.popular_name);
+                
+                
     
-                if (index !== -1) {
-                    this.dataTableSeeds[index] = formatSeedForTable(editedSeed);
-                }
-    
-                this.seeds = await invoke('list_seeds');
+                await this.fetchSeeds();
+                return editedSeed;
             } catch (err) {
                 console.error(err);
                 throw err;
