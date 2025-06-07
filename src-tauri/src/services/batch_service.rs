@@ -177,15 +177,9 @@ impl BatchService {
     }
 
     fn load_font(&mut self) -> Result<FontFamily<FontData>, String> {
-        // Caminho absoluto do projeto
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push("resources/fonts");
 
-        // let path_str = path.to_str()
-        //     .ok_or("Falha ao converter caminho para string")?
-        //     .replace("\\", "/");
-
-        // Converte para string e troca todas as barras por barra invertida
         let path_str = path.to_str()
             .ok_or("Falha ao converter caminho para string")?
             .replace("/", "\\");
