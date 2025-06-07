@@ -2,8 +2,6 @@ import { defineStore } from 'pinia';
 import type { BrandDB, DataTableBrand} from '@/types/brands';
 import { invoke } from '@tauri-apps/api/core';
 
-
-
 export const useBrandsStore = defineStore('brands', {
   state: () => ({
     brands: [] as BrandDB[],
@@ -15,10 +13,8 @@ export const useBrandsStore = defineStore('brands', {
             
             this.$reset();
 
-            
             const brandsData = await invoke('list_brands');
            
-            
             this.brands = brandsData as BrandDB[];
             this.dataTableBrands = this.brands.map(brand => formatBrandForTable(brand));
             
@@ -33,11 +29,8 @@ export const useBrandsStore = defineStore('brands', {
             const createdBrand: BrandDB = await invoke('add_brand', {
                 new: newBrand
             });
-            
 
-            
             await this.fetchBrands();
-           
 
             return createdBrand;
         } catch (err) {
@@ -138,7 +131,7 @@ export const useBrandsStore = defineStore('brands', {
                 this.dataTableBrands[tableIndex] = formatBrandForTable(this.brands[brandIndex]);
             }
         } catch (err) {
-            console.error('Erro ao adicionar peso ', err);
+            console.error(err);
             throw err;
         }
     },
