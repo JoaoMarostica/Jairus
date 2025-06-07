@@ -205,7 +205,6 @@ impl BatchService {
         let mut doc_decorator = SimplePageDecorator::new();
         doc_decorator.set_margins(Margins::trbl(30, 10, 20, 10));
         doc.set_page_decorator(doc_decorator);
-        doc.set_title("Relatório dos Lotes");
 
         // Título
         let title_text = "Relatório dos Lotes";
@@ -265,7 +264,7 @@ impl BatchService {
         let footer = PaddedElement::new(
             Paragraph::new(StyledString::new(footer_text, Style::new().with_font_size(10)))
                 .aligned(Alignment::Right),
-            Margins::trbl(0, 0, 10, 0),
+            Margins::trbl(5, 0, 10, 0),
         );
         doc.push(footer);
 
