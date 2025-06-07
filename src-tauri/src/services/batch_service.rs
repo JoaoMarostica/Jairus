@@ -2,8 +2,8 @@ use crate::{ models::batch::Batch, repositories::batch_repository::BatchReposito
 use crate::models::stats::*; 
 use std::collections::HashMap;
 use serde::Serialize; 
-use std::{fs, io::BufWriter, path::{Path, PathBuf}};
-use anyhow::{Result, anyhow};
+use std::{io::BufWriter, path::{PathBuf}};
+use anyhow::{Result};
 
 use genpdf::{
     elements::{StyledElement, Paragraph, TableLayout},
@@ -205,34 +205,36 @@ impl BatchService {
         
         let mut doc = Document::new(font_family);
         doc.set_title("Relatório dos Lotes");
-        // doc.set_margins(Margins::trbl(20, 20, 20, 20));
+        doc.set_margins(Margins::trbl(20, 20, 20, 20));
 
         doc.push(Paragraph::new(StyledString::new("Relatório de Lotes Selecionados".to_owned(), Style::new().bold().with_font_size(16))).aligned(Alignment::Center));
 
         let mut table = TableLayout::new(vec![1, 2, 2, 2, 1, 1, 1, 1]);
-        // table.set_margins(Margins::trbl(1, 1, 1, 1));
+        table.set_margins(Margins::trbl(1, 1, 1, 1));
 
         let header_style = Style::new().bold();
         let mut header_row = table.row();
         header_row.push_element(Paragraph::new(StyledString::new("Lote".to_owned(), header_style.clone())));
+        header_row.push_element(Paragraph::new(StyledString::new("Ano".to_owned(), header_style.clone())));
+        header_row.push_element(Paragraph::new(StyledString::new("Vencimento".to_owned(), header_style.clone())));
         header_row.push_element(Paragraph::new(StyledString::new("Cultivar".to_owned(), header_style.clone())));
         header_row.push_element(Paragraph::new(StyledString::new("Tratamento".to_owned(), header_style.clone())));
         header_row.push_element(Paragraph::new(StyledString::new("Marca".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Ano".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Sacos".to_owned(), header_style.clone())));
         header_row.push_element(Paragraph::new(StyledString::new("Peso da Sacaria".to_owned(), header_style.clone())));
+        header_row.push_element(Paragraph::new(StyledString::new("Sacos".to_owned(), header_style.clone())));
         header_row.push_element(Paragraph::new(StyledString::new("Quantidade (Kg)".to_owned(), header_style.clone())));
         header_row.push().map_err(|e| format!("Erro ao adicionar cabeçalho: {}", e))?;
 
         for batch in batches {
             let mut row = table.row();
             row.push_element(Paragraph::new(format!("{}", batch.batch_number)));
+            row.push_element(Paragraph::new(format!("{}", batch.batch_year)));
+            row.push_element(Paragraph::new(format!("{}", batch.get_expiration_date())));
             row.push_element(Paragraph::new(batch.seed.clone()));
             row.push_element(Paragraph::new(batch.coating.clone()));
             row.push_element(Paragraph::new(batch.brand.clone()));
-            row.push_element(Paragraph::new(format!("{}", batch.batch_year)));
-            row.push_element(Paragraph::new(format!("{}", batch.sack_amount)));
             row.push_element(Paragraph::new(format!("{}", batch.sack_weight)));
+            row.push_element(Paragraph::new(format!("{}", batch.sack_amount)));
             row.push_element(Paragraph::new(format!("{}", batch.total_weight)));
             row.push().map_err(|e| format!("Erro ao adicionar linha: {}", e))?;
         }
@@ -267,79 +269,4 @@ impl BatchService {
             
         Ok(report)
     }
-    
-    // pub fn get_detailed_batch_report(&mut self) -> Result<Vec<DetailedBatchReportEntry>, String> {
-    //     let report_entries = self.list_active_batches()? 
-    //         .into_iter()
-    //         .map(|batch| {
-    //             DetailedBatchReportEntry {
-    //                 batch_number: batch.batch_number,
-    //                 creation_year: batch.batch_year,
-    //                 cultivar: batch.seed, 
-    //                 treatment: batch.coating, 
-    //                 brand: batch.brand,
-    //                 sack_weight: batch.sack_weight,
-    //                 sack_amount: batch.sack_amount,
-    //                 total_weight: batch.total_weight,
-    //                 status: batch.batch_status,
-    //                 origin: batch.origin.clone(), 
-    //             }
-    //         })
-    //         .collect();
-    //     Ok(report_entries)
-    // }
-
-    // pub fn generate_detailed_batch_pdf_report(&mut self) -> Result<String> {
-    //     let report_data = self.get_detailed_batch_report()?;
-    //     if report_data.is_empty() {
-    //         return Err("Nenhum lote ativo encontrado para gerar o relatório.".to_string());
-    //     }
-
-    //     let font_family = FontFamily::new_sans_serif();
-    //     let mut doc = Document::new(font_family);
-    //     doc.set_title("Relatório Detalhado de Lotes");
-    //     doc.set_margins(Margins::trbl(20, 20, 20, 20));
-
-    //     doc.push(Paragraph::new("Relatório Detalhado de Lotes").aligned(Alignment::Center).styled(Style::new().bold().with_font_size(16))); 
-
-    //     let mut table = TableLayout::new(vec![1, 2, 2, 2, 1, 1, 1, 1]); // Largura relativa das colunas
-    //     table.set_margins(Margins::trbl(1, 1, 1, 1));
-
-    //     // Cabeçalho da tabela
-    //     let header_style = Style::new().bold();
-    //     let mut header_row = table.row();
-    //     header_row.push_element(Paragraph::new("Lote").styled(header_style.clone()));
-    //     header_row.push_element(Paragraph::new("Cultivar").styled(header_style.clone()));
-    //     header_row.push_element(Paragraph::new("Tratamento").styled(header_style.clone()));
-    //     header_row.push_element(Paragraph::new("Marca").styled(header_style.clone()));
-    //     header_row.push_element(Paragraph::new("Ano").styled(header_style.clone()));
-    //     header_row.push_element(Paragraph::new("Sacos").styled(header_style.clone()));
-    //     header_row.push_element(Paragraph::new("Peso Saco").styled(header_style.clone()));
-    //     header_row.push_element(Paragraph::new("Peso Total").styled(header_style.clone()));
-    //     table.push_row(header_row).map_err(|e| format!("Erro ao adicionar cabeçalho: {}", e))?;
-
-    //     // Adicionar dados dos lotes
-    //     for entry in report_data {
-    //         let mut row = table.row();
-    //         row.push_element(Paragraph::new(format!("{}", entry.batch_number)));
-    //         row.push_element(Paragraph::new(entry.cultivar));
-    //         row.push_element(Paragraph::new(entry.treatment));
-    //         row.push_element(Paragraph::new(entry.brand));
-    //         row.push_element(Paragraph::new(format!("{}", entry.creation_year)));
-    //         row.push_element(Paragraph::new(format!("{}", entry.sack_amount)));
-    //         row.push_element(Paragraph::new(format!("{}", entry.sack_weight)));
-    //         row.push_element(Paragraph::new(format!("{}", entry.total_weight)));
-    //         table.push_row(row).map_err(|e| format!("Erro ao adicionar linha de dados: {}", e))?;
-    //     }
-
-    //     doc.push(table);
-
-    //     let pdf_path = "/tmp/relatorio_detalhado_lotes.pdf".to_string();
-        
-    //     let file = fs::File::create(&pdf_path).map_err(|e| format!("Erro ao criar arquivo PDF: {}", e))?;
-    //     let writer = BufWriter::new(file);
-    //     doc.render(writer).map_err(|e| format!("Erro ao renderizar PDF: {}", e))?;
-
-    //     Ok(pdf_path)
-    // }
 }
