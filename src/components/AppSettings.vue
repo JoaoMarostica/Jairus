@@ -61,7 +61,7 @@
                 />
             
                 <div style="text-align: center; margin-top: 24px;">
-                    <n-button strong secondary type="info">
+                    <n-button strong secondary type="info" @click="showCreateBrand = true">
                         <template #icon>
                             <n-icon>
                                 <PlusOutlined />
@@ -69,6 +69,8 @@
                         </template>
                         Nova Marca
                     </n-button>
+                    <AppCreateBrand v-model:show="showCreateBrand" />
+                    <AppEditBrand v-model:show="showEditBrand" :brand="selectedBrand" />
                 </div>
             </n-tab-pane>
         </n-tabs>
@@ -89,9 +91,11 @@ import { useGlobalStore } from '@/stores/globalStore';
 import { useSeedsStore } from '@/stores/seedsStore';
 import { useCoatingsStore } from '@/stores/coatingsStore';
 import { useBrandsStore } from '@/stores/brandsStore';
+import AppCreateBrand from '@/components/brand/AppCreateBrand.vue'
 import AppCreateSeed from '@/components/seed/AppCreateSeed.vue'
-import AppEditSeed from '@/components/seed/AppEditSeed.vue'
 import AppCreateCoating from '@/components/coating/AppCreateCoating.vue'
+import AppEditSeed from '@/components/seed/AppEditSeed.vue'
+import AppEditBrand from '@/components/brand/AppEditBrand.vue'
 import AppEditCoating from '@/components/coating/AppEditCoating.vue' // ← Nova importação
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@vicons/material'
 import type { DataTableSeed } from '@/types/seeds'
@@ -108,6 +112,7 @@ import {
   NIcon,
   useDialog,
 } from 'naive-ui'
+import { DataTableBrand } from '@/types/brands';
    
      
 
@@ -127,12 +132,15 @@ const seedColumns = ref<TableColumn<RowData>[]>([]);
 const coatingColumns = ref<TableColumn<RowData>[]>([]);
 const brandColumns = ref<TableColumn<RowData>[]>([]);
 
+const showCreateBrand = ref(false);
 const showCreateSeed = ref(false);
 const showEditSeed = ref(false);
 const showCreateCoating = ref(false);
 const showEditCoating = ref(false); // ← Novo ref
 const selectedSeed = ref<DataTableSeed | null>(null);
 const selectedCoating = ref<DataTableCoating | null>(null); // ← Novo ref
+const showEditBrand = ref(false);
+const selectedBrand = ref<DataTableBrand | null>(null);
 
 onMounted(async() => {
     await seedsStore.fetchSeeds();
@@ -280,7 +288,7 @@ function createBrandColumns() {
   brandColumns.value = [
     { title: 'Nome', key: 'brand_name' },
     { title: 'Sacos', key: 'weights', render: (row) =>{
-        return row.weights.map((w: {label: string, value: string}) => w.label).join(', ');
+         return row.weights.map((w: {label: string, value: string}) => w.label).join(', ');
         }
         
     },
@@ -290,14 +298,15 @@ function createBrandColumns() {
         titleAlign: 'center',
         align: 'center',
         width: '100px',
-        render() {
+        render(row) {
             return [
                 h(
                     NButton,
                     {
-                    quaternary: true,
-                    size: 'small',
-                    renderIcon: () => h(EditOutlined)
+                        quaternary: true,
+                        size: 'small',
+                        renderIcon: () => h(EditOutlined),
+                        onClick: () => editBrandHandler(row as DataTableBrand)
                     }
                 ),
                 h(
@@ -306,8 +315,9 @@ function createBrandColumns() {
                     quaternary: true,
                     size: 'small',
                     type: 'error',
-                    renderIcon: () => h(DeleteOutlined)
-                    }
+                    renderIcon: () => h(DeleteOutlined),
+                    onClick: () => deleteBrandHandler(row as DataTableBrand) // ← Conectado ao handler
+                }
                 )
             ];
         }
@@ -351,6 +361,49 @@ async function deleteCoatingHandler(coating: any) {
             } catch (error: any) {
                 globalStore.showMessage({
                     content: `Erro ao excluir Tratamento: ${error?.message || error}`,
+                    type: 'error'
+                });
+            }
+        }
+    });
+}
+
+// Função para editar marca
+function editBrandHandler(brand: DataTableBrand) {
+    selectedBrand.value = brand;
+    showEditBrand.value = true;
+}
+
+async function deleteBrandHandler(brand: DataTableBrand) {
+    dialog.warning({
+        title: 'Confirmar Exclusão',
+        content: () => h('div', [
+            h('p', { style: 'margin-bottom: 12px;' }, 
+                'Tem certeza que deseja excluir a marca:'
+            ),
+            h('p', { style: 'font-weight: bold; color: #d03050; margin: 12px 0; font-size: 16px;' }, 
+                `"${brand.brand_name}"`
+            ),
+            h('p', { style: 'color: #666; font-size: 14px; margin-top: 16px;' }, 
+                'Esta ação não pode ser desfeita.'
+            )
+        ]),
+        positiveText: 'Excluir',
+        negativeText: 'Cancelar',
+        positiveButtonProps: {
+            type: 'error'
+        },
+        onPositiveClick: async () => {
+            try {
+                await brandsStore.removeBrand(brand);
+                
+                globalStore.showMessage({
+                    content: `Marca "${brand.brand_name}" excluída com sucesso!`,
+                    type: 'success'
+                });
+            } catch (error: any) {
+                globalStore.showMessage({
+                    content: `Erro ao excluir marca: ${error?.message || error}`,
                     type: 'error'
                 });
             }

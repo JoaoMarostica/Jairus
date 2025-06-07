@@ -170,7 +170,7 @@ import { computed, ref, reactive, watch } from 'vue'
 import { NModal, NInput, FormInst, NSelect, NButton, NForm, NFormItem, NDatePicker, NDescriptions, NDescriptionsItem, NGi, NGrid, NInputNumber } from 'naive-ui'
 import { BatchDB } from '@/types/batches'
 import { useBatchesStore } from '@/stores/batchesStore'
-import { useSettingsStore } from '@/stores/settingsStore'
+import { useBrandsStore } from '@/stores/brandsStore'
 import { useGlobalStore } from '@/stores/globalStore'
 import { useSeedsStore } from '@/stores/seedsStore';
 import { useCoatingsStore } from '@/stores/coatingsStore'
@@ -187,9 +187,9 @@ const globalStore = useGlobalStore()
 const batchesStore = useBatchesStore()
 const seedsStore = useSeedsStore()
 const coatingsStore = useCoatingsStore()
+const brandssStore = useBrandsStore()
 
-const settingsStore = useSettingsStore()
-const { brands } = storeToRefs(settingsStore)
+const { brands } = storeToRefs(brandssStore)
 const { seeds } = storeToRefs(seedsStore)
 const { coatings } = storeToRefs(coatingsStore)
 
@@ -231,12 +231,14 @@ const coatingsOptions = computed(() => {
 })
 
 const brandsOptions = computed(() => {
-  return brands.value.map(brand => {return ({ label: brand.name, value: brand.name })})
+  return brands.value.map(brand => {return ({ label: brand.brand_name, value: brand.brand_name })})
 })
 
 const sackWeightsOptions = computed(() => {
-  const brand = brands.value.find(brand => brand.name === form.sackBrand)
-  return brand?.sackWeights ?? []
+  const brand = brands.value.find(brand => brand.brand_name === form.sackBrand)
+  return brand?.weights
+    .map(weight => ({ label: `${weight}`, value: weight.toString() })) || []
+    
 })
 
 const totalWeight = computed(() => {
