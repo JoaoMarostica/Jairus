@@ -108,6 +108,7 @@ import { computed, ref, reactive, watch } from 'vue'
 import type { FormInst, FormRules } from 'naive-ui'
 import { NModal, NInput, NButton, NForm, NFormItem, NDescriptions, NDescriptionsItem, NGi, NGrid, NInputNumber } from 'naive-ui'
 import { useBatchesStore } from '@/stores/batchesStore'
+import { useBalancesStore } from '@/stores/balancesStore'
 import { useOutflowsStore } from '@/stores/outflowsStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { parsePtBrNumber } from '@/utils/parsing';
@@ -117,8 +118,9 @@ const createOutflowModal = defineModel('modal', {
   default: false
 })
 
-const globalStore = useGlobalStore()
-const batchesStore = useBatchesStore()
+const globalStore = useGlobalStore();
+const batchesStore = useBatchesStore();
+const balancesStore = useBalancesStore();
 const outflowsStore = useOutflowsStore();
 
 const modalTitle = computed(() =>
@@ -189,7 +191,7 @@ async function handleSubmit(e: MouseEvent) {
 
   try {
     const parsedWeight = parsePtBrNumber(totalWeight.value)
-    const batchBalance = await batchesStore.getBatchBalance(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
+    const batchBalance = await balancesStore.getBatchBalance(selectedBatch.value)
 
     if (parsedWeight > parsePtBrNumber(batchBalance.total_weight)) {
       globalStore.showMessage({

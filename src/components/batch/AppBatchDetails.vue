@@ -97,7 +97,7 @@
         </n-grid-item>
       </n-grid>
     <!-- Outflow CRUD -->
-    <AppEditOutflow v-model:modal="editOutflowModal" :selectedOutflow="selectedOutflow" @reloadData="reloadData" />
+    <AppEditOutflow v-model:modal="editOutflowModal"  :selectedBatch="selectedBatch" :selectedOutflow="selectedOutflow" @reloadData="reloadData" />
     <AppRemoveOutflow v-model:modal="removeOutflowModal" :selectedOutflow="selectedOutflow" @reloadData="reloadData" />
   </n-modal>
 
@@ -326,7 +326,7 @@ async function getbatchBalance() {
 
 function getbatchData() {
   batchData.value = [
-    { titulo: 'Chave', valor: selectedBatch.value.key, unidade: '' },
+    // { titulo: 'Chave', valor: selectedBatch.value.key, unidade: '' },
     { titulo: 'Ano', valor: selectedBatch.value.batch_year, unidade: '' },
     { titulo: 'Vencimento', valor: selectedBatch.value.expire_date, unidade: '' },
     { titulo: 'Cultivar', valor: selectedBatch.value.seed, unidade: '' },
