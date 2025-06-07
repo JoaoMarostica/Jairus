@@ -6,10 +6,10 @@ use std::{io::BufWriter, path::{PathBuf}};
 use anyhow::{Result};
 
 use genpdf::{
-    elements::{StyledElement, Paragraph, TableLayout},
+    elements::{PaddedElement, Paragraph, TableLayout, FrameCellDecorator},
     fonts::{FontFamily, FontData, from_files}, 
     style::{Style, StyledString},
-    Alignment, Document, Margins
+    Alignment, Document, Margins, SimplePageDecorator 
 };
 
 #[derive(Serialize, Debug)]
@@ -190,8 +190,6 @@ impl BatchService {
             .ok_or("Falha ao converter caminho para string")?
             .replace("/", "\\");
 
-        println!("Caminho normalizado: {}", path_str);
-
         from_files(path_str.as_str(), "LiberationSans", None)
             .map_err(|e| format!("Erro ao carregar fonte: {}", e))
     }
@@ -202,48 +200,87 @@ impl BatchService {
         }
 
         let font_family = self.load_font()?;
-        
+
         let mut doc = Document::new(font_family);
+        let mut doc_decorator = SimplePageDecorator::new();
+        doc_decorator.set_margins(Margins::trbl(30, 10, 20, 10));
+        doc.set_page_decorator(doc_decorator);
         doc.set_title("Relatório dos Lotes");
-        doc.set_margins(Margins::trbl(20, 20, 20, 20));
 
-        doc.push(Paragraph::new(StyledString::new("Relatório de Lotes Selecionados".to_owned(), Style::new().bold().with_font_size(16))).aligned(Alignment::Center));
+        // Título
+        let title_text = "Relatório dos Lotes";
+        let title = PaddedElement::new(
+            Paragraph::new(StyledString::new(title_text, Style::new().bold().with_font_size(16)))
+                .aligned(Alignment::Center),
+            Margins::trbl(0, 0, 20, 0),
+        );
+        doc.push(title);
 
-        let mut table = TableLayout::new(vec![1, 2, 2, 2, 1, 1, 1, 1]);
-        table.set_margins(Margins::trbl(1, 1, 1, 1));
+        // Função auxiliar para criar célula
+        fn cell(text: impl Into<String>, style: &Style, align: Alignment) -> PaddedElement<Paragraph> {
+            PaddedElement::new(
+                Paragraph::new(StyledString::new(text.into(), style.clone())).aligned(align),
+                Margins::trbl(5, 2, 5, 2),
+            )
+        }
 
-        let header_style = Style::new().bold();
+        // Tabela
+        let mut table = TableLayout::new(vec![2, 2, 2, 2, 2, 2, 2, 2]);
+        table.set_cell_decorator(FrameCellDecorator::new(true, true, false));
+
+        let header_style = Style::new().bold().with_font_size(11);
+        let headers = [
+            "Lote", "Vct.", "Cultivar", "Trat.",
+            "Marca", "Sacaria", "Sacos", "Total (kg)"
+        ];
+
         let mut header_row = table.row();
-        header_row.push_element(Paragraph::new(StyledString::new("Lote".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Ano".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Vencimento".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Cultivar".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Tratamento".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Marca".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Peso da Sacaria".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Sacos".to_owned(), header_style.clone())));
-        header_row.push_element(Paragraph::new(StyledString::new("Quantidade (Kg)".to_owned(), header_style.clone())));
-        header_row.push().map_err(|e| format!("Erro ao adicionar cabeçalho: {}", e))?;
+        for &text in &headers {
+            header_row.push_element(cell(text, &header_style, Alignment::Center));
+        }
+        header_row.push().map_err(|e| format!("Erro ao adicionar cabeçalho da tabela: {}", e))?;
+
+        let row_style = Style::new().with_font_size(10);
 
         for batch in batches {
             let mut row = table.row();
-            row.push_element(Paragraph::new(format!("{}", batch.batch_number)));
-            row.push_element(Paragraph::new(format!("{}", batch.batch_year)));
-            row.push_element(Paragraph::new(format!("{}", batch.get_expiration_date())));
-            row.push_element(Paragraph::new(batch.seed.clone()));
-            row.push_element(Paragraph::new(batch.coating.clone()));
-            row.push_element(Paragraph::new(batch.brand.clone()));
-            row.push_element(Paragraph::new(format!("{}", batch.sack_weight)));
-            row.push_element(Paragraph::new(format!("{}", batch.sack_amount)));
-            row.push_element(Paragraph::new(format!("{}", batch.total_weight)));
-            row.push().map_err(|e| format!("Erro ao adicionar linha: {}", e))?;
+
+            row.push_element(cell(format!("{}/{}", batch.batch_number, batch.batch_year), &row_style, Alignment::Center));
+            row.push_element(cell(batch.get_expiration_date(), &row_style, Alignment::Center));
+            row.push_element(cell(batch.seed.clone(), &row_style, Alignment::Center));
+            row.push_element(cell(batch.coating.clone(), &row_style, Alignment::Center));
+            row.push_element(cell(batch.brand.clone(), &row_style, Alignment::Center));
+            row.push_element(cell(format!("{:.2}", batch.sack_weight), &row_style, Alignment::Center));
+            row.push_element(cell(batch.sack_amount.to_string(), &row_style, Alignment::Center));
+            row.push_element(cell(format!("{:.2}", batch.total_weight), &row_style, Alignment::Center));
+
+            row.push().map_err(|e| format!("Erro ao adicionar linha da tabela: {}", e))?;
         }
 
         doc.push(table);
 
-        let file = std::fs::File::create(&path).map_err(|e| format!("Erro ao criar arquivo PDF: {}", e))?;
+        // Rodapé com data e hora
+        let now = chrono::Local::now();
+        let footer_text = format!("Gerado em: {}", now.format("%d/%m/%Y %H:%M"));
+        let footer = PaddedElement::new(
+            Paragraph::new(StyledString::new(footer_text, Style::new().with_font_size(10)))
+                .aligned(Alignment::Right),
+            Margins::trbl(0, 0, 10, 0),
+        );
+        doc.push(footer);
+
+        // Garantir que diretório de destino exista
+        if let Some(parent) = std::path::Path::new(&path).parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Erro ao criar diretório do PDF: {}", e))?;
+        }
+
+        // Salvar PDF
+        let file = std::fs::File::create(&path)
+            .map_err(|e| format!("Erro ao criar arquivo PDF: {}", e))?;
         let writer = BufWriter::new(file);
-        doc.render(writer).map_err(|e| format!("Erro ao renderizar PDF: {}", e))?;
+        doc.render(writer)
+            .map_err(|e| format!("Erro ao renderizar PDF: {}", e))?;
 
         Ok(path)
     }
