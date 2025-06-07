@@ -18,20 +18,60 @@
 <script setup lang="ts">
 import AppToolbar from '../components/AppToolbar.vue'
 import { useGlobalStore } from '@/stores/globalStore';
+import { useBatchesStore } from '@/stores/batchesStore';
+import { useOutflowsStore } from '@/stores/outflowsStore';
+import { useSeedsStore } from '@/stores/seedsStore';
+import { useCoatingsStore } from '@/stores/coatingsStore';
+import { useBrandsStore } from '@/stores/brandsStore';
 import { storeToRefs } from 'pinia'
 import {
   NLayout,
   NLayoutContent,
   useMessage
 } from 'naive-ui'
-import { watch } from 'vue';
+import { onMounted, watch } from 'vue';
 
 defineEmits(['toggle-sidebar']);
 
 const globalStore = useGlobalStore();
-const { siderbarWidth, message } = storeToRefs(globalStore)
+const { siderbarWidth, message } = storeToRefs(globalStore);
+
+const batchesStore = useBatchesStore();
+const outflowsStore = useOutflowsStore();
+const seedsStore = useSeedsStore();
+const coatingsStore = useCoatingsStore()
+const brandsStore = useBrandsStore()
 
 const messageApi = useMessage();
+
+onMounted(async () => {
+  try {
+    globalStore.detectSystemTheme();
+    await fetchData();
+  } catch (error: any) {
+    globalStore.showMessage({
+      content: `Erro ao carregar dados: ${error?.message || error}`,
+      type: 'error',
+      keepAliveOnHover: true,
+    })
+  }
+});
+
+async function fetchData() {
+  try {
+    await batchesStore.fetchBatchesData();
+    await outflowsStore.fetchOutflowsData();
+    await seedsStore.fetchSeeds();
+    await coatingsStore.fetchCoatings();
+    await brandsStore.fetchBrands();
+  } catch (error: any) {
+    globalStore.showMessage({
+      content: `Erro ao carregar dados: ${error?.message || error}`,
+      type: 'error',
+      keepAliveOnHover: true,
+    });
+  }
+}
 
 watch(message.value, () => {
   if (message.value) {

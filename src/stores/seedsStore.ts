@@ -12,8 +12,6 @@ export const useSeedsStore = defineStore('seeds', {
   actions: {
     async fetchSeeds() {
         try {
-            
-            
             this.seeds = [];
             this.dataTableSeeds = [];
               
@@ -25,14 +23,12 @@ export const useSeedsStore = defineStore('seeds', {
 
             // Migração automática na primeira carga -- remover futuramentea
            
-            await this.migrateJsonToDatabase();
+            this.migrateJsonToDatabase();
             this.seeds = await invoke('list_seeds');
             this.dataTableSeeds = [];
             this.seeds.forEach((seed: SeedDB) =>
                 this.dataTableSeeds.push(formatSeedForTable(seed))
             );
-        
-
         } catch (err) {
             console.error(err);
         }
@@ -62,7 +58,6 @@ export const useSeedsStore = defineStore('seeds', {
             
             console.log(`Migração concluída: ${migratedCount} adicionados, ${skippedCount} já existiam`);
             return { migratedCount, skippedCount };
-            
         } catch (err) {
             console.error('Erro na migração:', err);
             throw err;

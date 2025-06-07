@@ -135,7 +135,8 @@ import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import * as batchesUtils from '@/utils/batches'
 import { ref, computed, reactive, watch, onMounted, h } from 'vue';
-import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteForeverOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound, PostAddOutlined } from '@vicons/material'
+import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteForeverOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound } from '@vicons/material'
+import { TruckDelivery } from '@vicons/tabler';	
 import AppBatchDetails from '@/components/batch/AppBatchDetails.vue';
 import AppCreateOutflow from '@/components/outflow/AppCreateOutflow.vue';
 import AppCreateBatch from '@/components/batch/AppCreateBatch.vue';
@@ -228,7 +229,6 @@ const filteredData = computed(() => {
       }
     });
   }
-
   return result
 });
 
@@ -239,29 +239,25 @@ onMounted(async () => {
   selectedBatch.value = null;
 
   createColumns();
+  await fetchBatchesData();
   setColumnFilterOptions();
   setYearFilterOptions();
 
-  try {
-    await fetchData();
-
-    // globalStore.showMessage({
-    //   content: 'Lotes carregados com sucesso!',
-    //   type: 'success',
-    // });
-  } catch (error: any) {
-    globalStore.showMessage({
-      content: `Erro ao carregar lotes: ${error?.message || error}`,
-      type: 'error',
-      keepAliveOnHover: true,
-    })
-  }
   loading.value = false
 })
 
-async function fetchData() {
-  await batchesStore.fetchBatchesData();
-  await outflowsStore.fetchOutflowsData();
+async function fetchBatchesData() {
+  try {
+    await batchesStore.fetchBatchesData();
+    await outflowsStore.fetchOutflowsData();
+  } catch (error: any) {
+    console.error(error);
+    globalStore.showMessage({
+      content: 'Erro ao carregar lotes',
+      type: 'error',
+      keepAliveOnHover: true,
+    });
+  }
 }
 
 function openCreateBatchModal() {
@@ -274,10 +270,7 @@ function handleCheck(rowKeys: DataTableRowKey[]) {
 
 function handleRemoveSelected() {
   if (selectedBatches.value.length === 0) {
-    globalStore.showMessage({
-      content: 'Nenhum lote selecionado para remoção.',
-      type: 'warning',
-    });
+    console.warn('Nenhum lote selecionado para remover');
     return;
   }
   removeBatchModal.value = true;
@@ -361,12 +354,13 @@ function setYearFilterOptions() {
   const options = Array.from(new Set(dataTableBatches.value
     .map(batch => batch.batch_year)
     .filter(year => year != null)))
-    .sort();
+    .sort()
+    .map(year => ({
+      label: String(year),
+      value: String(year)
+    }));
 
-  yearFilterOptions.value = options.map((year: number) => ({
-    label: String(year),
-    value: String(year)
-  }));
+  yearFilterOptions.value = options;
 }
 
 watch(sortStates, () => {
@@ -512,14 +506,12 @@ function createColumns() {
                   NButton,
                   {
                     quaternary: true,
-                    type: 'primary',
+                    type: 'info',
                     size: 'small',
                     onClick: () => openBatchDetails(batch),
                     renderIcon: () =>h(NIcon, null, 
                       { default: () => 
-                        h(AutoAwesomeMosaicOutlined, {
-                          style: { color: '#2080f0' }
-                        }) 
+                        h(AutoAwesomeMosaicOutlined) 
                       })
                   }
                 ),
@@ -535,14 +527,12 @@ function createColumns() {
                   NButton,
                   {
                     quaternary: true,
-                    type: 'primary',
+                    type: 'success',
                     size: 'small',
                     onClick: () => createOutflow(batch),
                     renderIcon: () =>h(NIcon, null, 
                       { default: () => 
-                        h(PostAddOutlined, {
-                          style: { color: '#04853a' }
-                        }) 
+                        h(TruckDelivery) 
                       })
                   }
                 ),

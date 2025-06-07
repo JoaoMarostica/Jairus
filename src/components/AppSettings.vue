@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, h, onMounted} from 'vue'
+import { ref, watch, h} from 'vue'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useGlobalStore } from '@/stores/globalStore';
 import { useSeedsStore } from '@/stores/seedsStore';
@@ -96,10 +96,10 @@ import AppCreateSeed from '@/components/seed/AppCreateSeed.vue'
 import AppCreateCoating from '@/components/coating/AppCreateCoating.vue'
 import AppEditSeed from '@/components/seed/AppEditSeed.vue'
 import AppEditBrand from '@/components/brand/AppEditBrand.vue'
-import AppEditCoating from '@/components/coating/AppEditCoating.vue' // ← Nova importação
+import AppEditCoating from '@/components/coating/AppEditCoating.vue'
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@vicons/material'
 import type { DataTableSeed } from '@/types/seeds'
-import type { DataTableCoating } from '@/types/coatings' // ← Nova importação
+import type { DataTableCoating } from '@/types/coatings'
 import { storeToRefs } from 'pinia';
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import {
@@ -113,8 +113,6 @@ import {
   useDialog,
 } from 'naive-ui'
 import { DataTableBrand } from '@/types/brands';
-   
-     
 
 const settingsStore = useSettingsStore()
 const seedsStore = useSeedsStore()
@@ -141,13 +139,6 @@ const selectedSeed = ref<DataTableSeed | null>(null);
 const selectedCoating = ref<DataTableCoating | null>(null); // ← Novo ref
 const showEditBrand = ref(false);
 const selectedBrand = ref<DataTableBrand | null>(null);
-
-onMounted(async() => {
-    await seedsStore.fetchSeeds();
-    await coatingsStore.fetchCoatings();
-    await brandsStore.fetchBrands();
-});
-
     
 watch(settingsModal, async () => {
   createSeedColumns();
