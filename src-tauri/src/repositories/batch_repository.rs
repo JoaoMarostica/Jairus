@@ -47,6 +47,23 @@ impl BatchRepository {
         .optional()
     }
 
+    pub fn select_many(&mut self, ids: &[(i32, i32)]) -> Result<Vec<Batch>, diesel::result::Error> {
+        let mut query = tb_batch.into_boxed();
+
+        for (i, (num, year)) in ids.iter().enumerate() {
+            let condition = batch_number.eq(*num).and(batch_year.eq(*year));
+            query = if i == 0 {
+                query.filter(condition)
+            } else {
+                query.or_filter(condition)
+            };
+        }
+
+        query
+            .select(Batch::as_select())
+            .get_results(&mut self.connection)
+    }
+
     pub fn select_all(&mut self) -> Result<Option<Vec<Batch>>, diesel::result::Error> {
         tb_batch.select(Batch::as_select())
         .get_results(&mut self.connection)

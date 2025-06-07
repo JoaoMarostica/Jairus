@@ -11,6 +11,7 @@ use crate::commands::*;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             batch_commands::add_batch,
             batch_commands::get_batch,
@@ -19,6 +20,9 @@ pub fn run() {
             batch_commands::get_batch_statistics,
             batch_commands::change_batch,
             batch_commands::remove_batch,
+            batch_commands::get_stock_report_command,
+            batch_commands::generate_selected_batches_pdf,
+            //batch_commands::generate_detailed_batch_pdf_report_command
 
             brand_commands::add_brand,
             brand_commands::add_brand_weight,
@@ -47,9 +51,6 @@ pub fn run() {
             seed_commands::list_seeds,
             seed_commands::change_seed,
             seed_commands::remove_seed,
-
-            batch_commands::get_stock_report_command,
-            //batch_commands::generate_detailed_batch_pdf_report_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -61,3 +61,9 @@ pub fn generate_detailed_batch_pdf_report_command() -> Result<String, String> {
     service.generate_detailed_batch_pdf_report().map_err(|e| e.to_string())
 }
 */
+
+#[tauri::command]
+pub fn generate_selected_batches_pdf(selected_ids: Vec<(i32, i32)>, path: String) -> Result<String, String> {
+    let mut service = BatchService::new();
+    service.generate_selected_batches_pdf(selected_ids, path)
+}

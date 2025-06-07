@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import type { BatchDB, DataTableBatch } from '@/types/batches';
-import type { BalanceDB, DataTableBalanceOutflow } from '@/types/balance';
 import type { DataTableRowKey } from 'naive-ui';
 import { parseExpireDate } from '@/utils/parsing';
+import { save } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { ref } from 'vue';
 
@@ -97,84 +97,40 @@ export const useBatchesStore = defineStore('batches', {
 
         return lastBatchNumber;
     },
-    async getBatchBalance(batchNumber: number, batchYear: number): Promise<DataTableBalanceOutflow> {
+    async generatePDF() {
         try {
-            const outflowTotals: BalanceDB = await invoke('get_total_outflow', {
-                batchNumber: batchNumber,
-                batchYear: batchYear
-            })
+            const filePath = await save({
+                filters: [{ name: 'PDF', extensions: ['pdf'] }],
+                defaultPath: 'relatorio_lotes.pdf'
+            });
 
-            const batch = this.batches.find(batch => batch.batch_number === batchNumber && batch.batch_year === batchYear);
+            if (!filePath) return;
 
-            if (!batch) {
-                throw new Error('Batch not found');
+            let selectedBatchesIds: any[] = [];
+
+            if (this.selectedBatches.length === 0) {
+                selectedBatchesIds = this.dataTableBatches.map((batch) => {
+                    return [batch.batch_number, batch.batch_year];
+                });
+            } else {
+                selectedBatchesIds = this.dataTableBatches
+                    .filter((batch) =>
+                        this.selectedBatches.includes(batch.key)
+                    )
+                    .map((batch) => [batch.batch_number, batch.batch_year]);
             }
 
-            // Calculate totalPP and totalWeight from batch properties
-            const totalPP = batch?.total_pureness_score;
-            const totalWeight = batch?.total_weight;
-            const sackAmount = batch?.sack_amount;
+            await invoke('generate_selected_batches_pdf', {
+                selectedIds: selectedBatchesIds,
+                path: filePath
+            });
 
-            const balancePP = totalPP - outflowTotals.total_pureness_score;
-            const balanceWeight = totalWeight - outflowTotals.total_weight;
-            const balanceSackAmount = sackAmount - outflowTotals.sack_amount;
-
-            const balance: DataTableBalanceOutflow = {
-                key: createDataTableKey(batchNumber, batchYear),
-                sack_amount: Math.max(balanceSackAmount, 0),
-                total_weight: parseFloat(Math.max(balanceWeight, 0).toFixed(2)).toLocaleString("pt-BR"),
-                total_pureness_score: parseFloat(Math.max(balancePP, 0).toFixed(2)).toLocaleString("pt-BR"),
-                _searchIndex: normalizeText([
-                    batchNumber,
-                    batchYear,
-                    (balanceSackAmount).toString(),
-                    parseFloat(Math.max(balanceWeight, 0).toFixed(2)).toLocaleString("pt-BR"),
-                    parseFloat(Math.max(balancePP, 0).toFixed(2)).toLocaleString("pt-BR")
-                ].join(' '))
-            }
-
-            return balance
+            return filePath;
         } catch (err) {
             console.error(err);
             throw err;
         }
-    },
-    async downloadPdf() {
-        let downloadData: any[] = [];
-
-        if (this.selectedBatches.length === 0) {
-            downloadData = this.dataTableBatches.map((batch) => {
-                return {
-                    number: batch.batch_number,
-                    year: batch.batch_year,
-                    expireDate: batch.expire_date,
-                    seed: batch.seed,
-                    coating: batch.coating,
-                    sackBrand: batch.brand,
-                    sackAmount: batch.sack_amount,
-                    sackWeight: batch.sack_weight,
-                    totalWeight: batch.total_weight,
-                };
-            })
-        } else {
-            downloadData = this.dataTableBatches.map((batch) => {
-                if (this.selectedBatches.some((b: any) => b.number === batch.batch_number)) {
-                    return {
-                        number: batch.batch_number,
-                        year: batch.batch_year,
-                        expireDate: batch.expire_date,
-                        seed: batch.seed,
-                        coating: batch.coating,
-                        sackBrand: batch.brand,
-                        sackAmount: batch.sack_amount,
-                        sackWeight: batch.sack_weight,
-                        totalWeight: batch.total_weight,
-                    };
-                }
-            })
-        }
-        console.log('Download data: ', downloadData);
-    },
+    }
   },
   getters: {
     getBatchKeys: (state) => {

@@ -23,13 +23,13 @@
         </n-tooltip>
         <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
           <template #trigger>
-            <n-button @click="batchesStore.downloadPdf" :disabled="true">
+            <n-button @click="generatePDF">
               <template #icon>
                 <n-icon><PictureAsPdfOutlined /></n-icon>
               </template>
             </n-button>
           </template>
-          Baixar PDF
+          Gerar PDF
         </n-tooltip>
         <n-tooltip placement="bottom" trigger="hover">
           <template #trigger>
@@ -88,6 +88,24 @@ const { settingsModal } = storeToRefs(settingsStore)
 
 const batchesStore = useBatchesStore()
 const { batches } = storeToRefs(batchesStore);
+
+async function generatePDF() {
+  try {
+    const filePath = await batchesStore.generatePDF();
+
+    globalStore.showMessage({
+      content: 'Relatório dos lotes gerado com sucesso em ' + filePath,
+      type: 'success',
+      keepAliveOnHover: true,
+    })
+  } catch (error: any) {
+    globalStore.showMessage({
+      content: `Erro ao gerar PDF: ${error?.message || error}`,
+      type: 'error',
+      keepAliveOnHover: true,
+    })
+  }
+}
 
 </script>
 
