@@ -36,7 +36,7 @@ export type BatchDB = {
 };
 
 export type BatchOutflowDB = {
-    id: number;
+    outflow_id: number;
     batch_number: number;
     batch_year: number;
     sack_amount: number;
@@ -65,7 +65,7 @@ export type DataTableBatch = {
 
 export type DataTableBatchOutflow = {
     key: string;
-    id: number;
+    outflow_id: number;
     batch_number: number;
     batch_year: number;
     sack_amount: number;

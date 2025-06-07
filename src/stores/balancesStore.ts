@@ -25,7 +25,7 @@ export const useBalancesStore = defineStore('balances', {
             const balanceSackAmount = sackAmount - outflowTotals.sack_amount;
 
             const balance: DataTableBalanceOutflow = {
-                key: createDataTableKey(batch.batch_number, batch.batch_number),
+                key: createDataTableKey(batch.batch_number, batch.batch_year),
                 sack_amount: Math.max(balanceSackAmount, 0),
                 total_weight: parseFloat(Math.max(balanceWeight, 0).toFixed(2)).toLocaleString("pt-BR"),
                 total_pureness_score: parseFloat(Math.max(balancePP, 0).toFixed(2)).toLocaleString("pt-BR"),

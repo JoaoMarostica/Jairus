@@ -34,12 +34,14 @@ export const useOutflowsStore = defineStore('outflows', {
     },
     async editOutflow(outflow: any) {
         try {
+            console.log(outflow);
+            
             const editedOutflow: BatchOutflowDB = await invoke('change_outflow', {
-                id: outflow.id,
+                id: outflow.outflow_id,
                 changes: outflow
             });
 
-            const index = this.dataTableBatchOutflows.findIndex(o => o.id === outflow.id);
+            const index = this.dataTableBatchOutflows.findIndex(o => o.outflow_id === outflow.outflow_id);
 
             if (index !== -1) {
                 this.dataTableBatchOutflows[index] = formatOutflowForTable(editedOutflow);
@@ -54,7 +56,7 @@ export const useOutflowsStore = defineStore('outflows', {
     async removeOutflow(outflow: DataTableBatchOutflow) {
         try {
             await invoke('remove_outflow', {
-                id: outflow.id,
+                id: outflow.outflow_id,
             });
 
             await this.fetchOutflowsData();
@@ -92,7 +94,7 @@ function normalizeText(text: string | null): string {
 function formatOutflowForTable(batchOutflow: BatchOutflowDB): DataTableBatchOutflow {
     const batchOutflowForTable: DataTableBatchOutflow = {
         key: createDataTableKey(batchOutflow.batch_number, batchOutflow.batch_year),
-        id: batchOutflow.id,
+        outflow_id: batchOutflow.outflow_id,
         batch_number: batchOutflow.batch_number,
         batch_year: batchOutflow.batch_year,
         sack_amount: batchOutflow.sack_amount,

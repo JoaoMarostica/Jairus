@@ -37,7 +37,10 @@ const props = defineProps<{
 const outflowsStore = useOutflowsStore();
 const globalStore = useGlobalStore()
 
-const selectedOutflow = computed(() => props.selectedOutflow)
+const selectedOutflow = computed(() => {
+  console.log(`Selected Outflow:`, props.selectedOutflow);
+  return props.selectedOutflow
+})
 
 const modalTitle = computed(() =>
   props.selectedOutflow?.usage

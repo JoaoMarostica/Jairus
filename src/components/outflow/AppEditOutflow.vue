@@ -108,6 +108,7 @@ import type { FormInst, FormRules } from 'naive-ui'
 import { NModal, NInput, NButton, NForm, NFormItem, NDescriptions, NDescriptionsItem, NGi, NGrid, NInputNumber } from 'naive-ui'
 import { useBatchesStore } from '@/stores/batchesStore';
 import { useOutflowsStore } from '@/stores/outflowsStore';
+import { useBalancesStore } from '@/stores/balancesStore';
 import { useGlobalStore } from '@/stores/globalStore';
 import { parsePtBrNumber } from '@/utils/parsing';
 
@@ -120,8 +121,9 @@ const emit = defineEmits<{
   (e: 'reloadData'): void
 }>()
 
-const globalStore = useGlobalStore()
+const globalStore = useGlobalStore();
 const batchesStore = useBatchesStore();
+const balancesStore = useBalancesStore();
 const outflowsStore = useOutflowsStore();
 
 const modalTitle = computed(() =>
@@ -131,9 +133,11 @@ const modalTitle = computed(() =>
 )
 
 const props = defineProps<{
+  selectedBatch: any,
   selectedOutflow: any
 }>()
 
+const selectedBatch = computed(() => props.selectedBatch)
 const selectedOutflow = computed(() => props.selectedOutflow)
 const purenessScore = computed(() => selectedOutflow.value.pureness_score || 0)
 const sackWeight = computed(() => parsePtBrNumber(selectedOutflow.value.total_weight) / selectedOutflow.value.sack_amount || 0)
@@ -203,8 +207,9 @@ async function handleSubmit(e: MouseEvent) {
   e.preventDefault()
 
   try {
-    const parsedWeight = parsePtBrNumber(totalWeight.value)
-    const batchBalance = await batchesStore.getBatchBalance(selectedOutflow.value.batch_number, selectedOutflow.value.batch_year)
+    const parsedWeight = parsePtBrNumber(totalWeight.value);
+    
+    const batchBalance = await balancesStore.getBatchBalance(selectedBatch.value)
 
     if (parsedWeight > parsePtBrNumber(batchBalance.total_weight)) {
       globalStore.showMessage({
@@ -224,6 +229,7 @@ async function handleSubmit(e: MouseEvent) {
   formRef.value?.validate(async (errors) => {
     if (!errors) {
       const outflow = {
+        outflow_id: selectedOutflow.value.outflow_id,
         batch_number: Number(selectedOutflow.value.batch_number),
         batch_year: Number(selectedOutflow.value.batch_year),
         sack_amount: form.sackAmount || 0,

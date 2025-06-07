@@ -97,7 +97,7 @@
         </n-grid-item>
       </n-grid>
     <!-- Outflow CRUD -->
-    <AppEditOutflow v-model:modal="editOutflowModal" :selectedOutflow="selectedOutflow" @reloadData="reloadData" />
+    <AppEditOutflow v-model:modal="editOutflowModal"  :selectedBatch="selectedBatch" :selectedOutflow="selectedOutflow" @reloadData="reloadData" />
     <AppRemoveOutflow v-model:modal="removeOutflowModal" :selectedOutflow="selectedOutflow" @reloadData="reloadData" />
   </n-modal>
 
