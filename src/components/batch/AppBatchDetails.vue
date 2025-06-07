@@ -326,7 +326,7 @@ async function getbatchBalance() {
 
 function getbatchData() {
   batchData.value = [
-    { titulo: 'Chave', valor: selectedBatch.value.key, unidade: '' },
+    // { titulo: 'Chave', valor: selectedBatch.value.key, unidade: '' },
     { titulo: 'Ano', valor: selectedBatch.value.batch_year, unidade: '' },
     { titulo: 'Vencimento', valor: selectedBatch.value.expire_date, unidade: '' },
     { titulo: 'Cultivar', valor: selectedBatch.value.seed, unidade: '' },
