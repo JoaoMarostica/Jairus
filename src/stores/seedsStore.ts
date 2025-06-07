@@ -36,8 +36,6 @@ export const useSeedsStore = defineStore('seeds', {
     //remover futuramente
     async migrateJsonToDatabase() {
         try {
-            console.log('Iniciando migração');
-            
             let migratedCount = 0;
             let skippedCount = 0;
             
@@ -49,17 +47,15 @@ export const useSeedsStore = defineStore('seeds', {
                         new: seedForDB
                     });
                     migratedCount++;
-                    console.log(`Migrado: ${seedForDB.popular_name}`);
                 } catch (error) {
                     skippedCount++;
-                    console.log(`Já existe: ${seedForDB.popular_name}`);
+                    console.error(`Já existe: ${seedForDB.popular_name}`);
                 }
             }
             
-            console.log(`Migração concluída: ${migratedCount} adicionados, ${skippedCount} já existiam`);
             return { migratedCount, skippedCount };
         } catch (err) {
-            console.error('Erro na migração:', err);
+            console.error(err);
             throw err;
         }
     },
@@ -83,7 +79,7 @@ export const useSeedsStore = defineStore('seeds', {
 
             return createdSeed;
         } catch (err) {
-            console.error('Erro ao criar Cultivar:', err);
+            console.error(err);
             throw err;
         }
     },
