@@ -10,10 +10,12 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppBatchDetails: typeof import('./src/components/batch/AppBatchDetails.vue')['default']
     AppCreateBatch: typeof import('./src/components/batch/AppCreateBatch.vue')['default']
+    AppCreateBrand: typeof import('./src/components/brand/AppCreateBrand.vue')['default']
     AppCreateCoating: typeof import('./src/components/coating/AppCreateCoating.vue')['default']
     AppCreateOutflow: typeof import('./src/components/outflow/AppCreateOutflow.vue')['default']
     AppCreateSeed: typeof import('./src/components/seed/AppCreateSeed.vue')['default']
     AppEditBatch: typeof import('./src/components/batch/AppEditBatch.vue')['default']
+    AppEditBrand: typeof import('./src/components/brand/AppEditBrand.vue')['default']
     AppEditCoating: typeof import('./src/components/coating/AppEditCoating.vue')['default']
     AppEditOutflow: typeof import('./src/components/outflow/AppEditOutflow.vue')['default']
     AppEditSeed: typeof import('./src/components/seed/AppEditSeed.vue')['default']

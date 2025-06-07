@@ -12,51 +12,94 @@ export const useBrandsStore = defineStore('brands', {
   actions: {
     async fetchBrands() {
         try {
-            this.$reset;
+            console.log('🔍 Iniciando fetchBrands...');
+            this.$reset();
 
-            this.brands = await invoke('list_brands');
-
-            this.brands.forEach((brand: BrandDB) =>
-                this.dataTableBrands.push(formatBrandForTable(brand))
-            );
+            console.log('🔍 Chamando API list_brands...');
+            const brandsData = await invoke('list_brands');
+            console.log('✅ Dados recebidos da API:', brandsData);
+            
+            this.brands = brandsData as BrandDB[];
+            this.dataTableBrands = this.brands.map(brand => formatBrandForTable(brand));
+            console.log('📊 dataTableBrands após formatação:', this.dataTableBrands);
         } catch (err) {
-            console.error(err);
+            console.error('❌ Erro em fetchBrands:', err);
         }
     },
     
     async createBrand(newBrand: BrandDB) {
         try {
+            console.log('📝 Tentando criar marca:', newBrand);
+            
             const createdBrand: BrandDB = await invoke('add_brand', {
                 new: newBrand
             });
+            console.log('✅ Marca criada com sucesso:', createdBrand);
 
-           this.dataTableBrands.push(formatBrandForTable(createdBrand));
+            console.log('🔄 Recarregando marcas...');
+            await this.fetchBrands();
+            console.log('✅ Recarga concluída. Total de marcas:', this.brands.length);
+
+            return createdBrand;
         } catch (err) {
-            console.error('Erro ao criar Marca:', err);
+            console.error('❌ Erro ao criar marca:', err);
+            throw err; // Propagar o erro para tratamento adequado
         }
     },
 
     async editBrand(originalBrandName: string, updatedBrand: BrandDB) {
         try {
-            const editedBrand: BrandDB = await invoke('change_brand', {
-                brandName: originalBrandName,
-                new_name: updatedBrand.brand_name,
-            });
-
-            const brandIndex = this.brands.findIndex(b => b.brand_name === originalBrandName);
-            if (brandIndex !== -1) {
-                this.brands[brandIndex] = editedBrand;
+            console.log('🔄 Iniciando edição da marca', originalBrandName, '->', updatedBrand);
+            
+            // 1. Encontrar a marca original para comparar
+            const originalBrand = this.brands.find(b => b.brand_name === originalBrandName);
+            if (!originalBrand) {
+                throw new Error(`Marca ${originalBrandName} não encontrada`);
+            }
+            
+            // 2. Mudar o nome da marca (apenas se foi alterado)
+            if (originalBrandName !== updatedBrand.brand_name) {
+                console.log('✏️ Alterando nome da marca:', originalBrandName, '->', updatedBrand.brand_name);
+                await invoke('change_brand', {
+                    id: originalBrandName,
+                    new_name: updatedBrand.brand_name,
+                });
             }
 
-            const index = this.dataTableBrands.findIndex(b => b.key === originalBrandName);
-
-            if (index !== -1) {
-                this.dataTableBrands[index] = formatBrandForTable(editedBrand);
+            // 3. Calcular pesos a adicionar e remover
+            const pesosAtuais = new Set(originalBrand.weights);
+            const pesosNovos = new Set(updatedBrand.weights);
+            
+            // Pesos para adicionar (estão nos novos mas não nos atuais)
+            const pesosParaAdicionar = updatedBrand.weights.filter(w => !pesosAtuais.has(w));
+            
+            // Pesos para remover (estão nos atuais mas não nos novos)
+            const pesosParaRemover = originalBrand.weights.filter(w => !pesosNovos.has(w));
+            
+            // 4. Remover pesos antigos
+            for (const peso of pesosParaRemover) {
+                console.log('🗑️ Removendo peso:', peso, 'da marca:', updatedBrand.brand_name);
+                await invoke('remove_brand_weight', {
+                    id: updatedBrand.brand_name,
+                    value: peso
+                });
             }
-
-            this.brands = await invoke('list_brands');
+            
+            // 5. Adicionar novos pesos
+            for (const peso of pesosParaAdicionar) {
+                console.log('➕ Adicionando peso:', peso, 'à marca:', updatedBrand.brand_name);
+                await invoke('add_brand_weight', {
+                    id: updatedBrand.brand_name, 
+                    value: peso
+                });
+            }
+            
+            console.log('✅ Atualizações concluídas, recarregando marcas...');
+            // 6. Recarregar todas as marcas para garantir dados consistentes
+            await this.fetchBrands();
+            return this.brands.find(b => b.brand_name === updatedBrand.brand_name);
         } catch (err) {
-            console.error(err);
+            console.error('❌ Erro ao editar marca:', err);
             throw err;
         }
     },
