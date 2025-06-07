@@ -176,15 +176,12 @@ impl BatchService {
         }
     }
 
-    fn load_font(&mut self) -> Result<FontFamily<FontData>, String> {
+    fn load_font(&mut self, name:&str) -> Result<FontFamily<FontData>, String> {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("resources/fonts");
+        path.push("resources");
+        path.push("fonts");
 
-        let path_str = path.to_str()
-            .ok_or("Falha ao converter caminho para string")?
-            .replace("/", "\\");
-
-        from_files(path_str.as_str(), "LiberationSans", None)
+        from_files(path.as_os_str(), name, None)
             .map_err(|e| format!("Erro ao carregar fonte: {}", e))
     }
 
@@ -193,7 +190,7 @@ impl BatchService {
             return Err("Nenhum lote encontrado para gerar PDF.".to_string());
         }
 
-        let font_family = self.load_font()?;
+        let font_family = self.load_font("LiberationSans")?;
 
         let mut doc = Document::new(font_family);
         let mut doc_decorator = SimplePageDecorator::new();
