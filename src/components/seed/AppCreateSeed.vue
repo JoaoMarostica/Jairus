@@ -98,7 +98,7 @@ import { useSeedsStore } from '@/stores/seedsStore'
 import { useGlobalStore } from '@/stores/globalStore'
 import type { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
-const createSeedModal = defineModel('modal', {
+const createSeedModal = defineModel('show', {  
   type: Boolean,
   default: false
 })

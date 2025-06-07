@@ -68,7 +68,7 @@
                 
               <!-- Container com rolagem para pesos já adicionados -->
               <div class="weights-scrollable-container">
-                <div v-for="( index) in form.weights" :key="index" class="weight-item">
+                <div v-for="(weight, index) in form.weights" :key="index" class="weight-item">
                   <n-input-number
                     v-model:value="form.weights[index]"
                     placeholder="Peso (Kg)"
