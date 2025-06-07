@@ -26,5 +26,5 @@ diesel = { version = "2.2.0", features = ["sqlite", "returning_clauses_for_sqlit
 libsqlite3-sys = { version = "0.26", features = ["bundled"] }
 dotenvy = "0.15"
 
-genpdf = "0.2.0" 
 anyhow = "1.0" 
+

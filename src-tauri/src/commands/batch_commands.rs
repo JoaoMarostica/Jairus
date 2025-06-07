@@ -3,7 +3,7 @@ use crate::{
         batch::*,
         stats::*
     },
-    services::batch_service::{BatchService, StockReportEntry, DetailedBatchReportEntry}
+    services::batch_service::{BatchService, StockReportEntry/*, DetailedBatchReportEntry*/ }
 };
 
 #[tauri::command]
@@ -54,8 +54,10 @@ pub fn get_stock_report_command() -> Result<Vec<StockReportEntry>, String> {
     service.get_stock_report()
 }
 
+/* 
 #[tauri::command]
 pub fn generate_detailed_batch_pdf_report_command() -> Result<String, String> {
     let mut service = BatchService::new();
     service.generate_detailed_batch_pdf_report().map_err(|e| e.to_string())
 }
+*/

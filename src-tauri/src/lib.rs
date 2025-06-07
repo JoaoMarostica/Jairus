@@ -49,7 +49,7 @@ pub fn run() {
             seed_commands::remove_seed,
 
             batch_commands::get_stock_report_command,
-            batch_commands::generate_detailed_batch_pdf_report_command
+            //batch_commands::generate_detailed_batch_pdf_report_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

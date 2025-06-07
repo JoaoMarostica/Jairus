@@ -5,7 +5,7 @@ use serde::Serialize;
 use std::fs;
 use std::io::BufWriter;
 use anyhow::{Result, anyhow}; 
-
+/* 
 use genpdf::{
     elements::{Paragraph, TableLayout, Text},
     fonts::{FontFamily}, 
@@ -13,7 +13,7 @@ use genpdf::{
     Alignment,
     Document,
     Margins,
-};
+};*/
 
 #[derive(Serialize, Debug)]
 pub struct StockReportEntry {
@@ -187,7 +187,7 @@ impl BatchService {
             
         Ok(report)
     }
-    
+    /* 
     pub fn get_detailed_batch_report(&mut self) -> Result<Vec<DetailedBatchReportEntry>, String> {
         let report_entries = self.list_active_batches()? 
             .into_iter()
@@ -261,5 +261,5 @@ impl BatchService {
         doc.render(writer).map_err(|e| format!("Erro ao renderizar PDF: {}", e))?;
 
         Ok(pdf_path)
-    }
+    }*/
 }
