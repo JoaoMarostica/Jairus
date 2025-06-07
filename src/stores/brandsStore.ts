@@ -12,44 +12,43 @@ export const useBrandsStore = defineStore('brands', {
   actions: {
     async fetchBrands() {
         try {
-            console.log('🔍 Iniciando fetchBrands...');
+            
             this.$reset();
 
-            console.log('🔍 Chamando API list_brands...');
+            
             const brandsData = await invoke('list_brands');
-            console.log('✅ Dados recebidos da API:', brandsData);
+           
             
             this.brands = brandsData as BrandDB[];
             this.dataTableBrands = this.brands.map(brand => formatBrandForTable(brand));
-            console.log('📊 dataTableBrands após formatação:', this.dataTableBrands);
+            
         } catch (err) {
-            console.error('❌ Erro em fetchBrands:', err);
+            console.error( err);
         }
     },
     
     async createBrand(newBrand: BrandDB) {
         try {
-            console.log('📝 Tentando criar marca:', newBrand);
             
             const createdBrand: BrandDB = await invoke('add_brand', {
                 new: newBrand
             });
-            console.log('✅ Marca criada com sucesso:', createdBrand);
+            
 
-            console.log('🔄 Recarregando marcas...');
+            
             await this.fetchBrands();
-            console.log('✅ Recarga concluída. Total de marcas:', this.brands.length);
+           
 
             return createdBrand;
         } catch (err) {
-            console.error('❌ Erro ao criar marca:', err);
+            console.error(err);
             throw err; // Propagar o erro para tratamento adequado
         }
     },
 
     async editBrand(originalBrandName: string, updatedBrand: BrandDB) {
         try {
-            console.log('🔄 Iniciando edição da marca', originalBrandName, '->', updatedBrand);
+            
             
             // 1. Encontrar a marca original para comparar
             const originalBrand = this.brands.find(b => b.brand_name === originalBrandName);
@@ -59,10 +58,10 @@ export const useBrandsStore = defineStore('brands', {
             
             // 2. Mudar o nome da marca (apenas se foi alterado)
             if (originalBrandName !== updatedBrand.brand_name) {
-                console.log('✏️ Alterando nome da marca:', originalBrandName, '->', updatedBrand.brand_name);
+               
                 await invoke('change_brand', {
                     id: originalBrandName,
-                    new_name: updatedBrand.brand_name,
+                    newName: updatedBrand.brand_name,
                 });
             }
 
@@ -94,12 +93,12 @@ export const useBrandsStore = defineStore('brands', {
                 });
             }
             
-            console.log('✅ Atualizações concluídas, recarregando marcas...');
+           
             // 6. Recarregar todas as marcas para garantir dados consistentes
             await this.fetchBrands();
             return this.brands.find(b => b.brand_name === updatedBrand.brand_name);
         } catch (err) {
-            console.error('❌ Erro ao editar marca:', err);
+            console.error(err);
             throw err;
         }
     },
@@ -151,9 +150,7 @@ export const useBrandsStore = defineStore('brands', {
 
             }
 
-            if(!this.brands[brandIndex].weights.includes(weight)){
-                console.error(`Peso ${weight}Kg não existe para a marca ${brandName}`);
-            }
+            
 
             await invoke('remove_brand_weight', {
                 id: brandName,
