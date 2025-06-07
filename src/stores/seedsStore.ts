@@ -100,10 +100,7 @@ export const useSeedsStore = defineStore('seeds', {
        
                 const editedSeed: SeedDB = await invoke('change_seed', {
                     id: cleanOriginalName,
-                    changes: {
-                        popular_name: updatedSeed.popular_name,
-                        scientific_name: updatedSeed.scientific_name
-                    }
+                    changes: updatedSeed
                    
                 });
     
