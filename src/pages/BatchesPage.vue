@@ -105,7 +105,7 @@
     <AppBatchDetails v-model:modal="batchDetailsModal" :selectedBatch="selectedBatch"/>
     
     <!-- Batch CRUD -->
-    <AppCreateBatch v-model:modal="createBatchModal"/>
+    <AppCreateBatch v-model:modal="createBatchModal" :selectedYear="yearFilter" />
     <AppEditBatch v-model:modal="editBatchModal" :selectedBatch="selectedBatch" />
     <AppRemoveBatch v-model:modal="removeBatchModal" :selectedBatch="selectedBatch" :multiple="multipleRemove" />
     
@@ -233,45 +233,31 @@ const filteredData = computed(() => {
 });
 
 onMounted(async () => {
+  loading.value = true
+  multipleRemove.value = false;
+  selectedBatches.value = [];
+  selectedBatch.value = null;
+
+  createColumns();
+  setColumnFilterOptions();
+  setYearFilterOptions();
+
   try {
-    loading.value = true
-    multipleRemove.value = false;
-    selectedBatches.value = [];
-    selectedBatch.value = null;
+    await fetchData();
 
-    createColumns();
-    setColumnFilterOptions();
-    setYearFilterOptions();
-
-    try {
-      await fetchData();
-
-      // globalStore.showMessage({
-      //   content: 'Lotes carregados com sucesso!',
-      //   type: 'success',
-      // });
-    } catch (error: any) {
-      globalStore.showMessage({
-        content: `Erro ao carregar lotes: ${error?.message || error}`,
-        type: 'error',
-        keepAliveOnHover: true,
-      })
-    }
-  } catch (err) {
+    // globalStore.showMessage({
+    //   content: 'Lotes carregados com sucesso!',
+    //   type: 'success',
+    // });
+  } catch (error: any) {
     globalStore.showMessage({
-      content: `Erro ao carregar lotes: ${err instanceof Error ? err.message : String(err)}`,
+      content: `Erro ao carregar lotes: ${error?.message || error}`,
       type: 'error',
-    });
+      keepAliveOnHover: true,
+    })
   }
   loading.value = false
 })
-
-watch(dataTableBatches.value, () => {
-  globalStore.showMessage({
-    content: 'Lotes atualizados com sucesso!',
-    type: 'success',
-  });
-});
 
 async function fetchData() {
   await batchesStore.fetchBatchesData();
@@ -351,7 +337,7 @@ function handleRemove(batch: any) {
   removeBatchModal.value = true;
 }
 
-async function setColumnFilterOptions() {
+function setColumnFilterOptions() {
   columns.value.forEach((column: any) => {
     if (column.type !== 'selection' && column.key !== 'actions' && column.key !== 'year') {
       if (column.key === 'sack') {
@@ -371,17 +357,16 @@ async function setColumnFilterOptions() {
   });
 }
 
-async function setYearFilterOptions() {
-  const uniqueYears = Array.from(new Set(dataTableBatches.value
+function setYearFilterOptions() {
+  const options = Array.from(new Set(dataTableBatches.value
     .map(batch => batch.batch_year)
-    .filter(year => year != null)));
+    .filter(year => year != null)))
+    .sort();
 
-  yearFilterOptions.value = [
-    ...uniqueYears.sort().map(year => ({
-      label: String(year),
-      value: String(year)
-    }))
-  ];
+  yearFilterOptions.value = options.map((year: number) => ({
+    label: String(year),
+    value: String(year)
+  }));
 }
 
 watch(sortStates, () => {

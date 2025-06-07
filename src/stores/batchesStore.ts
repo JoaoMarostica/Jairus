@@ -88,12 +88,16 @@ export const useBatchesStore = defineStore('batches', {
             throw err;
         }
     },
-    getLastBatch() {
+    getLastBatch(year: Number) {
+        let lastBatchNumber = 0;
+
         const batchesNumber = this.dataTableBatches
-            .filter(batch => batch.batch_status === 1)
+            .filter(batch => (batch.batch_status === 1 && batch.batch_year === year))
             .map(batch => batch.batch_number);
 
-        const lastBatchNumber = Math.max(...batchesNumber);
+        if (batchesNumber.length !== 0) {
+            lastBatchNumber = Math.max(...batchesNumber);
+        }
 
         return lastBatchNumber;
     },

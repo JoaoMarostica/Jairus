@@ -199,6 +199,12 @@ const modalTitle = computed(() =>
     : 'Novo Lote'
 )
 
+const props = defineProps<{
+  selectedYear: any
+}>()
+
+const selectedYear = computed(() => props.selectedYear)
+
 const year = ref<number | null>(null)
 const expireDate = ref<string | null>(null)
 
@@ -256,8 +262,10 @@ const totalPP = computed(() => {
 
 watch(createBatchModal, () => {
   if (createBatchModal.value) {
+    year.value = selectedYear.value || new Date().getFullYear()
+    const date = new Date((year.value ?? new Date().getFullYear()), 0, 1).getTime()
+    parseExpireDate(date)
     form.batchNumber = getNextBatchNumber()
-    parseExpireDate(Date.now())
   } else {
     resetForm()
   }
@@ -366,11 +374,8 @@ function parseExpireDate(value: number | null) {
 }
 
 function getNextBatchNumber() {
-  const lastBatchNumber = batchesStore.getLastBatch()
-  if (lastBatchNumber) {
-    return (lastBatchNumber + 1).toString()
-  }
-  return '1'
+  const lastBatchNumber = batchesStore.getLastBatch(year.value || new Date().getFullYear())
+  return (lastBatchNumber + 1).toString()
 }
 
 function positiveNumberValidator(_: any, value: number | string | null) {
