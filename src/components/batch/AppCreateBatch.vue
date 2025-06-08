@@ -9,7 +9,7 @@
     :title="modalTitle"
   >
     <n-grid :cols="3" x-gap="24px">
-      <!-- Coluna do formulário -->
+      <!-- Form fields -->
       <n-gi :span="2">
         <n-form
           ref="formRef"
