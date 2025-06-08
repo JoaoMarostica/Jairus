@@ -29,25 +29,6 @@ export default defineConfig({
     minify: 'esbuild',
     chunkSizeWarningLimit: 500,
     outDir: 'dist',
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('naive-ui')) {
-              if (id.includes('_internal')) return 'naive-ui_internal'
-              if (id.includes('data-table')) return 'naive-ui-data-table'
-              if (id.includes('date-picker')) return 'naive-ui-date-picker'
-              return 'naive-ui'
-            }
-            if (id.includes('echarts')) return 'echarts'
-            if (id.includes('vue')) return 'vue'
-            if (id.includes('xlsx')) return 'xlsx'
-            if (id.includes('zrender')) return 'zrender'
-            return 'vendor'
-          }
-        }
-      }
-    }
   },
   server: {
     port: 1420,

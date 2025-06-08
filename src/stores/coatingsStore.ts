@@ -23,7 +23,6 @@ export const useCoatingsStore = defineStore('coatings', {
             console.error(err);
         }
     },
-
     async createCoating(newCoating: CoatingDB) {
         try {
 

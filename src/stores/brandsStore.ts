@@ -22,7 +22,6 @@ export const useBrandsStore = defineStore('brands', {
             console.error( err);
         }
     },
-    
     async createBrand(newBrand: BrandDB) {
         try {
             

@@ -22,6 +22,7 @@
       }
     ],
     "security": {
+      "csp": null,
       "capabilities": ["default"]
     }
   },
@@ -29,6 +30,7 @@
     "active": true,
     "targets": "all",
     "resources": [
+      "database/Jairus.db" ,
       "resources/fonts/LiberationSans-Regular.ttf",
       "resources/fonts/LiberationSans-Bold.ttf"
     ],

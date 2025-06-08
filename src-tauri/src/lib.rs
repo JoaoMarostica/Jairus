@@ -7,8 +7,23 @@ mod models;
 mod schema;
 
 use crate::commands::*;
+use dotenvy::dotenv;
+use std::env;
+use std::path::PathBuf;
+
+fn get_database_path() -> PathBuf {
+    let exe_path = env::current_exe().expect("Failed to get current exe path");
+    let exe_dir = exe_path.parent().expect("Failed to get exe directory");
+    exe_dir.join("database").join("Jairus.db")
+}
 
 pub fn run() {
+    dotenv().ok();
+    let db_path = get_database_path();
+    // println!("DATABASE_PATH: {:?}", db_path);
+
+    std::env::set_var("DATABASE_URL", &db_path);
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -22,7 +37,6 @@ pub fn run() {
             batch_commands::remove_batch,
             batch_commands::get_stock_report_command,
             batch_commands::generate_selected_batches_pdf,
-            //batch_commands::generate_detailed_batch_pdf_report_command
 
             brand_commands::add_brand,
             brand_commands::add_brand_weight,

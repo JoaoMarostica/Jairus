@@ -16,7 +16,7 @@ type MessageData = {
   onLeave?: () => void
 }
 
-const { width, height } = useWindowSize() // fora da store, como um singleton global
+const { width, height } = useWindowSize()
 
 export const useGlobalStore = defineStore('global', {
   state: () => ({
