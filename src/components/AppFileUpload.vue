@@ -1,5 +1,12 @@
 <template>
-  <n-modal v-model:show="fileUploadModal" preset="card" draggable title="Upload de Planilha" style="width: 500px">
+  <n-modal
+    v-model:show="fileUploadModal"
+    preset="card"
+    :mask-closable="false"
+    draggable
+    title="Importar Planilha Excel"
+    style="width: 500px; position: fixed;  top: 70px; right: 122px"
+  >
     <n-spin :show="loading">
       <n-upload
         :default-upload="false"
@@ -14,7 +21,7 @@
             </n-icon>
           </div>
           <n-text style="font-size: 16px">
-            Clique ou arraste arquivos para esta área para fazer upload
+            Clique ou arraste a planilha para esta área para importar
           </n-text>
           <n-p depth="3" style="margin: 8px 0 0 0">
             Não envie informações sensíveis como senhas ou dados bancários.

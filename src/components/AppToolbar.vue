@@ -1,14 +1,13 @@
 <template>
   <n-layout-header class="header-fixed">
     <n-flex align="center" justify="space-between" style="width: 100%">
-      <!-- <n-image width="100" src="@/assets/jairus-logos/navbar/Jairus3.png" fit="cover" :style="{ cursor: 'pointer' }">
-        <template #error>
-          <n-icon :size="100" color="lightGrey">
-            <ImageOutlined />
-          </n-icon>
-        </template>
-      </n-image> -->
-      <div>Jairus</div>
+      <router-link to="/" style="display: flex; align-items: center">
+        <img
+          :src="logoJairus"
+          alt="Jairus Logo"
+          style="height: 30px; cursor: pointer"
+        />
+      </router-link>
 
       <n-flex>
         <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
@@ -62,8 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined, ImageOutlined } from '@vicons/material';
+import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined } from '@vicons/material';
 import { DocumentPdf } from '@vicons/carbon';
+import logoJairus from '@/assets/jairus-logos/navbar/Jairus2.png'
 import AppFileUpload from './AppFileUpload.vue';
 import AppSettings from './AppSettings.vue';
 import { useGlobalStore } from '@/stores/globalStore';
@@ -75,8 +75,7 @@ import {
   NButton,
   NIcon,
   NFlex,
-  NTooltip,
-  NImage
+  NTooltip
 } from 'naive-ui'
 
 defineEmits(['toggle-sidebar']);
