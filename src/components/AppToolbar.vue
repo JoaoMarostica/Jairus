@@ -13,6 +13,16 @@
       <n-flex>
         <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
           <template #trigger>
+            <n-button @click="generateReportPDF">
+              <template #icon>
+                <n-icon><DocumentPdf /></n-icon>
+              </template>
+            </n-button>
+          </template>
+          Gerar Relatório em PDF
+        </n-tooltip>
+        <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
+          <template #trigger>
             <n-button @click="fileUploadModal = true" :disabled="batches.length === 0">
               <template #icon>
                 <n-icon><UploadFileOutlined /></n-icon>
@@ -20,16 +30,6 @@
             </n-button>
           </template>
           Importar planilha excel
-        </n-tooltip>
-        <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
-          <template #trigger>
-            <n-button @click="generateReportPDF">
-              <template #icon>
-                <n-icon><Report /></n-icon>
-              </template>
-            </n-button>
-          </template>
-          Gerar Relatório em PDF
         </n-tooltip>
         <n-tooltip placement="bottom" trigger="hover">
           <template #trigger>
@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined, ImageOutlined } from '@vicons/material';
-import { Report } from '@vicons/carbon';
+import { DocumentPdf } from '@vicons/carbon';
 import AppFileUpload from './AppFileUpload.vue';
 import AppSettings from './AppSettings.vue';
 import { useGlobalStore } from '@/stores/globalStore';

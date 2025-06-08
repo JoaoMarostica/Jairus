@@ -135,8 +135,8 @@ import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import * as batchesUtils from '@/utils/batches'
 import { ref, computed, reactive, watch, onMounted, h } from 'vue';
-import { AutoAwesomeMosaicOutlined, EditOutlined, DeleteForeverOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound } from '@vicons/material'
-import { TruckDelivery } from '@vicons/tabler';	
+import { AssessmentOutlined, EditOutlined, DeleteForeverOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound } from '@vicons/material'
+import { TruckDelivery } from '@vicons/tabler';
 import AppBatchDetails from '@/components/batch/AppBatchDetails.vue';
 import AppCreateOutflow from '@/components/outflow/AppCreateOutflow.vue';
 import AppCreateBatch from '@/components/batch/AppCreateBatch.vue';
@@ -511,11 +511,11 @@ function createColumns() {
                     onClick: () => openBatchDetails(batch),
                     renderIcon: () =>h(NIcon, null, 
                       { default: () => 
-                        h(AutoAwesomeMosaicOutlined) 
+                        h(AssessmentOutlined) 
                       })
                   }
                 ),
-              default: () => 'Ver detalhes'
+              default: () => 'Exibir detalhes'
             }
           ),
           h(
@@ -536,7 +536,7 @@ function createColumns() {
                       })
                   }
                 ),
-              default: () => 'Adicionar Saída'
+              default: () => 'Adicionar Pedido'
             }
           ),
           h(
