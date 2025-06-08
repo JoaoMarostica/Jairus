@@ -93,7 +93,6 @@ import { NModal, NCard, NGrid, NGridItem, NDataTable, NDescriptions, NDescriptio
 import type { DataTableBatchOutflow } from '@/types/batches';
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import { computed, h, nextTick, ref, watch } from 'vue'
-import * as echarts from 'echarts'
 import { parsePtBrNumber, formatNumber, parseNumber } from '@/utils/parsing';
 import { useOutflowsStore } from '@/stores/outflowsStore';
 import { useBalancesStore } from '@/stores/balancesStore';
@@ -103,6 +102,24 @@ import { DeleteOutlined, EditOutlined, MoreVertOutlined, MinusOutlined, EqualsOu
 import AppEditOutflow from '@/components/outflow/AppEditOutflow.vue';
 import AppRemoveOutflow from '@/components/outflow/AppRemoveOutflow.vue';
 import { BalanceDB } from '@/types/balance';
+import * as echarts from 'echarts/core'
+import { BarChart } from 'echarts/charts'
+import {
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+} from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
+
+echarts.use([
+  BarChart,
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  CanvasRenderer
+])
 
 type BatchBalance = {value: number; name: string};
 
@@ -130,7 +147,6 @@ const removeOutflowModal = ref<boolean>(false);
 
 const batchData = ref<{ titulo: string; valor: any; unidade: string }[]>([]);
 const batchBalance = ref<BatchBalance[]>([]);
-const balanceChart = ref<HTMLElement | null>(null);
 
 const totalChart = ref<HTMLElement | null>(null);
 const outflowData = ref<DataTableBatchOutflow[]>([]);
@@ -216,7 +232,6 @@ function renderCharts() {
   const splitLineColor = isDark ? '#555' : '#e0e0e0'
   const legendTextColor = isDark ? '#ccc' : '#333'
 
-  // Gráfico de barra (totais)
   if (totalChart.value && selectedBatch.value) {
     const existing = echarts.getInstanceByDom(totalChart.value)
     if (existing) existing.dispose()
@@ -262,59 +277,25 @@ function renderCharts() {
           name: 'Lote',
           type: 'bar',
           data: [parseNumber(batchStatistic.value)],
-          itemStyle: { color: '#4CAF50' } // verde
+          itemStyle: { color: '#4CAF50' }
         },
         {
           name: 'Pedidos',
           type: 'bar',
           data: [parseNumber(outflowStatistic.value)],
-          itemStyle: { color: '#F44336' } // vermelho
+          itemStyle: { color: '#F44336' }
         },
         {
           name: 'Saldo',
           type: 'bar',
           data: [parseNumber(balanceStatistic.value)],
-          itemStyle: { color: '#2196F3' } // azul
+          itemStyle: { color: '#2196F3' }
         }
       ],
       legend: {
         textStyle: {
           color: legendTextColor
         }
-      }
-    })
-  }
-
-  // Gráfico de pizza (saldo)
-  if (balanceChart.value && batchBalance.value) {
-    const existing = echarts.getInstanceByDom(balanceChart.value)
-    if (existing) existing.dispose()
-
-    const chart = echarts.init(balanceChart.value)
-
-    chart.setOption({
-      tooltip: {
-        trigger: 'item',
-        formatter: '{b}: {d}%'
-      },
-      series: [
-        {
-          name: 'Saldo',
-          type: 'pie',
-          radius: '50%',
-          data: batchBalance.value,
-          label: {
-            show: true,
-            formatter: '{c}',
-            fontSize: 14,
-            color: axisLabelColor
-          },
-        }
-      ],
-      legend: {
-        textStyle: {
-          color: legendTextColor
-        },
       }
     })
   }
@@ -327,13 +308,6 @@ function closeModal(model: boolean) {
 
     if (totalChart.value) {
       const chart = echarts.getInstanceByDom(totalChart.value)
-      if (chart) {
-        chart.dispose()
-      }
-    }
-
-    if (balanceChart.value) {
-      const chart = echarts.getInstanceByDom(balanceChart.value)
       if (chart) {
         chart.dispose()
       }

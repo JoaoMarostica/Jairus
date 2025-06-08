@@ -105,7 +105,7 @@
 import { computed, ref, reactive, watch } from 'vue'
 import type { FormInst, FormRules } from 'naive-ui'
 import { NModal, NInput, NButton, NForm, NFormItem, NDescriptions, NDescriptionsItem, NGi, NGrid, NInputNumber } from 'naive-ui'
-import { useBatchesStore } from '@/stores/batchesStore'
+// import { useBatchesStore } from '@/stores/batchesStore'
 import { useBalancesStore } from '@/stores/balancesStore'
 import { useOutflowsStore } from '@/stores/outflowsStore';
 import { useGlobalStore } from '@/stores/globalStore';
@@ -117,7 +117,7 @@ const createOutflowModal = defineModel('modal', {
 })
 
 const globalStore = useGlobalStore();
-const batchesStore = useBatchesStore();
+// const batchesStore = useBatchesStore();
 const balancesStore = useBalancesStore();
 const outflowsStore = useOutflowsStore();
 

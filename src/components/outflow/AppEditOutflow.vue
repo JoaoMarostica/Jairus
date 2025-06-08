@@ -1,7 +1,7 @@
 <template>
   <n-modal
     v-model:show="editOutflowModal"
-    style="width: 45vw; height: 35vh;"
+    style="width: 45vw; height: 40vh;"
     :mask-closable="false"
     preset="card"
     :closable="true"
@@ -104,7 +104,7 @@
 import { computed, ref, reactive, watch } from 'vue'
 import type { FormInst, FormRules } from 'naive-ui'
 import { NModal, NInput, NButton, NForm, NFormItem, NDescriptions, NDescriptionsItem, NGi, NGrid, NInputNumber } from 'naive-ui'
-import { useBatchesStore } from '@/stores/batchesStore';
+// import { useBatchesStore } from '@/stores/batchesStore';
 import { useOutflowsStore } from '@/stores/outflowsStore';
 import { useBalancesStore } from '@/stores/balancesStore';
 import { useGlobalStore } from '@/stores/globalStore';
@@ -120,7 +120,7 @@ const emit = defineEmits<{
 }>()
 
 const globalStore = useGlobalStore();
-const batchesStore = useBatchesStore();
+// const batchesStore = useBatchesStore();
 const balancesStore = useBalancesStore();
 const outflowsStore = useOutflowsStore();
 

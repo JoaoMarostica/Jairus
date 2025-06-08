@@ -383,7 +383,7 @@ function positiveNumberValidator(_: any, value: number | string | null) {
 const rules = {
   batchNumber: {
     required: true,
-    validator: (rule: any, value: string) => {
+    validator: (_: any, value: string) => {
       const batchKey = `${value}${String(year.value)}`
       if (batchesStore.getBatchKeys.includes(batchKey) && selectedBatch.value?.key !== batchKey) {
         return Promise.reject(`Lote ${value}/${String(year.value).slice(-2)} já existe!`)
