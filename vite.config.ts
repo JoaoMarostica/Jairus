@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
 import Components from 'unplugin-vue-components/vite';
 import AutoImport from 'unplugin-auto-import/vite';
@@ -11,12 +10,6 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue(), 
-    visualizer({
-      filename: './dist/stats.html',
-      open: true, // Abre o navegador automaticamente
-      gzipSize: true,
-      brotliSize: true,
-    }),
     AutoImport({
       resolvers: [NaiveUiResolver()],
     }),
