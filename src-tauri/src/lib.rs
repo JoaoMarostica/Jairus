@@ -18,11 +18,11 @@ fn get_database_path() -> PathBuf {
 }
 
 pub fn run() {
-    dotenv().ok();
     let db_path = get_database_path();
-    // println!("DATABASE_PATH: {:?}", db_path);
-
     std::env::set_var("DATABASE_URL", &db_path);
+
+    // Opcional: só usa .env se ele existir
+    let _ = dotenv();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
