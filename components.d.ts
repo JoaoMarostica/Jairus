@@ -24,6 +24,10 @@ declare module 'vue' {
     AppRemoveOutflow: typeof import('./src/components/outflow/AppRemoveOutflow.vue')['default']
     AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     AppToolbar: typeof import('./src/components/AppToolbar.vue')['default']
+    NCardTitle: typeof import('naive-ui')['NCardTitle']
+    NSelect: typeof import('naive-ui')['NSelect']
+    NSpace: typeof import('naive-ui')['NSpace']
+    NStatistic: typeof import('naive-ui')['NStatistic']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

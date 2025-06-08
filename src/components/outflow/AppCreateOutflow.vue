@@ -1,7 +1,7 @@
 <template>
   <n-modal
     v-model:show="createOutflowModal"
-    style="width: 1000px;"
+    style="width: 45vw; height: 40vh;"
     :mask-closable="false"
     preset="card"
     draggable

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import type { BatchOutflowDB, DataTableBatchOutflow } from '@/types/batches';
+import type { BatchOutflowDB, DataTableBatchOutflow, DataTableBatch } from '@/types/batches';
+import type { BalanceDB } from '@/types/balance';
 import { invoke } from '@tauri-apps/api/core';
 import { ref } from 'vue';
 
@@ -73,6 +74,19 @@ export const useOutflowsStore = defineStore('outflows', {
             })
 
             return outflows.map(formatOutflowForTable);
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    },
+    async getOutflowTotals(batch: DataTableBatch): Promise<BalanceDB> {
+        try {
+            const outflowTotals: BalanceDB = await invoke('get_total_outflow', {
+                batchNumber: batch.batch_number,
+                batchYear: batch.batch_year
+            })
+
+            return outflowTotals
         } catch (err) {
             console.error(err);
             throw err;

@@ -1,7 +1,7 @@
 <template>
   <n-modal
     v-model:show="createBatchModal"
-    style="width: 1000px;"
+    style="width: 45vw;"
     :mask-closable="false"
     preset="card"
     draggable

@@ -1,7 +1,7 @@
 <template>
   <n-modal
     v-model:show="editOutflowModal"
-    style="width: 1000px;"
+    style="width: 45vw; height: 35vh;"
     :mask-closable="false"
     preset="card"
     :closable="true"

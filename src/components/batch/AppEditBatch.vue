@@ -1,10 +1,11 @@
 <template>
   <n-modal
     v-model:show="editBatchModal"
-    style="width: 1000px;"
+    style="width: 45vw;"
     :mask-closable="false"
     preset="card"
     :closable="true"
+    draggable
     :title="modalTitle"
   >
     <n-grid :cols="3" x-gap="24px">
