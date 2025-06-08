@@ -7,8 +7,8 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers';
 
 const host = process.env.TAURI_DEV_HOST;
 
-// https://vitejs.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [vue(), 
     AutoImport({
       resolvers: [NaiveUiResolver()],
