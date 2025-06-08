@@ -8,7 +8,6 @@
     :title="modalTitle"
   >
     <n-grid :cols="3" x-gap="24px">
-      <!-- Coluna do formulário -->
       <n-gi :span="2">
         <n-form
           ref="formRef"
@@ -63,7 +62,6 @@
         </n-form>
       </n-gi>
 
-      <!-- Coluna das descrições -->
       <n-gi :span="1">
         <n-descriptions
           label-placement="top"
@@ -219,6 +217,7 @@ async function handleSubmit(e: MouseEvent) {
       return
     }
   } catch (error) {
+    console.error(error);
     globalStore.showMessage({
       content: 'Erro ao calcular saldo.',
       type: 'error',
@@ -242,25 +241,19 @@ async function handleSubmit(e: MouseEvent) {
         await outflowsStore.editOutflow(outflow)
         
         globalStore.showMessage({
-          content: 'Pedido editado com successo!',
+          content: 'Pedido editado com successo.',
           type: 'success',
         })
         emit('reloadData')
         editOutflowModal.value = false
         resetForm()
       } catch (error: any) {
+        console.error(error);
         globalStore.showMessage({
-          content: `Erro ao editar pedido: ${error?.message || error}`,
+          content: 'Erro ao editar pedido.',
           type: 'error',
-          keepAliveOnHover: true,
         })
       }
-    } else {
-      globalStore.showMessage({
-        content: 'Preencha todos os campos obrigatórios.',
-        type: 'error',
-      })
-      return
     }
   })
 }

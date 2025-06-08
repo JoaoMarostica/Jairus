@@ -55,13 +55,14 @@ async function removeBatch() {
     await batchesStore.removeBatch(selectedBatch.value)
 
     globalStore.showMessage({
-      content: 'Lote removido com sucesso!',
+      content: 'Lote removido com sucesso.',
       type: 'success',
     })
     removeBatchModal.value = false
   } catch (error: any) {
+    console.error(error);
     globalStore.showMessage({
-      content: `Erro ao remover lote: ${error?.message || error}`,
+      content: 'Erro ao remover lote.',
       type: 'error',
       keepAliveOnHover: true,
     })
@@ -73,16 +74,16 @@ async function removeSelectedBatches() {
     await batchesStore.removeSelectedBatches()
 
     globalStore.showMessage({
-      content: 'Lotes selecionados removidos com sucesso!',
+      content: 'Lotes selecionados removidos com sucesso.',
       type: 'success',
     })
 
     removeBatchModal.value = false
   } catch (error: any) {
+    console.error(error);
     globalStore.showMessage({
-      content: `Erro ao remover lotes selecionados: ${error?.message || error}`,
+      content: 'Erro ao remover lotes selecionados.',
       type: 'error',
-      keepAliveOnHover: true,
     })
   }
 }

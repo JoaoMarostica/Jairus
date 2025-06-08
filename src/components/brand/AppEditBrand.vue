@@ -8,7 +8,6 @@
     title="Editar Marca"
   >
     <n-grid :cols="2" x-gap="24px">
-      <!-- Coluna do formulário -->
       <n-gi :span="1">
         <n-form
           ref="formRef"
@@ -37,7 +36,6 @@
             :feedback="weightsFeedback"
           >
             <div class="weights-container">
-              <!-- Campo de entrada com validação própria -->
               <div class="weight-input-container">
                 <n-form-item 
                   :validation-status="newWeightStatus" 
@@ -66,7 +64,6 @@
                 </n-button>
               </div>
                 
-              <!-- Container com rolagem para pesos já adicionados -->
               <div class="weights-scrollable-container">
                 <div v-for="(weight, index) in form.weights" :key="index" class="weight-item">
                   <n-input-number
@@ -87,7 +84,6 @@
         </n-form>
       </n-gi>
 
-      <!-- Coluna das descrições -->
       <n-gi :span="1">
         <n-descriptions
           label-placement="top"
@@ -189,7 +185,6 @@ const formRef = ref<FormInst | null>(null)
 const size = ref<'small' | 'medium' | 'large'>('medium')
 const originalBrandName = ref<string>('')
 
-// Inicializar o formulário com dados vazios
 const form = reactive({
   brand_name: '' as string,
   weights: [] as number[]
@@ -199,16 +194,11 @@ const isFormValid = computed(() => {
   return form.brand_name.trim() !== '' && form.weights.length > 0
 })
 
-// Carregar os dados da marca quando o modal é aberto
 watch(() => props.brand, () => {
   if (props.brand) {
-    // Salvar o nome original da marca para referência na atualização
     originalBrandName.value = props.brand.brand_name
-    
-    // Preencher o formulário com os dados da marca
     form.brand_name = props.brand.brand_name
     
-    // Converter os pesos de objetos para números
     form.weights = props.brand.weights.map(w => parseFloat(w.value))
   }
 }, { immediate: true })
@@ -260,7 +250,6 @@ function handleSubmit(e: MouseEvent) {
   e.preventDefault()
   formRef.value?.validate(async (errors) => {
     if (!errors) {
-      // Preparar objeto para salvar
       const brand: BrandDB = {
         brand_name: form.brand_name.trim(),
         weights: form.weights
@@ -270,35 +259,29 @@ function handleSubmit(e: MouseEvent) {
         await brandsStore.editBrand(originalBrandName.value, brand)
         
         globalStore.showMessage({
-          content: 'Marca atualizada com sucesso!',
+          content: 'Marca atualizada com sucesso.',
           type: 'success',
         })
         editBrandModal.value = false
         resetForm()
       } catch (error: any) {
+        console.error(error)
         globalStore.showMessage({
-          content: `Erro ao atualizar marca: ${error?.message || error}`,
+          content: 'Erro ao atualizar marca.',
           type: 'error',
         })
       }
-    } else {
-      globalStore.showMessage({
-        content: 'Preencha todos os campos obrigatórios.',
-        type: 'error',
-      })
     }
   })
 }
 
 function addWeight() {
   if (!newWeight.value || newWeight.value <= 0) {
-    // Mostra erro se o campo estiver vazio ou com valor inválido
     newWeightStatus.value = 'error'
     newWeightFeedback.value = 'Digite um peso válido'
     return
   }
   
-  // Se chegou aqui, o valor é válido
   form.weights.push(newWeight.value)
   newWeight.value = null
   newWeightStatus.value = undefined
@@ -315,7 +298,6 @@ function cancel() {
 }
 
 function resetForm() {
-  // Não limpar o formulário na edição, manter os dados da marca atual
   if (!props.brand) {
     form.brand_name = ''
     form.weights = []
@@ -340,9 +322,9 @@ function resetForm() {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 150px; /* Altura máxima do contêiner */
-  overflow-y: auto; /* Adiciona rolagem vertical quando necessário */
-  padding-right: 5px; /* Espaço para a barra de rolagem */
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
 .weight-item {

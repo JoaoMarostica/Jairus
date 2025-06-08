@@ -101,7 +101,7 @@ export const useBatchesStore = defineStore('batches', {
 
         return lastBatchNumber;
     },
-    async generatePDF() {
+    async generateReportPDF() {
         try {
             const filePath = await save({
                 filters: [{ name: 'PDF', extensions: ['pdf'] }],

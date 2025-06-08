@@ -8,7 +8,6 @@
     title="Nova Cultivar"
   >
     <n-grid :cols="2" x-gap="24px">
-      <!-- Coluna do formulário -->
       <n-gi :span="1">
         <n-form
           ref="formRef"
@@ -29,7 +28,6 @@
               clearable 
             />
           </n-form-item>
-          
           <n-form-item
             label="Nome Científico"
             path="scientific_name"
@@ -43,7 +41,6 @@
         </n-form>
       </n-gi>
 
-      <!-- Coluna das descrições -->
       <n-gi :span="1">
         <n-descriptions
           label-placement="top"
@@ -135,7 +132,6 @@ watchEffect(() => {
   }
 })
 
-
 watch(createSeedModal, () => {
   if (!createSeedModal.value) {
     resetForm()
@@ -168,22 +164,18 @@ function handleSubmit(e: MouseEvent) {
         await seedsStore.createSeed(seed)
         
         globalStore.showMessage({
-          content: 'Cultivar criada com sucesso!',
+          content: 'Cultivar criada com sucesso.',
           type: 'success',
         })
         createSeedModal.value = false
         resetForm()
       } catch (error: any) {
+        console.error(error);
         globalStore.showMessage({
-          content: `Erro ao criar cultivar: ${error?.message || error}`,
+          content: 'Erro ao criar cultivar.',
           type: 'error',
         })
       }
-    } else {
-      globalStore.showMessage({
-        content: 'Preencha todos os campos obrigatórios.',
-        type: 'error',
-      })
     }
   })
 }

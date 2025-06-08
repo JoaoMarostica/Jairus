@@ -287,16 +287,11 @@ function closeModal(model: boolean) {
 async function getbatchOutflow() {
   try {
     outflowData.value = await outflowsStore.getBatchOutflows(selectedBatch.value.batch_number, selectedBatch.value.batch_year)
-
-    // globalStore.showMessage({
-    //   content: 'Pedidos carregados com sucesso!',
-    //   type: 'success',
-    // })
   } catch (error: any) {
+    console.error(error);
     globalStore.showMessage({
-      content: `Erro ao carregar pedidos: ${error?.message || error}`,
+      content: 'Erro ao carregar pedidos do lote.',
       type: 'error',
-      keepAliveOnHover: true,
     })
   }
 }
@@ -310,16 +305,11 @@ async function getbatchBalance() {
       { value: parsePtBrNumber(balance.total_weight), name: 'Quantidade (Kg)' },
       { value: balance.sack_amount, name: 'Sacos' }
     ];
-
-    // globalStore.showMessage({
-    //   content: 'Saldo carregado com sucesso!',
-    //   type: 'success',
-    // })
   } catch (error: any) {
+    console.error(error);
     globalStore.showMessage({
-      content: `Erro ao carregar saldo: ${error?.message || error}`,
+      content: 'Erro ao carregar saldo do lote.',
       type: 'error',
-      keepAliveOnHover: true,
     })
   }
 }

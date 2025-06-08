@@ -8,7 +8,6 @@
     title="Editar Revestimento"
   >
     <n-grid :cols="2" x-gap="24px">
-      <!-- Coluna do formulário -->
       <n-gi :span="1">
         <n-form
           ref="formRef"
@@ -32,7 +31,6 @@
         </n-form>
       </n-gi>
 
-      <!-- Coluna das descrições -->
       <n-gi :span="1">
         <n-descriptions
           label-placement="top"
@@ -84,7 +82,6 @@ import { useCoatingsStore } from '@/stores/coatingsStore'
 import { useGlobalStore } from '@/stores/globalStore'
 import type { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
-// Props
 interface Props {
   coating?: DataTableCoating | null
 }
@@ -93,7 +90,6 @@ const props = withDefaults(defineProps<Props>(), {
   coating: null
 })
 
-// Model
 const editCoatingModal = defineModel('show', {
   type: Boolean,
   default: false
@@ -133,7 +129,6 @@ watchEffect(() => {
   }
 })
 
-// Preenche o formulário quando o modal abre
 watch([editCoatingModal, () => props.coating], () => {
   if (editCoatingModal.value && props.coating) {
     form.coating_name = props.coating.coating_name
@@ -141,7 +136,6 @@ watch([editCoatingModal, () => props.coating], () => {
   }
 })
 
-// Limpa o formulário quando o modal fecha
 watch(editCoatingModal, () => {
   if (!editCoatingModal.value) {
     resetForm()
@@ -171,22 +165,18 @@ function updateCoating(e: MouseEvent) {
         );
         
         globalStore.showMessage({
-          content: 'Revestimento editado com sucesso!',
+          content: 'Revestimento editado com sucesso.',
           type: 'success',
         })
         editCoatingModal.value = false
         resetForm()
       } catch (error: any) {
+        console.error(error);
         globalStore.showMessage({
-          content: `Erro ao editar revestimento: ${error?.message || error}`,
+          content: 'Erro ao editar revestimento.',
           type: 'error',
         })
       }
-    } else {
-      globalStore.showMessage({
-        content: 'Preencha todos os campos obrigatórios.',
-        type: 'error',
-      })
     }
   })
 }

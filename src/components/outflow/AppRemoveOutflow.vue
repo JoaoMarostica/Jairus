@@ -53,17 +53,17 @@ async function confirmRemove() {
     await outflowsStore.removeOutflow(selectedOutflow.value)
 
     globalStore.showMessage({
-      content: 'Pedido removido com sucesso!',
+      content: 'Pedido removido com sucesso.',
       type: 'success',
     })
 
     emit('reloadData')
     removeOutflowModal.value = false
   } catch (error: any) {
+    console.error(error);
     globalStore.showMessage({
-      content: `Erro ao remover pedido: ${error?.message || error}`,
+      content: 'Erro ao remover pedido.',
       type: 'error',
-      keepAliveOnHover: true,
     })
   }
 }

@@ -75,15 +75,16 @@ async function handleFileChange({ file }: { file: UploadFileInfo }) {
   sheetStore.importBatchesFromSheet(rawFile)
     .then(async () => {
       globalStore.showMessage({
-        content: 'Planilha lida com sucesso!',
+        content: 'Planilha lida com sucesso.',
         type: 'success',
       })
       await fetchData();
       fileUploadModal.value = false
     })
-    .catch((err) => {
+    .catch((error) => {
+      console.error(error);
       globalStore.showMessage({
-        content: `Erro ao ler a planilha: ${err.message}`,
+        content: 'Erro ao ler a planilha.',
         type: 'error',
       })
       fileUploadModal.value = false

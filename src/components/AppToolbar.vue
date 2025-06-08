@@ -23,13 +23,13 @@
         </n-tooltip>
         <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
           <template #trigger>
-            <n-button @click="generatePDF">
+            <n-button @click="generateReportPDF">
               <template #icon>
-                <n-icon><PictureAsPdfOutlined /></n-icon>
+                <n-icon><Report /></n-icon>
               </template>
             </n-button>
           </template>
-          Gerar PDF
+          Gerar Relatório em PDF
         </n-tooltip>
         <n-tooltip placement="bottom" trigger="hover">
           <template #trigger>
@@ -62,7 +62,8 @@
 </template>
 
 <script setup lang="ts">
-import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined, PictureAsPdfOutlined, ImageOutlined } from '@vicons/material';
+import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined, ImageOutlined } from '@vicons/material';
+import { Report } from '@vicons/carbon';
 import AppFileUpload from './AppFileUpload.vue';
 import AppSettings from './AppSettings.vue';
 import { useGlobalStore } from '@/stores/globalStore';
@@ -89,20 +90,20 @@ const { settingsModal } = storeToRefs(settingsStore)
 const batchesStore = useBatchesStore()
 const { batches } = storeToRefs(batchesStore);
 
-async function generatePDF() {
+async function generateReportPDF() {
   try {
-    const filePath = await batchesStore.generatePDF();
+    const filePath = await batchesStore.generateReportPDF();
 
     globalStore.showMessage({
-      content: 'Relatório dos lotes gerado com sucesso em ' + filePath,
+      content: 'Relatório gerado com sucesso em ' + filePath,
       type: 'success',
       keepAliveOnHover: true,
     })
   } catch (error: any) {
+    console.error(error);
     globalStore.showMessage({
-      content: `Erro ao gerar PDF: ${error?.message || error}`,
+      content: 'Erro ao gerar relatório.',
       type: 'error',
-      keepAliveOnHover: true,
     })
   }
 }
@@ -117,6 +118,6 @@ async function generatePDF() {
   right: 0;
   z-index: 1000;
   padding: 16px;
-  background-color: var(--n-color); /* ou outra cor de fundo */
+  background-color: var(--n-color);
 }
 </style>

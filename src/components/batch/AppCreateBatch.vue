@@ -329,6 +329,7 @@ function handleSubmit(e: MouseEvent) {
         createBatchModal.value = false
         resetForm()
       } catch (error: any) {
+        console.error(error);
         globalStore.showMessage({
           content: 'Erro ao criar lote.',
           type: 'error',

@@ -8,7 +8,6 @@
     title="Novo Tratamento"
   >
     <n-grid :cols="2" x-gap="24px">
-      <!-- Coluna do formulário -->
       <n-gi :span="1">
         <n-form
           ref="formRef"
@@ -32,7 +31,6 @@
         </n-form>
       </n-gi>
 
-      <!-- Coluna das descrições -->
       <n-gi :span="1">
         <n-descriptions
           label-placement="top"
@@ -84,7 +82,6 @@ import { useCoatingsStore } from '@/stores/coatingsStore'
 import { useGlobalStore } from '@/stores/globalStore'
 import type { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
-// Model
 const createCoatingModal = defineModel('show', {
   type: Boolean,
   default: false
@@ -147,30 +144,22 @@ function createCoating(e: MouseEvent) {
       }
 
       try {
-       
         await coatingsStore.createCoating(newCoating)
-        
        
         globalStore.showMessage({
-          content: 'Tratamento criado com sucesso!',
+          content: 'Tratamento criado com sucesso.',
           type: 'success',
         })
-        
-        
         resetForm()
         createCoatingModal.value = false
         
       } catch (error: any) {
+        console.error(error);
         globalStore.showMessage({
-          content: `Erro ao criar tratamento: ${error?.message || error}`,
+          content: 'Erro ao criar tratamento.',
           type: 'error',
         })
       }
-    } else {
-      globalStore.showMessage({
-        content: 'Preencha todos os campos obrigatórios.',
-        type: 'error',
-      })
     }
   })
 }

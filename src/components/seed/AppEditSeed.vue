@@ -8,7 +8,6 @@
     title="Editar Cultivar"
   >
     <n-grid :cols="2" x-gap="24px">
-      <!-- Coluna do formulário -->
       <n-gi :span="1">
         <n-form
           ref="formRef"
@@ -29,7 +28,6 @@
               clearable 
             />
           </n-form-item>
-          
           <n-form-item
             label="Nome Científico"
             path="scientific_name"
@@ -43,7 +41,6 @@
         </n-form>
       </n-gi>
 
-      <!-- Coluna das descrições -->
       <n-gi :span="1">
         <n-descriptions
           label-placement="top"
@@ -98,7 +95,6 @@ import { useSeedsStore } from '@/stores/seedsStore'
 import { useGlobalStore } from '@/stores/globalStore'
 import type { FormValidationStatus } from 'naive-ui/es/form/src/interface'
 
-// Props
 interface Props {
   seed?: DataTableSeed | null
 }
@@ -107,7 +103,6 @@ const props = withDefaults(defineProps<Props>(), {
   seed: null
 })
 
-// Model
 const editSeedModal = defineModel('show', {
   type: Boolean,
   default: false
@@ -148,7 +143,6 @@ watchEffect(() => {
   }
 })
 
-// Preenche o formulário quando o modal abre
 watch([editSeedModal, () => props.seed], () => {
   if (editSeedModal.value && props.seed) {
     form.popular_name = props.seed.popular_name
@@ -157,7 +151,6 @@ watch([editSeedModal, () => props.seed], () => {
   }
 })
 
-// Limpa o formulário quando o modal fecha
 watch(editSeedModal, () => {
   if (!editSeedModal.value) {
     resetForm()
@@ -191,22 +184,18 @@ function updateSeed(e: MouseEvent) {
         await seedsStore.editSeed( updatedSeed,originalName.value)
         
         globalStore.showMessage({
-          content: 'Cultivar editada com sucesso!',
+          content: 'Cultivar editada com sucesso.',
           type: 'success',
         })
         editSeedModal.value = false
         resetForm()
       } catch (error: any) {
+        console.error(error);
         globalStore.showMessage({
-          content: `Erro ao editar cultivar: ${error?.message || error}`,
+          content: 'Erro ao editar cultivar.',
           type: 'error',
         })
       }
-    } else {
-      globalStore.showMessage({
-        content: 'Preencha todos os campos obrigatórios.',
-        type: 'error',
-      })
     }
   })
 }

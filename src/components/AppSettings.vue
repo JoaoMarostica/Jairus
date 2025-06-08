@@ -2,15 +2,11 @@
     <n-modal v-model:show="settingsModal" preset="card" draggable title="Configurações" style="width: 600px; min-height: 600px">
         <n-tabs type="segment" animated>
             <n-tab-pane name="seeds" tab="Cultivares">
-                
-                <!-- Data Table Seeds-->
                 <n-data-table
                     :columns="seedColumns"
                     :data="dataTableSeeds"
                     :max-height="300"
-                    
                 />
-                
                 <div style="text-align: center; margin-top: 24px;">
                     <n-button strong secondary type="info" @click="showCreateSeed = true">
                         
@@ -27,14 +23,11 @@
             </n-tab-pane>
 
             <n-tab-pane name="coatings" tab="Tratamentos">
-                <!-- Data Table Coatings-->
                 <n-data-table
                     :columns="coatingColumns"
                     :data="dataTableCoatings"
                     :max-height="400"
-                    
                 />
-                
                 <div style="text-align: center; margin-top: 24px;">
                     <n-button strong secondary type="info" @click="showCreateCoating = true">
                         <template #icon>
@@ -45,19 +38,16 @@
                         Novo Tratamento
                     </n-button>
                     
-                    <!-- Componentes de modais -->
                     <AppCreateCoating v-model:show="showCreateCoating" />
                     <AppEditCoating v-model:show="showEditCoating" :coating="selectedCoating" />
                 </div>
             </n-tab-pane>
 
             <n-tab-pane name="brands" tab="Marcas">
-                <!-- Data Table Brands-->
                 <n-data-table
                     :columns="brandColumns"
                     :data="dataTableBrands"
                     :max-height="400"
-                    
                 />
             
                 <div style="text-align: center; margin-top: 24px;">
@@ -134,9 +124,9 @@ const showCreateBrand = ref(false);
 const showCreateSeed = ref(false);
 const showEditSeed = ref(false);
 const showCreateCoating = ref(false);
-const showEditCoating = ref(false); // ← Novo ref
+const showEditCoating = ref(false);
 const selectedSeed = ref<DataTableSeed | null>(null);
-const selectedCoating = ref<DataTableCoating | null>(null); // ← Novo ref
+const selectedCoating = ref<DataTableCoating | null>(null);
 const showEditBrand = ref(false);
 const selectedBrand = ref<DataTableBrand | null>(null);
     
@@ -150,7 +140,6 @@ function handleSave() {
     settingsModal.value = false
 }
 
-// Função para cancelar (fechar o modal sem salvar)
 const handleCancel = () => {
     settingsModal.value = false
 }
@@ -192,9 +181,8 @@ function createSeedColumns() {
   ]
 }
 
-
 async function deleteSeedHandler(seed: any) {
-    dialog.warning({
+    dialog.error({
         title: 'Confirmar Exclusão',
         content: () => h('div', [
             h('p', { style: 'margin-bottom: 12px;' }, 
@@ -217,12 +205,13 @@ async function deleteSeedHandler(seed: any) {
                 await seedsStore.removeSeed(seed);
                 
                 globalStore.showMessage({
-                    content: `Cultivar "${seed.popular_name}" excluída com sucesso!`,
+                    content: `Cultivar "${seed.popular_name}" excluída com sucesso.`,
                     type: 'success'
                 });
             } catch (error: any) {
+                console.error(error);
                 globalStore.showMessage({
-                    content: `Erro ao excluir cultivar: ${error?.message || error}`,
+                    content: 'Erro ao excluir cultivar.',
                     type: 'error'
                 });
             }
@@ -230,7 +219,6 @@ async function deleteSeedHandler(seed: any) {
     });
 }
 
-// editar 
 function editSeedHandler(seed: DataTableSeed) {
     selectedSeed.value = seed;
     showEditSeed.value = true;
@@ -256,7 +244,7 @@ function createCoatingColumns() {
                         quaternary: true,
                         size: 'small',
                         renderIcon: () => h(EditOutlined),
-                        onClick: () => editCoatingHandler(row as DataTableCoating) // ← Conectado ao handler
+                        onClick: () => editCoatingHandler(row as DataTableCoating)
                     }
                 ),
                 h(
@@ -307,7 +295,7 @@ function createBrandColumns() {
                     size: 'small',
                     type: 'error',
                     renderIcon: () => h(DeleteOutlined),
-                    onClick: () => deleteBrandHandler(row as DataTableBrand) // ← Conectado ao handler
+                    onClick: () => deleteBrandHandler(row as DataTableBrand)
                 }
                 )
             ];
@@ -316,14 +304,13 @@ function createBrandColumns() {
   ]
 }
 
-// Função para editar tratamento
 function editCoatingHandler(coating: DataTableCoating) {
     selectedCoating.value = coating;
     showEditCoating.value = true;
 }
 
 async function deleteCoatingHandler(coating: any) {
-    dialog.warning({
+    dialog.error({
         title: 'Confirmar Exclusão',
         content: () => h('div', [
             h('p', { style: 'margin-bottom: 12px;' }, 
@@ -346,12 +333,13 @@ async function deleteCoatingHandler(coating: any) {
                 await coatingsStore.removeCoating(coating);
                 
                 globalStore.showMessage({
-                    content: `Tratamento "${coating.coating_name}" excluído com sucesso!`,
+                    content: `Tratamento "${coating.coating_name}" excluído com sucesso.`,
                     type: 'success'
                 });
             } catch (error: any) {
+                console.error(error);
                 globalStore.showMessage({
-                    content: `Erro ao excluir Tratamento: ${error?.message || error}`,
+                    content: 'Erro ao excluir tratamento.',
                     type: 'error'
                 });
             }
@@ -359,14 +347,13 @@ async function deleteCoatingHandler(coating: any) {
     });
 }
 
-// Função para editar marca
 function editBrandHandler(brand: DataTableBrand) {
     selectedBrand.value = brand;
     showEditBrand.value = true;
 }
 
 async function deleteBrandHandler(brand: DataTableBrand) {
-    dialog.warning({
+    dialog.error({
         title: 'Confirmar Exclusão',
         content: () => h('div', [
             h('p', { style: 'margin-bottom: 12px;' }, 
@@ -389,12 +376,13 @@ async function deleteBrandHandler(brand: DataTableBrand) {
                 await brandsStore.removeBrand(brand);
                 
                 globalStore.showMessage({
-                    content: `Marca "${brand.brand_name}" excluída com sucesso!`,
+                    content: `Marca "${brand.brand_name}" excluída com sucesso.`,
                     type: 'success'
                 });
             } catch (error: any) {
+                console.error(error);
                 globalStore.showMessage({
-                    content: `Erro ao excluir marca: ${error?.message || error}`,
+                    content: 'Erro ao excluir marca.',
                     type: 'error'
                 });
             }

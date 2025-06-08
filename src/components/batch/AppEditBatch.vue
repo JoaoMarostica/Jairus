@@ -301,6 +301,7 @@ function handleSubmit(e: MouseEvent) {
   const parsedWeight = parsePtBrNumber(totalWeight.value)
 
   if (parsedWeight > 10000) {
+    console.error('Weight exceeds limit');
     globalStore.showMessage({
       content: 'O quantidade (Kg) não pode ultrapassar 10.000 kg.',
       type: 'error',
@@ -331,23 +332,17 @@ function handleSubmit(e: MouseEvent) {
         await batchesStore.editBatch(batch)
         
         globalStore.showMessage({
-          content: 'Lote editado com successo!',
+          content: 'Lote editado com successo.',
           type: 'success',
         })
         editBatchModal.value = false
       } catch (error: any) {
+        console.error(error);
         globalStore.showMessage({
-          content: `Erro ao editar lote: ${error?.message || error}`,
+          content: 'Erro ao editar lote.',
           type: 'error',
-          keepAliveOnHover: true,
         })
       }
-    } else {
-      globalStore.showMessage({
-        content: 'Preencha todos os campos obrigatórios.',
-        type: 'error',
-      })
-      return
     }
   })
 }
