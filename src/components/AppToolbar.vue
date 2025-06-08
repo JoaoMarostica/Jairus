@@ -3,9 +3,16 @@
     <n-flex align="center" justify="space-between" style="width: 100%">
       <router-link to="/" style="display: flex; align-items: center">
         <img
-          :src="logoJairus"
+          v-if="theme === 'light'"
+          :src="logoLightTheme"
           alt="Jairus Logo"
-          style="height: 30px; cursor: pointer"
+          style="height: 30px; cursor: pointer; margin-left: 5px"
+        />
+        <img
+          v-else
+          :src="logoDarkTheme"
+          alt="Jairus Logo"
+          style="height: 30px; cursor: pointer; margin-left: 5px"
         />
       </router-link>
 
@@ -63,7 +70,8 @@
 <script setup lang="ts">
 import { UploadFileOutlined, WbSunnyOutlined, NightlightOutlined, SettingsOutlined } from '@vicons/material';
 import { DocumentPdf } from '@vicons/carbon';
-import logoJairus from '@/assets/jairus-logos/navbar/Jairus2.png'
+import logoLightTheme from '@/assets/jairus-logos/navbar/Jairus2.png'
+import logoDarkTheme from '@/assets/jairus-logos/navbar/Jairus3.png'
 import AppFileUpload from './AppFileUpload.vue';
 import AppSettings from './AppSettings.vue';
 import { useGlobalStore } from '@/stores/globalStore';
