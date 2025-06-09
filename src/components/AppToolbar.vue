@@ -29,13 +29,14 @@
         </n-tooltip>
         <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
           <template #trigger>
-            <n-button @click="fileUploadModal = true" :disabled="batches.length === 0">
+            <n-button @click="fileUploadModal = true" :disabled="batches.length === 0 || selectedBatches.length === 0">
               <template #icon>
                 <n-icon><UploadFileOutlined /></n-icon>
               </template>
             </n-button>
           </template>
-          Importar planilha excel
+          <div v-if="selectedBatches.length === 0">Selecione os Lotes Desejados</div>
+          <div v-else>Importar Planilha Excel</div>
         </n-tooltip>
         <n-tooltip placement="bottom" trigger="hover">
           <template #trigger>
@@ -75,7 +76,7 @@ import logoDarkTheme from '@/assets/jairus-logos/navbar/Jairus3.png'
 import AppFileUpload from './AppFileUpload.vue';
 import AppSettings from './AppSettings.vue';
 import { useGlobalStore } from '@/stores/globalStore';
-import { useSettingsStore } from '@/stores/settingsStore'
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useBatchesStore } from '@/stores/batchesStore';
 import { storeToRefs } from 'pinia';
 import {
@@ -91,11 +92,11 @@ defineEmits(['toggle-sidebar']);
 const globalStore = useGlobalStore();
 const { theme, fileUploadModal } = storeToRefs(globalStore);
 
-const settingsStore = useSettingsStore()
-const { settingsModal } = storeToRefs(settingsStore)
+const settingsStore = useSettingsStore();
+const { settingsModal } = storeToRefs(settingsStore);
 
-const batchesStore = useBatchesStore()
-const { batches } = storeToRefs(batchesStore);
+const batchesStore = useBatchesStore();
+const { batches, selectedBatches } = storeToRefs(batchesStore);
 
 async function generateReportPDF() {
   try {

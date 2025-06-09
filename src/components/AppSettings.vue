@@ -1,5 +1,11 @@
 <template>
-    <n-modal v-model:show="settingsModal" preset="card" draggable title="Configurações" style="width: 600px; min-height: 600px">
+    <n-modal
+        v-model:show="settingsModal"
+        preset="card"
+        draggable
+        title="Configurações"
+        style="width: 600px; min-height: 600px"
+    >
         <n-tabs type="segment" animated>
             <n-tab-pane name="seeds" tab="Cultivares">
                 <n-data-table
@@ -26,7 +32,7 @@
                 <n-data-table
                     :columns="coatingColumns"
                     :data="dataTableCoatings"
-                    :max-height="400"
+                    :max-height="300"
                 />
                 <div style="text-align: center; margin-top: 24px;">
                     <n-button strong secondary type="info" @click="showCreateCoating = true">
@@ -47,7 +53,7 @@
                 <n-data-table
                     :columns="brandColumns"
                     :data="dataTableBrands"
-                    :max-height="400"
+                    :max-height="300"
                 />
             
                 <div style="text-align: center; margin-top: 24px;">
@@ -138,6 +144,10 @@ watch(settingsModal, async () => {
 
 function handleSave() {
     settingsModal.value = false
+    globalStore.showMessage({
+        content: 'Dados salvos com sucesso.',
+        type: 'success'
+    });
 }
 
 const handleCancel = () => {

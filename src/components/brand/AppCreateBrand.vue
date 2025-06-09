@@ -183,8 +183,6 @@ const newWeight = ref<number | null>(null)
 const newWeightStatus = ref<FormValidationStatus | undefined>(undefined)
 const newWeightFeedback = ref<string | undefined>(undefined)
 
-
-
 const isFormValid = computed(() => {
   return form.brand_name.trim() !== '' && form.weights.length > 0
 })
@@ -204,13 +202,14 @@ watchEffect(() => {
   }
 })
 
-// Validação para verificar se há pelo menos um peso
 watchEffect(() => {
   weightsStatus.value = form.weights.length === 0 ? 'error' : undefined
 })
 
 watch(createBrandModal, () => {
-  if (!createBrandModal.value) {
+  if (createBrandModal.value) {
+    form.weights = [10, 15, 25, 30]
+  } else {
     resetForm()
   }
 })

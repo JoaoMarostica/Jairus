@@ -4,12 +4,10 @@ import type { DataTableRowKey } from 'naive-ui';
 import { parseExpireDate } from '@/utils/parsing';
 import { save } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
-import { ref } from 'vue';
-
 export const useBatchesStore = defineStore('batches', {
   state: () => ({
-    batches: ref<BatchDB[]>([]),
-    dataTableBatches: ref<DataTableBatch[]>([]),
+    batches: [] as BatchDB[],
+    dataTableBatches: [] as DataTableBatch[],
     selectedBatches: [] as DataTableRowKey[],
   }),
   actions: {
@@ -80,8 +78,24 @@ export const useBatchesStore = defineStore('batches', {
                     });
                 }
             });
-            this.selectedBatches = [];
 
+            this.selectedBatches = [];
+            await this.fetchBatchesData();
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    },
+    async removeAllBatches() {
+        try {
+            for (const batch of this.dataTableBatches) {
+                await invoke('remove_batch', {
+                    batchNumber: batch.batch_number,
+                    batchYear: batch.batch_year
+                });
+            }
+
+            this.selectedBatches = [];
             await this.fetchBatchesData();
         } catch (err) {
             console.error(err);

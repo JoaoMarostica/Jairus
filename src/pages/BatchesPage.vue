@@ -51,14 +51,22 @@
             </template>
             Novo Lote
           </n-button>
-          <n-button strong secondary type="error" @click="handleRemoveSelected" v-if="selectedBatches.length !== 0">
-            <template #icon>
-              <n-icon>
-                <DeleteForeverOutlined />
-              </n-icon>
-            </template>
-            Remover Lotes Selecionados
-          </n-button>
+          <n-dropdown
+            :options="deleteOptions"
+            placement="bottom-start"
+            trigger="click"
+            size="medium"
+            @select="handleDeleteOptions"
+          >
+            <n-button strong secondary>
+              <template #icon>
+                <n-icon>
+                  <MenuOutlined />
+                </n-icon>
+              </template>
+              Opções de Romoção
+            </n-button>
+          </n-dropdown>
         </n-space>
       </n-grid-item>
     </n-grid>
@@ -107,7 +115,7 @@
     <!-- Batch CRUD -->
     <AppCreateBatch v-model:modal="createBatchModal" :selectedYear="yearFilter" />
     <AppEditBatch v-model:modal="editBatchModal" :selectedBatch="selectedBatch" />
-    <AppRemoveBatch v-model:modal="removeBatchModal" :selectedBatch="selectedBatch" :multiple="multipleRemove" />
+    <AppRemoveBatch v-model:modal="removeBatchModal" :selectedBatch="selectedBatch" :option="removeOption" />
     
     <!-- Create Outflow Modal -->
     <AppCreateOutflow v-model:modal="createOutflowModal"  :selectedBatch="selectedBatch"/>
@@ -135,7 +143,7 @@ import type { DataTableRowKey } from 'naive-ui'
 import { RowData, TableColumn } from 'naive-ui/es/data-table/src/interface';
 import * as batchesUtils from '@/utils/batches'
 import { ref, computed, reactive, watch, onMounted, h } from 'vue';
-import { AssessmentOutlined, EditOutlined, DeleteForeverOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound } from '@vicons/material'
+import { AssessmentOutlined, EditOutlined, MoreVertOutlined, PlusOutlined, UploadFileOutlined, HourglassBottomRound, MenuOutlined, DeleteOutlined } from '@vicons/material'
 import { TruckDelivery } from '@vicons/tabler';
 import AppBatchDetails from '@/components/batch/AppBatchDetails.vue';
 import AppCreateOutflow from '@/components/outflow/AppCreateOutflow.vue';
@@ -154,11 +162,13 @@ type Sorter = {
 };
 
 const batchDetailsModal = ref<boolean>(false);
+
 const createOutflowModal = ref<boolean>(false);
+
 const createBatchModal = ref<boolean>(false);
 const editBatchModal = ref<boolean>(false);
 const removeBatchModal = ref<boolean>(false);
-const multipleRemove = ref<boolean>(false);
+const removeOption = ref<string>('one');
 
 const globalStore = useGlobalStore()
 const { fileUploadModal } = storeToRefs(globalStore);
@@ -206,7 +216,6 @@ const filteredData = computed(() => {
   const column = columnFilter.value || 'all';
   const year = yearFilter.value || 'all';
 
-  // já evita processar se não tiver dados
   if (!dataTableBatches.value.length) return [];
 
   let result = dataTableBatches.value;
@@ -234,7 +243,6 @@ const filteredData = computed(() => {
 
 onMounted(async () => {
   loading.value = true
-  multipleRemove.value = false;
   selectedBatches.value = [];
   selectedBatch.value = null;
 
@@ -268,13 +276,13 @@ function handleCheck(rowKeys: DataTableRowKey[]) {
   selectedBatches.value = rowKeys
 }
 
-function handleRemoveSelected() {
-  if (selectedBatches.value.length === 0) {
+function handleDeleteOptions(key: string) {
+  if (key === 'multiple' && selectedBatches.value.length === 0) {
     console.warn('Nenhum lote selecionado para remover');
     return;
   }
+  removeOption.value = key;
   removeBatchModal.value = true;
-  multipleRemove.value = true;
 }
 
 function handleSearch(searchTerm: string) {
@@ -554,7 +562,7 @@ function createColumns() {
                   key: 'delete',
                   icon: () => h(NIcon, {
                     color: 'red'
-                  }, { default: () => h(DeleteForeverOutlined) })
+                  }, { default: () => h(DeleteOutlined) })
                 }
               ],
               onSelect: (key: string) => {
@@ -583,6 +591,28 @@ function createColumns() {
     }
   ]
 }
+
+const deleteOptions = computed(() => [
+  {
+    label: 'Remover Selecionados',
+    icon() {
+      return h(NIcon, { color: 'red' }, { default: () => h(DeleteOutlined) })
+    },
+    disabled: selectedBatches.value.length === 0,
+    key: 'multiple'
+  },
+  {
+    type: 'divider',
+    key: 'd1'
+  },
+  {
+    label: 'Remover Todos',
+    icon() {
+      return h(NIcon, { color: 'red' }, { default: () => h(DeleteOutlined) })
+    },
+    key: 'all'
+  },
+])
 
 </script>
 
