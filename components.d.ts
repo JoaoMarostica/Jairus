@@ -24,8 +24,6 @@ declare module 'vue' {
     AppRemoveOutflow: typeof import('./src/components/outflow/AppRemoveOutflow.vue')['default']
     AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     AppToolbar: typeof import('./src/components/AppToolbar.vue')['default']
-    NFloatButton: typeof import('naive-ui')['NFloatButton']
-    NSpin: typeof import('naive-ui')['NSpin']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
