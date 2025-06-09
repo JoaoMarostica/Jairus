@@ -19,17 +19,18 @@
       <n-flex>
         <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
           <template #trigger>
-            <n-button @click="generateReportPDF">
+            <n-button @click="generateReportPDF" :disabled="selectedBatches.length === 0">
               <template #icon>
                 <n-icon><DocumentPdf /></n-icon>
               </template>
             </n-button>
           </template>
-          Gerar Relatório em PDF
+          <div v-if="selectedBatches.length === 0">Selecione os Lotes Desejados</div>
+          <div v-else>Gerar Relatório em PDF</div>
         </n-tooltip>
         <n-tooltip placement="bottom" trigger="hover" :disabled="batches.length === 0">
           <template #trigger>
-            <n-button @click="fileUploadModal = true" :disabled="batches.length === 0 || selectedBatches.length === 0">
+            <n-button @click="fileUploadModal = true" :disabled="batches.length === 0">
               <template #icon>
                 <n-icon><UploadFileOutlined /></n-icon>
               </template>

@@ -1,7 +1,7 @@
 <template>
   <n-modal
     v-model:show="createOutflowModal"
-    style="width: 45vw; height: 40vh;"
+    style="width: 45vw; height: 420px;"
     :mask-closable="false"
     preset="card"
     draggable
@@ -67,13 +67,13 @@
         <n-descriptions
           label-placement="top"
           :column="1"
-          title="Resumo do Lote"
+          title="Resumo do Pedido"
           size="small"
           v-if="form.usage || 
             parsePtBrNumber(totalWeight) > 0 || 
             totalPP"
         >
-          <n-descriptions-item label="Número do Lote" v-if="form.usage">
+          <n-descriptions-item label="Número do Pedido" v-if="form.usage">
             {{ form.usage }}
           </n-descriptions-item>
           <n-descriptions-item label="Quantidade de Sacos" v-if="form.sackAmount">
@@ -94,7 +94,7 @@
           Cancelar
         </n-button>
         <n-button type="primary" @click="handleSubmit">
-          Adicionar Saída
+          Adicionar Pedido
         </n-button>
       </div>
     </template>
@@ -123,8 +123,8 @@ const outflowsStore = useOutflowsStore();
 
 const modalTitle = computed(() =>
   selectedBatch.value
-    ? `Nova Saída para o lote ${selectedBatch.value.batch_number}/${String(selectedBatch.value.batch_year).slice(-2)}`
-    : 'Nova Saída'
+    ? `Novo Pedido para o lote ${selectedBatch.value.batch_number}/${String(selectedBatch.value.batch_year).slice(-2)}`
+    : 'Novo Pedido'
 )
 
 const props = defineProps<{
